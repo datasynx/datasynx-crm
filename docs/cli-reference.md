@@ -53,14 +53,24 @@ dxcrm list [--filter <query>]
 
 ## dxcrm sync
 
-Sync Gmail and transcripts for a customer.
+Sync Gmail and transcripts for a customer. Writes to `interactions.md` and indexes into LanceDB for semantic search.
 
 ```bash
-dxcrm sync <slug> [--since <YYYY-MM-DD>]
+dxcrm sync <slug>                     # Full sync (last 30 days)
+dxcrm sync <slug> --since 2026-05-01  # Only emails/files after date
+dxcrm sync <slug> --gmail             # Gmail only
+dxcrm sync <slug> --transcripts       # Transcripts only
 ```
 
 **Options:**
-- `--since <date>` — Only sync emails/transcripts after this date
+- `--since <YYYY-MM-DD>` — Only sync emails/transcripts after this date
+- `--gmail` — Gmail only (skip transcript processing)
+- `--transcripts` — Transcripts only (skip Gmail sync)
+
+**Prerequisites for Gmail:**
+- `.agentic/gmail-credentials.json` — OAuth2 credentials
+- `.agentic/gmail-token.json` — OAuth2 access token (run `dxcrm sync --setup-gmail` to generate)
+- `customers/<slug>/sources.json` — Gmail query configured
 
 ---
 

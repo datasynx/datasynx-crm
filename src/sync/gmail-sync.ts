@@ -1,6 +1,6 @@
 // src/sync/gmail-sync.ts
 import { google, type Auth } from "googleapis";
-import { appendInteraction } from "../fs/interactions-writer.js";
+import { readInteractions, appendInteraction } from "../fs/interactions-writer.js";
 
 interface SyncOptions {
   slug: string;
@@ -22,6 +22,9 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
   const listResp = await gmail.users.messages.list({ userId: "me", q, maxResults: 200 });
   const messages = listResp.data.messages ?? [];
 
+  // Read existing interactions once before the loop — avoids O(messages) file reads
+  let existingContent = await readInteractions(opts.dataDir, opts.slug);
+
   let synced = 0;
   let skipped = 0;
 
@@ -30,10 +33,7 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
 
     const source = `gmail://thread/${msg.threadId ?? msg.id}`;
 
-    // Check idempotency — skip if source already in interactions
-    const { readInteractions } = await import("../fs/interactions-writer.js");
-    const existing = await readInteractions(opts.dataDir, opts.slug);
-    if (existing.includes(source)) {
+    if (existingContent.includes(source)) {
       skipped++;
       continue;
     }
@@ -66,6 +66,9 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
       sourceRef: source,
       synced: new Date().toISOString(),
     });
+
+    // Append to in-memory string so within-batch duplicates are detected
+    existingContent += source;
 
     // Index into LanceDB for semantic search (non-blocking — don't fail sync if this fails)
     const { indexInLanceDB } = await import("../core/lancedb.js");
