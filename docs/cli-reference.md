@@ -143,9 +143,43 @@ dxcrm daemon status   # Check if running + PID
 
 ---
 
+## dxcrm status
+
+Show overall CRM health: daemon state, sync ages, customer count, unmatched transcripts.
+
+```bash
+dxcrm status                  # Summary view
+dxcrm status --unmatched      # List unmatched transcript queue
+```
+
+**Options:**
+- `--unmatched` — List all entries in the unmatched-transcripts queue
+
+**Output example:**
+```
+─────────────────────────────────────
+ DatasynxOpenCRM Status
+─────────────────────────────────────
+ Daemon:     running (PID 12345)
+ Kunden:     3 aktiv
+ Syncs:
+   acme-corp:   Gmail vor 12 Min
+   beta-gmbh:   Gmail vor 2 Std
+   startup-ag:  noch kein Sync
+ Unmatched:   2 Transcripts (dxcrm status --unmatched)
+─────────────────────────────────────
+```
+
+---
+
 ## dxcrm backup / restore
 
 ```bash
-dxcrm backup [./backup.zip]     # Backup customers/ directory
-dxcrm restore ./backup.zip       # Restore from backup
+dxcrm backup [./backup.zip]                    # Backup customers/ directory
+dxcrm restore ./backup.zip                      # Restore from backup
+dxcrm backup schedule --every day --keep 7      # Schedule daily backups, keep last 7
+dxcrm backup schedule --status                  # Show current schedule
+dxcrm backup schedule --clear                   # Remove backup schedule
 ```
+
+**Backup schedule** is stored in `.agentic/config.json` and executed by the daemon (hourly check, runs if >1 day since last backup). Old backups are pruned automatically to keep only the last N.

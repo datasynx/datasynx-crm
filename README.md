@@ -40,7 +40,10 @@ dxcrm create "Acme Corp" --domain acme.com --email ceo@acme.com
 | `dxcrm daemon start` | Start background sync daemon |
 | `dxcrm daemon stop` | Stop daemon |
 | `dxcrm daemon status` | Check daemon status |
+| `dxcrm status` | Show daemon, sync state, customer counts |
+| `dxcrm status --unmatched` | List unmatched transcript queue |
 | `dxcrm backup [path]` | Backup customers/ directory |
+| `dxcrm backup schedule --every day --keep 7` | Schedule automatic backups |
 | `dxcrm restore <path>` | Restore from backup |
 
 ---
