@@ -12,8 +12,14 @@ export const MainFactsSchema = z.object({
   primary_contact: z.string().optional(),
   timezone: z.string().optional(),
   tags: z.array(z.string()).default([]),
-  created: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD required"),
-  updated: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD required"),
+  created: z.preprocess(
+    (v) => (v instanceof Date ? v.toISOString().slice(0, 10) : v),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD required")
+  ),
+  updated: z.preprocess(
+    (v) => (v instanceof Date ? v.toISOString().slice(0, 10) : v),
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "YYYY-MM-DD required")
+  ),
 });
 
 export type MainFacts = z.infer<typeof MainFactsSchema>;

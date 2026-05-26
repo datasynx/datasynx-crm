@@ -25,8 +25,11 @@ export async function writeMainFacts(
   facts: MainFacts
 ): Promise<void> {
   const filePath = path.join(getCustomerDir(dataDir, slug), "main_facts.md");
-  // Stringify via gray-matter: write frontmatter + empty body
-  const content = matter.stringify("", facts as Record<string, unknown>);
+  // Strip undefined values — gray-matter YAML serializer rejects them
+  const clean = Object.fromEntries(
+    Object.entries(facts as Record<string, unknown>).filter(([, v]) => v !== undefined)
+  );
+  const content = matter.stringify("", clean);
   fs.writeFileSync(filePath, content, "utf-8");
 }
 
@@ -39,7 +42,14 @@ export async function readMainFacts(dataDir: string, slug: string): Promise<Main
   // then parse the string with matter.
   const content = fs.readFileSync(filePath, "utf-8") as string;
   const raw = matter(content);
-  const result = MainFactsSchema.safeParse(raw.data);
+  // gray-matter parses YYYY-MM-DD as Date objects; coerce back to strings for Zod
+  const data = raw.data as Record<string, unknown>;
+  for (const key of ["created", "updated"] as const) {
+    if (data[key] instanceof Date) {
+      data[key] = (data[key] as Date).toISOString().slice(0, 10);
+    }
+  }
+  const result = MainFactsSchema.safeParse(data);
   if (!result.success) {
     throw new Error(
       fromZodError(result.error, {
