@@ -45,15 +45,19 @@ export async function handleLogInteraction(
     // Update last_touchpoint in main_facts.md
     const mainFactsPath = path.join(dataDir, "customers", input.slug, "main_facts.md");
     if (fs.existsSync(mainFactsPath)) {
-      const raw = matter(fs.readFileSync(mainFactsPath, "utf-8"));
-      raw.data.last_touchpoint = today;
-      // gray-matter/js-yaml quotes date-like strings; strip quotes from last_touchpoint
-      let serialized = matter.stringify(raw.content, raw.data);
-      serialized = serialized.replace(
-        /^(last_touchpoint:\s*)['"](\d{4}-\d{2}-\d{2})['"]/m,
-        "$1$2"
-      );
-      fs.writeFileSync(mainFactsPath, serialized, "utf-8");
+      try {
+        const raw = matter(fs.readFileSync(mainFactsPath, "utf-8"));
+        raw.data.last_touchpoint = today;
+        // js-yaml quotes YYYY-MM-DD strings; strip quotes to keep plain date format
+        let serialized = matter.stringify(raw.content, raw.data);
+        serialized = serialized.replace(
+          /^(last_touchpoint:\s*)['"](\d{4}-\d{2}-\d{2})['"]/m,
+          "$1$2"
+        );
+        fs.writeFileSync(mainFactsPath, serialized, "utf-8");
+      } catch {
+        // non-critical — interaction is already written
+      }
     }
 
     return {

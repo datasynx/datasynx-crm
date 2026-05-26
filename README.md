@@ -42,6 +42,10 @@ dxcrm create "Acme Corp" --domain acme.com --email ceo@acme.com
 | `dxcrm daemon status` | Check daemon status |
 | `dxcrm status` | Show daemon, sync state, customer counts |
 | `dxcrm status --unmatched` | List unmatched transcript queue |
+| `dxcrm agent spawn <slug>` | Spawn wake-triggered agent (Telegram on new email) |
+| `dxcrm agent status` | Show all configured agents |
+| `dxcrm agent remove <slug>` | Remove agent config |
+| `dxcrm import <file>` | Import from HubSpot/CSV (`--from hubspot\|csv`, `--dry-run`) |
 | `dxcrm backup [path]` | Backup customers/ directory |
 | `dxcrm backup schedule --every day --keep 7` | Schedule automatic backups |
 | `dxcrm restore <path>` | Restore from backup |

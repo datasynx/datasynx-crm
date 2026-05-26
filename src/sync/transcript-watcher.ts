@@ -2,6 +2,8 @@
 // chokidar v4 — NO glob support in watch(), use ignored as a function
 import chokidar, { type FSWatcher } from "chokidar";
 import fs from "fs";
+import path from "path";
+import matter from "gray-matter";
 
 interface WatchOptions {
   paths: string[];
@@ -40,7 +42,6 @@ export async function processTranscriptFile(
 ): Promise<void> {
   const source = `file://${filePath}`;
 
-  // Check idempotency before reading file
   const { readInteractions, appendInteraction } = await import("../fs/interactions-writer.js");
   const existing = await readInteractions(dataDir, slug);
   if (existing.includes(source)) return;
@@ -67,4 +68,60 @@ export async function processTranscriptFile(
   }).catch((err: unknown) => {
     process.stderr.write(`[transcript-watcher] LanceDB index failed: ${(err as Error).message}\n`);
   });
+}
+
+function readCustomerName(customersDir: string, slug: string): string {
+  const mainFactsPath = path.join(customersDir, slug, "main_facts.md");
+  if (!fs.existsSync(mainFactsPath)) return slug;
+  try {
+    const raw = matter(fs.readFileSync(mainFactsPath, "utf-8"));
+    return typeof raw.data["name"] === "string" ? raw.data["name"] : slug;
+  } catch {
+    return slug;
+  }
+}
+
+export async function processTranscriptFileAutoMatch(
+  filePath: string,
+  dataDir: string
+): Promise<void> {
+  const customersDir = path.join(dataDir, "customers");
+  if (!fs.existsSync(customersDir)) {
+    await recordUnmatched(dataDir, filePath, "no_customers_defined");
+    return;
+  }
+
+  const slugs = fs.readdirSync(customersDir).filter((s) => {
+    try { return fs.statSync(path.join(customersDir, s)).isDirectory(); } catch { return false; }
+  });
+
+  if (slugs.length === 0) {
+    await recordUnmatched(dataDir, filePath, "no_customers_defined");
+    return;
+  }
+
+  const content = fs.readFileSync(filePath, "utf-8");
+  const candidates = slugs.map((slug) => ({
+    slug,
+    name: readCustomerName(customersDir, slug),
+  }));
+
+  const { recognizeCustomer } = await import("../core/llm.js");
+  const match = await recognizeCustomer(content, candidates);
+
+  if (match.slug && match.confidence !== "low") {
+    await processTranscriptFile(filePath, match.slug, dataDir);
+  } else {
+    await recordUnmatched(dataDir, filePath, "no_customer_match");
+  }
+}
+
+async function recordUnmatched(
+  dataDir: string,
+  filePath: string,
+  reason: "no_customer_match" | "no_customers_defined"
+): Promise<void> {
+  const { appendUnmatched } = await import("../fs/unmatched-transcripts.js");
+  appendUnmatched(dataDir, { filePath, addedAt: new Date().toISOString(), reason });
+  process.stderr.write(`[transcript-watcher] Unmatched: ${filePath} (${reason})\n`);
 }

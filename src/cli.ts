@@ -10,6 +10,8 @@ import { syncCommand } from "./commands/sync.js";
 import { backupCommand, restoreCommand } from "./commands/backup.js";
 import { daemonCommand } from "./commands/daemon.js";
 import { statusCommand } from "./commands/status.js";
+import { agentCommand } from "./commands/agent.js";
+import { importCommand } from "./commands/import.js";
 
 const program = new Command();
 program
@@ -30,5 +32,7 @@ program.addCommand(backupCommand);
 program.addCommand(restoreCommand);
 program.addCommand(daemonCommand);
 program.addCommand(statusCommand);
+program.addCommand(agentCommand);
+program.addCommand(importCommand);
 
 await program.parseAsync(process.argv);

@@ -88,25 +88,86 @@ async function startWatcher(): Promise<void> {
     };
 
     if (sources.transcripts?.enabled && sources.transcripts.paths?.length) {
-      const { watchTranscripts, processTranscriptFile } = await import("../sync/transcript-watcher.js");
-
-      // Find which customer each transcript belongs to (heuristic: first customer)
-      const customersDir = path.join(DATA_DIR, "customers");
-      const slugs = fs.existsSync(customersDir) ? fs.readdirSync(customersDir) : [];
-      const defaultSlug = slugs[0];
-
-      if (defaultSlug) {
-        watchTranscripts({
-          paths: sources.transcripts.paths,
-          extensions: sources.transcripts.extensions ?? [".txt", ".vtt"],
-          dataDir: DATA_DIR,
-          onFile: (filePath) => processTranscriptFile(filePath, defaultSlug, DATA_DIR),
-        });
-        process.stderr.write(`[daemon] Watching transcripts for ${defaultSlug}\n`);
-      }
+      const { watchTranscripts, processTranscriptFileAutoMatch } = await import("../sync/transcript-watcher.js");
+      watchTranscripts({
+        paths: sources.transcripts.paths,
+        extensions: sources.transcripts.extensions ?? [".txt", ".vtt"],
+        dataDir: DATA_DIR,
+        onFile: (filePath) => processTranscriptFileAutoMatch(filePath, DATA_DIR),
+      });
+      process.stderr.write(`[daemon] Watching transcripts (LLM auto-match)\n`);
     }
   } catch (err) {
     process.stderr.write(`[daemon] Watcher error: ${(err as Error).message}\n`);
+  }
+}
+
+async function checkAgentWakeTriggers(): Promise<void> {
+  const agentsDir = path.join(DATA_DIR, ".agentic", "agents");
+  if (!fs.existsSync(agentsDir)) return;
+
+  const files = fs.readdirSync(agentsDir).filter((f) => f.endsWith(".agent.json"));
+
+  for (const file of files) {
+    try {
+      const config = JSON.parse(fs.readFileSync(path.join(agentsDir, file), "utf-8") as string) as {
+        slug: string;
+        channel: string;
+        wakeOn: string[];
+        lastWake: string | null;
+        telegramChatId?: string;
+      };
+
+      if (!config.wakeOn.includes("email")) continue;
+
+      const { getLastGmailSync } = await import("../fs/sync-state.js");
+      const lastSync = getLastGmailSync(DATA_DIR, config.slug);
+      const lastWake = config.lastWake ? new Date(config.lastWake) : null;
+
+      if (!lastSync) continue;
+      if (lastWake && lastSync <= lastWake) continue;
+
+      // New email since last wake — build context and send notification
+      process.stderr.write(`[daemon] Wake trigger: ${config.slug}\n`);
+
+      const { buildContext } = await import("../core/context-builder.js");
+      const context = await buildContext(DATA_DIR, config.slug).catch(() => null);
+      if (!context) continue;
+
+      if (
+        config.channel === "telegram" &&
+        process.env["TELEGRAM_BOT_TOKEN"] &&
+        (config.telegramChatId ?? process.env["TELEGRAM_CHAT_ID"])
+      ) {
+        const chatId = config.telegramChatId ?? process.env["TELEGRAM_CHAT_ID"]!;
+        const token = process.env["TELEGRAM_BOT_TOKEN"];
+        const message = `📬 New activity: *${config.slug}*\n\n${context.slice(0, 800)}`;
+
+        try {
+          const { default: https } = await import("https");
+          const body = JSON.stringify({ chat_id: chatId, text: message, parse_mode: "Markdown" });
+          await new Promise<void>((resolve, reject) => {
+            const req = https.request(
+              `https://api.telegram.org/bot${token}/sendMessage`,
+              { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
+              (res) => { res.resume(); resolve(); }
+            );
+            req.on("error", reject);
+            req.write(body);
+            req.end();
+          });
+          process.stderr.write(`[daemon] Telegram sent for ${config.slug}\n`);
+        } catch (err) {
+          process.stderr.write(`[daemon] Telegram failed: ${(err as Error).message}\n`);
+        }
+      }
+
+      // Update lastWake
+      config.lastWake = new Date().toISOString();
+      fs.writeFileSync(path.join(agentsDir, file), JSON.stringify(config, null, 2), "utf-8");
+    } catch (err) {
+      process.stderr.write(`[daemon] Agent check error ${file}: ${(err as Error).message}\n`);
+    }
   }
 }
 
@@ -115,6 +176,9 @@ new CronJob(
   "*/30 * * * *",
   async () => {
     await syncAllCustomers();
+    await checkAgentWakeTriggers().catch((err: unknown) => {
+      process.stderr.write(`[daemon] Wake trigger check failed: ${(err as Error).message}\n`);
+    });
   },
   null,
   true,

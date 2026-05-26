@@ -102,4 +102,34 @@ Customer data lives in \`customers/<slug>/\`:
 ## Response Format
 
 Always cite sources (gmail://thread/... or file://...) when available.
+
+## CLI Reference (Phase 2)
+
+### dxcrm status
+Show daemon status, customer count, sync ages, and unmatched transcript queue.
+\`\`\`
+dxcrm status
+dxcrm status --unmatched   # list full unmatched transcript queue
+\`\`\`
+
+### dxcrm agent spawn <slug>
+Spawn a wake-triggered agent for a customer. Sends Telegram notifications on new email.
+\`\`\`
+dxcrm agent spawn acme-corp --channel telegram
+dxcrm agent spawn acme-corp --channel telegram --chat-id 12345
+dxcrm agent status
+dxcrm agent remove acme-corp
+\`\`\`
+Requires: \`TELEGRAM_BOT_TOKEN\` + \`TELEGRAM_CHAT_ID\` env vars.
+
+### dxcrm import <path>
+Import customers and interactions from HubSpot or generic CSV export.
+\`\`\`
+dxcrm import contacts.csv --from csv
+dxcrm import hubspot-export.csv --from hubspot
+dxcrm import hubspot-export.csv --from hubspot --dry-run
+\`\`\`
+- Two-pass: creates customers first, then imports activities
+- Idempotent: re-running skips already-imported rows
+- sourceRef format: \`hubspot://activity/<id>\` or \`csv://row/<hash>\`
 `.trim();

@@ -172,6 +172,59 @@ dxcrm status --unmatched      # List unmatched transcript queue
 
 ---
 
+## dxcrm agent
+
+Manage per-customer wake-triggered agents. On new email activity, the daemon sends a Telegram notification with customer context.
+
+```bash
+dxcrm agent spawn acme-corp --channel telegram          # Spawn agent (default: wake on email)
+dxcrm agent spawn acme-corp --channel telegram --chat-id 12345   # With custom chat ID
+dxcrm agent status                                       # List all agents + last wake time
+dxcrm agent remove acme-corp                             # Remove agent config
+```
+
+**Options (spawn):**
+- `--channel <channel>` — Notification channel (`telegram`). Default: `telegram`
+- `--chat-id <id>` — Telegram chat ID override (falls back to `TELEGRAM_CHAT_ID` env var)
+- `--wake-on-email` — Wake on new email activity (default: on)
+
+**Environment variables:**
+- `TELEGRAM_BOT_TOKEN` — Required for Telegram notifications
+- `TELEGRAM_CHAT_ID` — Default chat ID (can be overridden per agent with `--chat-id`)
+
+**Agent config** stored in `.agentic/agents/<slug>.agent.json`.
+
+---
+
+## dxcrm import
+
+Import customers and interactions from HubSpot or generic CSV exports. Two-pass: creates customers first, then imports activities. Idempotent — re-running skips already-imported rows.
+
+```bash
+dxcrm import contacts.csv --from csv                    # Import generic CSV
+dxcrm import hubspot-export.csv --from hubspot           # Import HubSpot export
+dxcrm import hubspot-export.csv --from hubspot --dry-run # Preview field mapping
+```
+
+**Options:**
+- `--from <source>` — Source format: `hubspot` | `csv`. Default: `csv`
+- `--dry-run` — Preview what would be imported without writing
+
+**Field mapping (HubSpot):**
+- `Company Name` → customer name
+- `Email` → contact email
+- `Domain/Website` → domain
+- `Notes` / `Description` → interaction summary
+- `Activity Type` → interaction type (Call/Email/Meeting/Note)
+- `Activity Date` → interaction date
+- `Record ID` → source reference ID
+
+**sourceRef format:**
+- HubSpot: `hubspot://activity/<Record ID>`
+- CSV: `csv://row/<sha256-of-row>`
+
+---
+
 ## dxcrm backup / restore
 
 ```bash

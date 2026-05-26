@@ -2,6 +2,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import { initOAuthFromDisk } from "../core/oauth-store.js";
 import { registerGetCapabilities } from "./tools/get-capabilities.js";
 import { registerGetActiveSession } from "./tools/get-active-session.js";
 import { registerGetCustomerContext } from "./tools/get-customer-context.js";
@@ -32,6 +33,7 @@ export function createMcpServer(): McpServer {
 }
 
 export async function startStdio(): Promise<void> {
+  await initOAuthFromDisk(process.cwd());
   const server = createMcpServer();
   const transport = new StdioServerTransport();
   await server.connect(transport);
@@ -40,6 +42,7 @@ export async function startStdio(): Promise<void> {
 }
 
 export async function startHttp(port = 3847): Promise<void> {
+  await initOAuthFromDisk(process.cwd());
   const { default: express } = await import("express");
   const app = express();
   app.use(express.json());

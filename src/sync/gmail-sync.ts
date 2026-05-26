@@ -55,14 +55,18 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
     const date = dateStr ? new Date(dateStr).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
     const snippet = detail.data.snippet ?? "";
 
+    // LLM summary — non-blocking fallback to raw snippet if no API key or error
+    const { summarizeEmail } = await import("../core/llm.js");
+    const emailSummary = await summarizeEmail(subject, snippet, from);
+
     await appendInteraction(opts.dataDir, opts.slug, {
       date,
       type: "Email",
       direction: detectDirection(from),
       with: from,
       subject,
-      summary: snippet.slice(0, 300),
-      nextSteps: [],
+      summary: emailSummary.summary,
+      nextSteps: emailSummary.nextSteps,
       sourceRef: source,
       synced: new Date().toISOString(),
     });
@@ -70,7 +74,7 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
     // Append to in-memory string so within-batch duplicates are detected
     existingContent += source;
 
-    // Index into LanceDB for semantic search (non-blocking — don't fail sync if this fails)
+    // Index into LanceDB for semantic search (non-blocking)
     const { indexInLanceDB } = await import("../core/lancedb.js");
     await indexInLanceDB(opts.dataDir, opts.slug, `${subject}\n${snippet}`, source, {
       date,
@@ -86,8 +90,6 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
 }
 
 function detectDirection(from: string): "inbound" | "outbound" {
-  // Heuristic: if from contains common personal indicators it may be outbound
-  // Actual detection requires knowing the user's own email
   return "inbound";
 }
 

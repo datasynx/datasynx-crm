@@ -9,6 +9,36 @@ import { getGmailAuth } from "../../core/oauth-store.js";
 
 const DATA_DIR = process.cwd();
 
+function triggerOnQuerySync(dataDir: string, slug: string): void {
+  const auth = getGmailAuth();
+  if (!auth) return;
+
+  const lastSync = getLastGmailSync(dataDir, slug);
+  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+  if (lastSync && lastSync >= thirtyMinAgo) return;
+
+  const sourcesPath = path.join(dataDir, "customers", slug, "sources.json");
+  if (!fs.existsSync(sourcesPath)) return;
+
+  try {
+    const sources = JSON.parse(fs.readFileSync(sourcesPath, "utf-8") as string) as {
+      gmail?: { query?: string; enabled?: boolean };
+    };
+    if (!sources.gmail?.enabled || !sources.gmail.query) return;
+
+    const query = sources.gmail.query;
+    void import("../../sync/gmail-sync.js")
+      .then(({ syncGmail }) =>
+        syncGmail({ slug, dataDir, auth, query })
+          .then(() => updateSlugSyncState(dataDir, slug, { lastGmailSync: new Date().toISOString() }))
+          .catch(() => {})
+      )
+      .catch(() => {});
+  } catch {
+    // non-critical
+  }
+}
+
 export async function handleGetCustomerContext(
   input: { slug?: string },
   dataDir: string = DATA_DIR
@@ -30,34 +60,8 @@ export async function handleGetCustomerContext(
     };
   }
 
-  // Fire-and-forget On-Query-Sync
-  const auth = getGmailAuth();
-  if (auth) {
-    const lastSync = getLastGmailSync(dataDir, targetSlug);
-    const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
-    if (!lastSync || lastSync < thirtyMinAgo) {
-      const sourcesPath = path.join(dataDir, "customers", targetSlug, "sources.json");
-      if (fs.existsSync(sourcesPath)) {
-        try {
-          const sources = JSON.parse(fs.readFileSync(sourcesPath, "utf-8")) as {
-            gmail?: { query?: string; enabled?: boolean };
-          };
-          if (sources.gmail?.enabled && sources.gmail.query) {
-            const { syncGmail } = await import("../../sync/gmail-sync.js");
-            void syncGmail({ slug: targetSlug, dataDir, auth, query: sources.gmail.query })
-              .then(() =>
-                updateSlugSyncState(dataDir, targetSlug, {
-                  lastGmailSync: new Date().toISOString(),
-                })
-              )
-              .catch(() => {});
-          }
-        } catch {
-          // non-critical
-        }
-      }
-    }
-  }
+  // Fire-and-forget on-query sync — does not block context return
+  triggerOnQuerySync(dataDir, targetSlug);
 
   try {
     const context = await buildContext(dataDir, targetSlug);
@@ -84,6 +88,7 @@ export function registerGetCustomerContext(server: McpServer): void {
       title: "Get Customer Context",
       description: `Returns a complete, LLM-ready context block for a customer.
 Use this before any customer-related conversation or action.
+Automatically triggers a background Gmail sync if last sync was >30 minutes ago.
 
 Args:
   slug: Customer ID (e.g. "acme-corp"). Leave empty to use active session customer.

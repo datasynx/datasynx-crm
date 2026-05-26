@@ -1,6 +1,6 @@
 # DatasynxOpenCRM — Phase 2 Kickoff-Guide
 **Titel:** Das Flywheel · **Wochen 5–8**
-**Erstellt:** 2026-05-26 · **Basis:** Phase 1 vollständig abgeschlossen ✅
+**Erstellt:** 2026-05-26 · **Revidiert:** 2026-05-26 · **Basis:** Phase 1 vollständig abgeschlossen ✅
 
 > Dieses Dokument ist kein Spec (das bleibt `plan.md`). Es ist der technische Wissenstransfer
 > aus Phase 1 — was gelernt wurde, was uns überraschte, und was Phase 2 wirklich braucht.
@@ -21,7 +21,7 @@
 | Build-Output | ESM-only (kein CJS) |
 | Embedding-Modell | `all-MiniLM-L6-v2` — 384-dim Float32, ~25 MB |
 | LanceDB-Schema | Float32-Vector + source_ref BTree-Index, mergeInsert-Upsert |
-| Daemon-Interval | 30 Min (nicht 15 wie geplant — Gmail-Quota) |
+| Daemon-Interval | 30 Min (nicht 15 wie geplant — Gmail Dev-App Quota bis zur Google-Verifizierung) |
 
 ---
 
@@ -36,11 +36,11 @@ Diese Entscheidungen wurden unter Realitätsdruck getroffen. Sie gelten als stab
 | `chalk` | `ansis` | Leichter, ESM-first, kein globaler State |
 | `@xenova/transformers` | `@huggingface/transformers` v3.8.1 | @xenova ist deprecated, HuggingFace ist der offizielle Nachfolger |
 | `format: ["esm", "cjs"]` | `format: ["esm"]` | Top-level `await` in `cli.ts` und `daemon/worker.ts` inkompatibel mit CJS |
-| 15-Min-Daemon | 30-Min-Daemon | Gmail Daily Quota — 250 Units/Tag reichen für ~8 Sync-Zyklen mit 30 Min |
+| 15-Min-Daemon | 30-Min-Daemon | Gmail Dev-App: 250 Units/Tag. Nach Google OAuth-Verifizierung: 1 Mrd Units/Tag → kann auf 10 Min reduziert werden |
 | `instructions` in McpServer() | Instructions in Tool-Descriptions | MCP SDK v1.x hat kein `instructions`-Feld im Konstruktor |
 | `server.tool()` | `server.registerTool()` | `server.tool()` ist deprecated ab MCP SDK v1.0 |
-| LLM-basierte E-Mail-Extraktion | Header + Snippet direkt | Noch offen für Phase 2 |
-| LLM-Kundenerkennung in Transcripts | Default-Kunde (erster in `customers/`) | Noch offen für Phase 2 |
+| LLM-basierte E-Mail-Extraktion | Header + Snippet direkt | War Phase 1-Shortcut — LLM-Summary kommt in Phase 2 Woche 6 |
+| LLM-Kundenerkennung in Transcripts | Default-Kunde (erster in `customers/`) | War Phase 1-Shortcut — LLM-Erkennung kommt in Phase 2 Woche 6 |
 | `ContextBlock`-Objekt | `string` (Markdown) | Ausreichend für Phase 1 — strukturiertes Output in Phase 2 optional |
 
 ---
@@ -59,7 +59,7 @@ new McpServer({ name: "...", version: "..." })
 server.registerTool("name", { title, description, inputSchema }, handler)
 ```
 
-### 3.2 gray-matter: NIEMALS `matter.read()` in Tests verwenden
+### 3.2 gray-matter: NIEMALS `matter.read()` verwenden
 
 `matter.read(path)` liest die Datei direkt mit dem echten `fs` — bypassed memfs vollständig.
 
@@ -70,27 +70,28 @@ const raw = matter.read(filePath);
 // KORREKT:
 const content = fs.readFileSync(filePath, "utf-8");
 const raw = matter(content);
+
+// KORREKT für Frontmatter-Update:
+const raw = matter(fs.readFileSync(mainFactsPath, "utf-8"));
+raw.data.last_touchpoint = today;
+fs.writeFileSync(mainFactsPath, matter.stringify(raw.content, raw.data), "utf-8");
 ```
 
 ### 3.3 LanceDB v0.29+ — Korrekte API
 
 ```typescript
-// Import:
 import * as lancedb from "@lancedb/lancedb";
 import { Index, makeArrowTable } from "@lancedb/lancedb";
 import { Schema, Field, FixedSizeList, Float32 as ArrowFloat32, Utf8 } from "apache-arrow";
 
 // Upsert-Pattern:
-await table
-  .mergeInsert("source_ref")
+await table.mergeInsert("source_ref")
   .whenMatchedUpdateAll()
   .whenNotMatchedInsertAll()
   .execute(data);
 
 // BTree-Index (für scalar fields):
 await table.createIndex("source_ref", { config: Index.btree() });
-
-// Kein ANN-Index auf Textfeldern — nur auf vector-Spalte automatisch
 ```
 
 ### 3.4 @huggingface/transformers v3.8.1 — Singleton-Pattern
@@ -104,7 +105,7 @@ class EmbeddingPipeline {
   private static instance: Promise<FeatureExtractionPipeline> | null = null;
   static get(): Promise<FeatureExtractionPipeline> {
     if (!this.instance) {
-      // process.stdout.write("Loading embedding model (first time, ~25MB)...\n");
+      process.stdout.write("Loading embedding model (first time, ~25MB)...\n");
       this.instance = pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2") as Promise<...>;
     }
     return this.instance;
@@ -113,12 +114,14 @@ class EmbeddingPipeline {
 }
 ```
 
-**Wichtig:** In Tests `resetEmbeddingPipeline()` in `beforeEach` aufrufen UND `vi.clearAllMocks()` — in dieser Reihenfolge.
+**Wichtig in Tests:** `resetEmbeddingPipeline()` in `beforeEach` aufrufen UND `vi.clearAllMocks()`.
+**Wichtig allgemein:** Lokale Module mit dynamischen Imports (`await import("../core/lancedb.js")`)
+immer direkt im Test mocken — nicht nur die npm-Abhängigkeiten in setup.ts.
 
 ### 3.5 chokidar v4 — Keine Glob-Strings
 
 ```typescript
-// FALSCH (chokidar v4 ignoriert Glob in ignored):
+// FALSCH:
 ignored: "**/*.mp3"
 
 // KORREKT:
@@ -134,233 +137,243 @@ ignored: (p: string, stats?: fs.Stats) => {
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 
-// sessionIdGenerator: undefined ist FALSCH mit exactOptionalPropertyTypes
-// → Property einfach weglassen:
+// sessionIdGenerator: undefined ist FALSCH mit exactOptionalPropertyTypes → weglassen:
 const transport = new StreamableHTTPServerTransport({ enableJsonResponse: true });
-
-// Transport-Type-Inkompatibilität:
 await server.connect(transport as unknown as Transport);
 ```
 
-### 3.7 Vitest + dynamische Imports — Mock-Propagation
+### 3.7 cron — 5-stelliges Pattern (Minuten)
 
-Wenn eine Source-Datei einen dynamischen `await import("../andere/datei.js")` macht, und
-`andere/datei.js` wiederum npm-Packages importiert, kann der `vi.mock("npm-package")` aus
-`setup.ts` in dieser Kette NICHT zuverlässig angewendet werden.
-
-**Symptom:** Test timeout weil das echte Modell geladen wird (~1.2s), unter Last >5s.
-
-**Lösung:** Das lokale Modul direkt mocken im Test:
 ```typescript
-vi.mock("../../src/core/lancedb.js", () => ({
-  indexInLanceDB: vi.fn().mockResolvedValue(undefined),
-  searchKnowledge: vi.fn().mockResolvedValue([]),
-  resetConnection: vi.fn(),
-}));
+new CronJob("*/30 * * * *", callback)  // alle 30 Minuten
+new CronJob("0 2 * * *", callback)     // täglich um 02:00
 ```
 
-**Regel:** Lokale Module mit dynamischen Imports → immer direkt mocken, nicht nur Abhängigkeiten.
-
-### 3.8 cron — 5-stelliges Pattern
+### 3.8 Daemon-Spawn — Process detachment
 
 ```typescript
-// FALSCH (6-stellig = Sekunden — node-cron versteht es, verhält sich aber anders):
-new CronJob("*/15 * * * * *", callback)
-
-// KORREKT (5-stellig = Minuten):
-new CronJob("*/30 * * * *", callback)
+const child = spawn("node", [workerPath], { detached: true, stdio: "ignore" });
+child.unref(); // kritisch — parent bleibt sonst offen
 ```
 
-### 3.9 Daemon-Spawn — Process detachment
+### 3.9 exactOptionalPropertyTypes — TypeScript strict
 
 ```typescript
-// FALSCH — parent-Process bleibt offen:
-spawn("node", [workerPath], { detached: true });
+// FALSCH: { sessionIdGenerator: undefined }
+// KORREKT: { ...(value !== undefined ? { key: value } : {}) }
+```
 
-// KORREKT:
-const child = spawn("node", [workerPath], {
-  detached: true,
-  stdio: "ignore",  // kritisch
+### 3.10 Anthropic SDK — Prompt Caching
+
+Prompt Caching ist ab ~1024 Tokens rentabel. System-Prompts als `cache_control: { type: "ephemeral" }` markieren.
+Response-Typ bei `stream: false`: `message.content[0].type === "text"` → `message.content[0].text`.
+
+```typescript
+const message = await client.messages.create({
+  model: "claude-haiku-4-5-20251001",
+  max_tokens: 200,
+  system: [{ type: "text", text: SYSTEM_PROMPT, cache_control: { type: "ephemeral" } }],
+  messages: [{ role: "user", content: userPrompt }],
 });
-child.unref();      // kritisch
-```
-
-### 3.10 exactOptionalPropertyTypes — TypeScript strict
-
-Mit `exactOptionalPropertyTypes: true` (aktiviert in tsconfig) ist folgendes FALSCH:
-```typescript
-// FALSCH:
-{ sessionIdGenerator: undefined }
-
-// KORREKT — Property weglassen:
-{}
-// oder conditional spread:
-{ ...(value !== undefined ? { key: value } : {}) }
+const text = message.content[0]?.type === "text" ? message.content[0].text : "";
 ```
 
 ---
 
-## 4 — Offene Punkte aus Phase 1 (In Phase 2 umsetzen)
+## 4 — Offene Punkte aus Phase 1 → Phase 2
 
 ### Priorität 1 — Kritisch für Flywheel
 
 | Feature | Datei | Beschreibung |
 |---|---|---|
-| `last_touchpoint` Update | `src/mcp/tools/log-interaction.ts` | Nach `appendInteraction()` → `last_touchpoint: date` in `main_facts.md` Frontmatter schreiben |
-| On-Query-Sync | `src/mcp/tools/get-customer-context.ts` | Wenn letzter Sync >30 Min: `syncGmail()` nicht-blockierend triggern bevor Context zurückgegeben wird |
-| LLM-E-Mail-Zusammenfassung | `src/sync/gmail-sync.ts` | Statt Header+Snippet → LLM (claude-haiku) für 2-Satz-Summary |
-| LLM-Kundenerkennung | `src/sync/transcript-watcher.ts` | Transcript → LLM → Customer-Slug (statt Default-Kunde) |
+| `last_touchpoint` Update | `src/mcp/tools/log-interaction.ts` | Nach `appendInteraction()` → `matter.stringify` schreibt `last_touchpoint: date` in `main_facts.md` |
+| sync-state Persistence | `src/fs/sync-state.ts` (neu) | `.agentic/sync-state.json` — per-Slug Gmail/Calendar Timestamps. Voraussetzung für On-Query-Sync |
+| On-Query-Sync | `src/mcp/tools/get-customer-context.ts` | Wenn letzter Sync >30 Min UND OAuth verfügbar: `syncGmail()` fire-and-forget. OAuth via `src/core/oauth-store.ts` |
+| LLM-E-Mail-Zusammenfassung | `src/sync/gmail-sync.ts` | Strukturiertes Output: `{ summary, sentiment, nextSteps }` — Fallback ohne API-Key |
+| LLM-Kundenerkennung | `src/sync/transcript-watcher.ts` | LLM wählt Slug aus Kandidaten. Kein Match → `.agentic/unmatched-transcripts.json` |
 
 ### Priorität 2 — Stabilität
 
-| Feature | Beschreibung |
-|---|---|
-| `.agentic/unmatched-transcripts.json` | Nicht erkannte Transcripts sammeln, `dxcrm status` daily summary |
-| Daemon-Robustheit | Gmail Rate-Limit-Backoff (exponentiell), max 50 Kunden pro Zyklus, Auto-Restart via PID-Check |
-| `dxcrm backup schedule --every day --keep 7` | Cron-Job im Daemon + Rolling-Delete |
+| Feature | Datei | Beschreibung |
+|---|---|---|
+| `.agentic/unmatched-transcripts.json` | `src/fs/unmatched-transcripts.ts` (neu) | Append-only Queue; `dxcrm status --unmatched` |
+| Daemon Rate-Limit-Handling | `src/daemon/worker.ts` | Exponentieller Backoff bei 429; max 50 Kunden/Zyklus; sync-state Update nach jedem Kunden |
+| `dxcrm backup schedule` | `src/commands/backup.ts` | `--every day --keep 7` → `.agentic/config.json`; Daemon führt Rolling-Delete durch |
+| `dxcrm status` | `src/commands/status.ts` (neu) | Daemon + Sync-Alter + Kunden-Counts + Unmatched |
 
 ### Priorität 3 — Phase 2 Core
 
-| Feature | Beschreibung |
-|---|---|
-| `dxcrm agent spawn acme-corp --channel telegram --wake-on-email` | Per-Customer Agent Config + Wake-Trigger |
-| `dxcrm import --from hubspot ./export/` | LLM-gestütztes Feld-Mapping |
+| Feature | Datei | Beschreibung |
+|---|---|---|
+| `dxcrm agent spawn` | `src/commands/agent.ts` (neu) | Per-Customer Agent Config; Wake-Trigger im Daemon |
+| `dxcrm import` | `src/commands/import.ts` (neu) | HubSpot CSV + generic CSV; Zwei-Pass; LLM-Feld-Mapping |
 
 ---
 
-## 5 — Phase 2 Architektur-Entscheidungen (Jetzt treffen, nicht später)
+## 5 — Phase 2 Architektur-Entscheidungen
 
-### 5.1 `last_touchpoint` schreiben ohne YAML-Corruption
+### 5.1 sync-state.json — Schema (definiert, nicht verhandelbar)
 
-Das Frontmatter in `main_facts.md` wird von `gray-matter` gelesen. Um es zu schreiben, MUSS man
-`matter.stringify(content, data)` verwenden — NICHT manuell in den String eingreifen.
-
-```typescript
-import matter from "gray-matter";
-import fs from "fs";
-
-async function updateLastTouchpoint(mainFactsPath: string, date: string): Promise<void> {
-  const raw = matter(fs.readFileSync(mainFactsPath, "utf-8"));
-  raw.data.last_touchpoint = date;
-  fs.writeFileSync(mainFactsPath, matter.stringify(raw.content, raw.data), "utf-8");
+```
+.agentic/sync-state.json
+{
+  "acme-corp": { "lastGmailSync": "2026-05-26T07:30:00Z", "lastCalendarSync": "..." },
+  "beta-gmbh":  { "lastGmailSync": "2026-05-26T07:31:00Z" }
 }
 ```
 
-### 5.2 On-Query-Sync — Non-blocking Pattern
+Utilities in `src/fs/sync-state.ts`: `readSyncState`, `writeSyncState`, `updateSlugSyncState`, `getLastGmailSync`.
+
+### 5.2 OAuth-Credentials im MCP-Kontext — Singleton-Pattern
+
+Der MCP-Server lädt beim Start Credentials aus `.agentic/`:
+```typescript
+// src/core/oauth-store.ts
+let _auth: Auth.OAuth2Client | null = null;
+export async function initOAuthFromDisk(dataDir: string): Promise<boolean>
+export function getGmailAuth(): Auth.OAuth2Client | null
+export function resetOAuthStore(): void
+```
+
+In `src/mcp/server.ts` → `createMcpServer()`: `await initOAuthFromDisk(dataDir)` aufrufen.
+Kein IPC. Kein direktes Credential-Passing an MCP-Tools.
+
+### 5.3 On-Query-Sync — Non-blocking Pattern
 
 ```typescript
 // In get_customer_context tool:
-const lastSync = getLastSyncTimestamp(slug);
-const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
-
-if (!lastSync || lastSync < thirtyMinAgo) {
-  // Fire-and-forget: nicht awaiten
-  syncGmail({ slug, dataDir, auth, query }).catch(() => {});
+const auth = getGmailAuth();
+if (auth) {
+  const lastSync = getLastGmailSync(dataDir, targetSlug);
+  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000);
+  if (!lastSync || lastSync < thirtyMinAgo) {
+    // Fire-and-forget — NICHT awaiten
+    void syncGmail({ slug: targetSlug, dataDir, auth, query })
+      .then(() => updateSlugSyncState(dataDir, targetSlug, { lastGmailSync: new Date().toISOString() }))
+      .catch(() => {});
+  }
 }
-
-// Dann Context bauen und sofort zurückgeben
+// Sofort Context bauen und zurückgeben — kein Warten auf Sync
 return buildContext(slug);
 ```
 
-### 5.3 LLM-Integration — Welches Modell, welche API
+### 5.4 LLM-Integration — Strukturierter Output mit Fallback
 
-Für Phase 2-LLM-Features: **claude-haiku-4-5** via Anthropic SDK.
+Für Phase 2-LLM-Features: **claude-haiku-4-5-20251001** via Anthropic SDK.
 
 ```typescript
-import Anthropic from "@anthropic-ai/sdk";
-
-const client = new Anthropic(); // liest ANTHROPIC_API_KEY aus env
-
-const summary = await client.messages.create({
-  model: "claude-haiku-4-5-20251001",
-  max_tokens: 200,
-  messages: [{
-    role: "user",
-    content: `Email Subject: ${subject}\nSnippet: ${snippet}\n\nSchreibe eine 2-Satz-Zusammenfassung auf Deutsch.`
-  }]
-});
+export interface EmailSummary {
+  summary: string;   // 2 Sätze auf Deutsch
+  sentiment: "positive" | "neutral" | "negative" | "urgent";
+  nextSteps: string[];
+}
+// Wenn kein ANTHROPIC_API_KEY: Fallback = { summary: snippet.slice(0,300), sentiment: "neutral", nextSteps: [] }
 ```
 
-**Fallback:** Wenn kein API-Key → Header+Snippet direkt (Phase 1-Verhalten).
+Prompt Caching auf System-Prompt: `cache_control: { type: "ephemeral" }`.
+Bei JSON-Parse-Fehler oder API-Error → immer Fallback, nie throw.
 
-### 5.4 Agent Spawn — Architektur-Entscheidung
+### 5.5 Agent Spawn — Architektur (einfach halten)
 
-`dxcrm agent spawn acme-corp --channel telegram` schreibt:
+`dxcrm agent spawn acme-corp --channel telegram --wake-on-email` schreibt:
 ```json
 // .agentic/agents/acme-corp.agent.json
 {
   "slug": "acme-corp",
   "channel": "telegram",
   "wakeOn": ["email"],
-  "systemPrompt": "[wird von get_customer_context() befüllt]",
+  "createdAt": "2026-05-26T...",
   "lastWake": null
 }
 ```
 
-Der Daemon (30-Min-Zyklus) prüft für jeden Agenten: neue E-Mail seit `lastWake`?
-→ Ja: Anthropic API aufrufen mit aktuellem Context → Telegram-Nachricht senden.
+Daemon (30-Min-Zyklus) liest alle `agents/*.agent.json`. Für jede neue E-Mail seit `lastWake`:
+Anthropic API → Antwort-Entwurf → Telegram senden → `lastWake` updaten.
 
-**Dependencies für Phase 2:**
-- `@anthropic-ai/sdk` — LLM-Calls
-- `node-telegram-bot-api` — Telegram-Integration (nur wenn User telegraml channel wählt)
+Phase 2 unterstützt: `--channel telegram` only (andere Channels kommen nach User-Feedback).
+Telegram-Token via `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` Env-Vars.
 
-### 5.5 Import-Command — Zwei-Pass-Architektur
+### 5.6 Import-Command — sourceRef-Format (definiert)
 
 ```
-Pass 1: Entities anlegen
-  HubSpot-CSV → LLM-Feld-Mapping → dxcrm create für jeden Kontakt
-
-Pass 2: Aktivitäten importieren  
-  HubSpot-Activities → LLM → interactions.md-Einträge (ohne Duplikat-IDs)
+hubspot://activity/<activityId>        → HubSpot-Aktivitäten
+hubspot://company/<companyId>          → HubSpot-Companies (für main_facts)
+salesforce://task/<taskId>             → Salesforce Tasks
+csv://row/<sha256-hash-of-row>         → Generic CSV (Hash für Idempotenz)
 ```
 
-Das LLM-Mapping braucht einen festen Prompt-Template pro CRM-Typ (HubSpot, Salesforce, CSV).
-Kein generisches Mapping — zu fehleranfällig.
+Import ist idempotent: zweiter Import derselben Datei = 0 neue Einträge.
+
+Zwei-Pass-Architektur:
+- Pass 1: Company/Contact-Zeilen → `dxcrm create` für jeden neuen Slug
+- Pass 2: Activity-Zeilen → `appendInteraction()` mit korrektem sourceRef
+
+### 5.7 `dxcrm status` — Output-Design
+
+```
+─────────────────────────────────────
+ DatasynxOpenCRM Status
+─────────────────────────────────────
+ Daemon:     running (PID 12345)
+ Kunden:     3 aktiv
+ Syncs:
+   acme-corp:  Gmail vor 12 Min
+   beta-gmbh:  Gmail vor 2 Std
+   startup-ag: noch kein Sync
+ Unmatched:  2 Transcripts (dxcrm status --unmatched)
+─────────────────────────────────────
+```
 
 ---
 
 ## 6 — Phase 2 Sprint-Plan (Wochen 5–8)
 
-### Woche 5 — Flywheel-Stabilisierung (Offene Phase-1-Items)
+### Woche 5 — Flywheel-Stabilisierung
 
-- [ ] `last_touchpoint` in `main_facts.md` via `log_interaction()` — gray-matter stringify
-- [ ] On-Query-Sync in `get_customer_context()` — non-blocking fire-and-forget
-- [ ] `.agentic/unmatched-transcripts.json` — Transcript-Queue + `dxcrm status` integration
-- [ ] Daemon Rate-Limit-Handling — exponentieller Backoff, max 50 Kunden/Zyklus
-- [ ] `dxcrm backup schedule --every day --keep 7`
-- [ ] Tests für alle obigen (TDD: Test zuerst)
+- [x] `src/fs/sync-state.ts` — sync-state Persistence-Layer
+- [x] `src/core/oauth-store.ts` — OAuth-Singleton für MCP
+- [x] `last_touchpoint` in `main_facts.md` via `log_interaction()` — `matter.stringify`
+- [x] On-Query-Sync in `get_customer_context()` — fire-and-forget
+- [x] `src/fs/unmatched-transcripts.ts` — Unmatched-Queue
+- [x] `dxcrm status` Command — Daemon + Sync-Alter + Unmatched
+- [x] Daemon Rate-Limit-Backoff + max 50 Kunden/Zyklus + sync-state Update
+- [x] `dxcrm backup schedule --every day --keep 7`
+- [x] Tests für alle obigen (TDD)
 
 **Erledigt wenn:** Daemon läuft 7 Tage ohne manuellen Neustart. `dxcrm status` zeigt echten Zustand.
 
 ### Woche 6 — LLM-Integration
 
-- [ ] Anthropic SDK einbinden (`@anthropic-ai/sdk`)
-- [ ] Gmail-Sync: LLM-Summary (claude-haiku) statt raw Snippet
-- [ ] Transcript-Watcher: LLM-Kundenerkennung (Slug-Matching via Kundennamen in Transcript)
-- [ ] Fallback wenn kein ANTHROPIC_API_KEY: Phase-1-Verhalten
-- [ ] Tests: LLM-Calls mocken (`vi.mock("@anthropic-ai/sdk")`)
+- [x] `@anthropic-ai/sdk` installieren
+- [x] `src/core/llm.ts` — `summarizeEmail()` + `recognizeCustomer()` mit Prompt Caching
+- [x] Gmail-Sync: LLM-Summary (strukturiert) statt raw Snippet
+- [x] Transcript-Watcher: LLM-Kundenerkennung → Unmatched bei kein Match
+- [ ] Calendar-Sync: LLM-Summary für Kalendereinträge (gleiche Pipeline)
+- [x] Fallback wenn kein `ANTHROPIC_API_KEY`
+- [x] Tests: `vi.mock("@anthropic-ai/sdk")`
 
-**Erledigt wenn:** `dxcrm sync acme-corp` → interactions.md enthält 2-Satz-Zusammenfassung statt raw Snippet.
+**Erledigt wenn:** `dxcrm sync acme-corp` → interactions.md enthält strukturierte Zusammenfassung + Sentiment.
 
-### Woche 7 — `dxcrm agent spawn`
+### Woche 7 — `dxcrm agent spawn` (Teil 1)
 
-- [ ] Agent-Config-Schema (`AgentConfig` Zod-Schema)
-- [ ] `dxcrm agent spawn <slug> --channel telegram --wake-on-email`
-- [ ] Daemon: Wake-Trigger-Check pro Agent-Config
-- [ ] Telegram-Integration (als optionale Dependency — nur wenn Channel = telegram)
-- [ ] `dxcrm agent status` — zeigt alle aktiven Agenten
+- [x] `AgentConfig` Zod-Schema
+- [x] `dxcrm agent spawn <slug> --channel telegram --wake-on-email`
+- [x] `dxcrm agent status` — zeigt alle aktiven Agenten
+- [x] Daemon: Wake-Trigger-Check pro Agent-Config
+- [ ] Anthropic API-Call für Antwort-Entwurf
 
-**Erledigt wenn:** E-Mail von acme.com → binnen 5 Min Telegram-Nachricht mit Antwort-Entwurf.
+**Erledigt wenn:** Agent-Config wird korrekt in `.agentic/agents/` gespeichert. Daemon-Zyklus erkennt Wake-Events.
 
-### Woche 8 — CRM Import + Phase 2 Complete
+### Woche 8 — Telegram + CRM Import
 
-- [ ] `dxcrm import --from hubspot ./export/` — zwei Passes, LLM-Feld-Mapping
-- [ ] `dxcrm import --from csv ./customers.csv`
-- [ ] Dry-Run-Modus: `--dry-run` zeigt was importiert würde
+- [x] Telegram-Integration (optional: nur wenn `TELEGRAM_BOT_TOKEN` gesetzt)
+- [x] `dxcrm import --from csv ./customers.csv` — zwei Passes
+- [x] `dxcrm import --from hubspot ./export/` — zwei Passes, LLM-Feld-Mapping
+- [x] `--dry-run` Modus
 - [ ] Erster externer User migriert von HubSpot
-- [ ] README und docs/ für alle Phase-2-Features aktualisiert
+- [x] README + docs/ für alle Phase-2-Features aktualisiert
 
-**Erledigt wenn:** Ein echter HubSpot-User führt `dxcrm import` aus und sein Agent beantwortet Fragen über Pre-DatasynxOpenCRM-Historie.
+**Erledigt wenn:** Ein echter HubSpot-User führt `dxcrm import` aus. Telegram-Nachricht geht raus bei E-Mail-Eingang.
 
 ---
 
@@ -375,26 +388,28 @@ Kein generisches Mapping — zu fehleranfällig.
 | Outlook / Teams | Erster Windows-Enterprise-User |
 | Windsurf/Cline-spezifische Features | Community-Requests nach 50+ Installationen |
 | Plugin-System | Stabiles V1 + 3 Community-Extension-Requests |
+| Slack-Integration | "Ich bin nicht auf Telegram" |
 
 ---
 
 ## 8 — Kritischer Pfad Phase 2
 
 ```
-[A] last_touchpoint Fix
-         ↓
-[B] On-Query-Sync
-         ↓
-[C] LLM-Summary (Gmail + Transcript)
-         ↓
-[D] dxcrm agent spawn (Wake-Trigger)
-         ↓
-[E] CRM Import (Migrationspfad)
-         ↓
-[F] Externer User migriert von HubSpot
+[0] sync-state.json Schema  ←── Voraussetzung für On-Query-Sync
+     ↓
+[A] last_touchpoint Fix ──── [B] On-Query-Sync   (parallel — beide brauchen sync-state)
+                                      ↓
+                         [C] LLM-Summary + Kundenerkennung
+                                      ↓
+                         [D] dxcrm agent spawn + Wake-Trigger
+                                      ↓
+                         [E] Telegram + CRM Import
+                                      ↓
+                         [F] Externer User migriert von HubSpot
 ```
 
-Jede Stufe entsperrt die nächste. `[F]` = Flywheel läuft.
+`[A]` und `[B]` sind nach `[0]` parallelisierbar. `[C]` braucht keines von beiden.
+`[F]` = Flywheel läuft.
 
 ---
 
@@ -409,11 +424,11 @@ Sein Agent beantwortet Fragen, die sein früheres HubSpot nicht konnte.
 
 Konkret messbar:
 - `dxcrm status` zeigt >40 Interaktionen ohne manuellen Eintrag
-- `search_customer_knowledge("Was war das letzte Meeting?")` gibt korrektes Datum + Summary
-- `dxcrm agent spawn` → Telegram-Nachricht geht raus binnen 5 Min nach E-Mail-Eingang
+- `search_customer_knowledge("Was war das letzte Meeting?")` gibt korrektes Datum + LLM-Summary
+- `dxcrm agent spawn` → Telegram-Nachricht raus binnen 5 Min nach E-Mail-Eingang
+- `dxcrm import --from hubspot` → 0 Fehler auf echten HubSpot-Exports
 
 ---
 
 *DatasynxOpenCRM Phase 2 — Das Flywheel dreht sich.*
-*Kein täglicher HubSpot-Login mehr. Kein manuelles CRM-Update.*
-*Der Agent weiß es bereits.*
+*Kein täglicher HubSpot-Login. Kein manuelles Update. Kein Rückfragen.*
