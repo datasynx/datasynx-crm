@@ -144,10 +144,9 @@ export async function syncGoogleDriveFiles(opts: DriveSyncOptions): Promise<Driv
           });
 
           // Index in LanceDB
-          await indexInLanceDB(dataDir, slug, text.slice(0, 2000), sourceRef, {
-            date: file.modifiedTime?.slice(0, 10),
-            type: "attachment",
-          });
+          const lanceOpts: { date?: string; type?: string } = { type: "attachment" };
+          if (file.modifiedTime) lanceOpts.date = file.modifiedTime.slice(0, 10);
+          await indexInLanceDB(dataDir, slug, text.slice(0, 2000), sourceRef, lanceOpts);
         } else {
           // Non-Doc file: record via appendInteraction (no binary download)
           await appendInteraction(dataDir, slug, {
