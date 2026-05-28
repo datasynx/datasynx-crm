@@ -21,6 +21,7 @@ import { stagesCommand } from "./commands/pipeline-stages.js";
 import { pluginCommand } from "./commands/plugin.js";
 import { goalCommand } from "./commands/goal.js";
 import { pushCommand } from "./commands/push.js";
+import { attachCommand } from "./commands/attach.js";
 
 const program = new Command();
 program
@@ -52,5 +53,6 @@ program.addCommand(stagesCommand);
 program.addCommand(pluginCommand);
 program.addCommand(goalCommand);
 program.addCommand(pushCommand);
+program.addCommand(attachCommand);
 
 await program.parseAsync(process.argv);

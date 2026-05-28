@@ -61,6 +61,20 @@ export async function handleExportCustomer(
   // Read pipeline
   const pipeline = await readPipeline(dataDir, input.slug);
 
+  // Read attachments list
+  const attachmentsDir = path.join(customerDir, "attachments");
+  const attachments: string[] = [];
+  if (fs.existsSync(attachmentsDir)) {
+    try {
+      const files = fs.readdirSync(attachmentsDir) as string[];
+      for (const f of files) {
+        try {
+          if (fs.statSync(path.join(attachmentsDir, f)).isFile()) attachments.push(f);
+        } catch { /* skip */ }
+      }
+    } catch { /* skip */ }
+  }
+
   if (format === "markdown") {
     const markdown = [
       `# Export: ${input.slug}`,
@@ -85,6 +99,9 @@ export async function handleExportCustomer(
             )
             .join("\n")
         : "(no deals)",
+      "",
+      `## Attachments (${attachments.length})`,
+      attachments.length > 0 ? attachments.map((f) => `- ${f}`).join("\n") : "(none)",
     ].join("\n");
 
     return {
@@ -99,6 +116,7 @@ export async function handleExportCustomer(
     mainFacts,
     interactionsCount,
     pipeline,
+    attachments,
   };
 
   return {
