@@ -209,6 +209,43 @@ new CronJob(
   true // waitForCompletion
 );
 
+// Daily push subscription renewal at 06:00
+new CronJob(
+  "0 6 * * *",
+  async () => {
+    try {
+      const { renewExpiringSubscriptions } = await import("../sync/push-manager.js");
+      const { buildGmailRenewFn } = await import("../sync/gmail-webhook-handler.js");
+      const tokenPath = path.join(DATA_DIR, ".agentic", "gmail-token.json");
+      const credPath = path.join(DATA_DIR, ".agentic", "gmail-credentials.json");
+      const { readSubscriptions } = await import("../sync/push-manager.js");
+      const subs = await readSubscriptions(DATA_DIR);
+      const gmailSubs = subs.filter((s) => s.provider === "gmail" && s.status === "active");
+      if (gmailSubs.length === 0) return;
+      if (!fs.existsSync(tokenPath) || !fs.existsSync(credPath)) return;
+      const { getGmailAuth } = await import("../sync/gmail-auth.js");
+      const auth = await getGmailAuth(credPath, tokenPath);
+      const token = (auth.credentials?.access_token) as string | undefined ?? "";
+      const result = await renewExpiringSubscriptions(DATA_DIR, buildGmailRenewFn(token, ""), 24);
+      if (result.renewed.length > 0) {
+        process.stderr.write(`[push] Renewed ${result.renewed.length} subscription(s)\n`);
+      }
+      if (result.errors.length > 0) {
+        process.stderr.write(`[push] Renewal errors: ${result.errors.join(", ")}\n`);
+      }
+    } catch (err) {
+      process.stderr.write(`[push] Renewal failed: ${(err as Error).message}\n`);
+    }
+  },
+  null,
+  true,
+  undefined,
+  null,
+  false,
+  undefined,
+  true
+);
+
 await startWatcher();
 
 // Signal ready

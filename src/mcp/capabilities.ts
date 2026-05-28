@@ -38,6 +38,8 @@ files on your machine. No cloud, no HubSpot, no per-seat pricing.
 | distill_playbook | LLM-extract playbook from won/lost deal history | rep+ |
 | pursue_goal | Set goal + get decomposed action plan (pipeline analysis) | manager+ |
 | get_goal_status | Get active goals, progress, and sub-goal breakdown | any |
+| register_push_subscription | Register real-time push subscription (Gmail/MS Graph/Slack) | admin |
+| get_push_status | Show all push subscriptions, expiry, events processed | any |
 
 ## Tool Reference
 
@@ -385,4 +387,50 @@ Returns all active goals or a specific goal by ID. Shows progress, days remainin
 get_goal_status()                         // all active goals
 get_goal_status({ goalId: "goal_abc" })  // specific goal
 \`\`\`
+
+## CLI Reference (D17 — Real-Time Push Ingestion)
+
+### dxcrm push register
+Register a push subscription so providers send events in real-time (no polling).
+\`\`\`
+dxcrm push register acme-corp --provider gmail --webhook-url https://myserver.com/webhooks/gmail --topic-name projects/x/topics/gmail-push
+dxcrm push register acme-corp --provider microsoft-graph --webhook-url https://myserver.com/webhooks/microsoft --client-state <secret>
+dxcrm push register acme-corp --provider slack --webhook-url https://myserver.com/webhooks/slack --team-id T12345
+\`\`\`
+
+### dxcrm push status
+Show all push subscriptions, expiry and events processed.
+\`\`\`
+dxcrm push status
+dxcrm push status --slug acme-corp
+dxcrm push status --provider gmail
+\`\`\`
+
+### dxcrm push revoke
+Revoke a push subscription by ID.
+\`\`\`
+dxcrm push revoke psub_1716892800_a1b2c3
+\`\`\`
+
+### dxcrm push renew
+Renew expiring push subscriptions (also runs automatically daily at 06:00).
+\`\`\`
+dxcrm push renew --all
+\`\`\`
+
+### register_push_subscription (MCP)
+Register a real-time push subscription. Admin only.
+\`\`\`
+register_push_subscription({ provider: "gmail", slug: "acme-corp", webhookUrl: "https://myserver.com/webhooks/gmail", gmailTopicName: "projects/x/topics/y" })
+\`\`\`
+Returns: { subscriptionId, provider, slug, status, expiresAt, warning? }
+
+### get_push_status (MCP)
+Show all push subscriptions with expiry and event counts.
+\`\`\`
+get_push_status()                           // all subscriptions
+get_push_status({ slug: "acme-corp" })     // filter by customer
+get_push_status({ provider: "gmail" })     // filter by provider
+\`\`\`
+Returns: { subscriptions: [...], summary: { total, active, expiringSoon, expired } }
 `.trim();

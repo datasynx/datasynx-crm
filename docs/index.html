@@ -153,6 +153,8 @@
   <a href="#mcp-distill-playbook">distill_playbook</a>
   <a href="#mcp-pursue-goal">pursue_goal</a>
   <a href="#mcp-get-goal-status">get_goal_status</a>
+  <a href="#mcp-register-push">register_push_subscription</a>
+  <a href="#mcp-get-push-status">get_push_status</a>
 
   <div class="nav-section">Integrations</div>
   <a href="#int-gmail">Gmail</a>
@@ -901,6 +903,55 @@ get_goal_status({ goalId: <span class="str">"goal_abc123"</span> })   <span clas
 <span class="comment">// Returns:</span>
 { goals: [{ id, description, target, progress, status, deadline, daysRemaining, subGoals }], activeCount, completedCount }</code></pre>
 <p><strong>CLI:</strong> <code>dxcrm goal set "..." --deadline YYYY-MM-DD</code> · <code>dxcrm goal status</code> · <code>dxcrm goal update &lt;id&gt; --progress N</code> · <code>dxcrm goal cancel &lt;id&gt;</code></p>
+</section>
+
+<section id="mcp-register-push">
+<h2>MCP Tool: register_push_subscription</h2>
+<p>Register a real-time push subscription so providers send events to dxcrm within seconds — instead of polling every 30 minutes. Supports Gmail Pub/Sub, Microsoft Graph webhooks, and Slack Events API.</p>
+<pre><code><span class="comment">// Gmail Pub/Sub</span>
+register_push_subscription({
+  provider: <span class="str">"gmail"</span>,
+  slug: <span class="str">"acme-corp"</span>,
+  webhookUrl: <span class="str">"https://myserver.com/webhooks/gmail"</span>,
+  gmailTopicName: <span class="str">"projects/my-project/topics/gmail-push"</span>
+})
+
+<span class="comment">// Microsoft Graph</span>
+register_push_subscription({
+  provider: <span class="str">"microsoft-graph"</span>,
+  slug: <span class="str">"acme-corp"</span>,
+  webhookUrl: <span class="str">"https://myserver.com/webhooks/microsoft"</span>,
+  microsoftClientState: <span class="str">"my-hmac-secret"</span>
+})
+
+<span class="comment">// Slack Events</span>
+register_push_subscription({
+  provider: <span class="str">"slack"</span>,
+  slug: <span class="str">"acme-corp"</span>,
+  webhookUrl: <span class="str">"https://myserver.com/webhooks/slack"</span>,
+  slackTeamId: <span class="str">"T12345"</span>
+})
+
+<span class="comment">// Returns:</span>
+{ subscriptionId, provider, slug, status, expiresAt, warning? }</code></pre>
+<p><strong>RBAC:</strong> admin only · <strong>Webhook endpoints:</strong> <code>POST /webhooks/gmail</code> · <code>ALL /webhooks/microsoft</code> · <code>POST /webhooks/slack</code></p>
+<p><strong>CLI:</strong> <code>dxcrm push register &lt;slug&gt; --provider gmail --webhook-url &lt;url&gt;</code></p>
+</section>
+
+<section id="mcp-get-push-status">
+<h2>MCP Tool: get_push_status</h2>
+<p>Show all active push subscriptions with expiry countdown, events processed, and renewal status.</p>
+<pre><code>get_push_status()                              <span class="comment">// all subscriptions</span>
+get_push_status({ slug: <span class="str">"acme-corp"</span> })       <span class="comment">// filter by customer</span>
+get_push_status({ provider: <span class="str">"gmail"</span> })       <span class="comment">// filter by provider</span>
+
+<span class="comment">// Returns:</span>
+{
+  subscriptions: [{ id, provider, slug, status, expiresInHours, needsRenewal, eventsProcessed }],
+  summary: { total, active, expiringSoon, expired }
+}</code></pre>
+<p><code>needsRenewal: true</code> when fewer than 24 hours until expiry. Gmail subscriptions auto-renew via daemon cron at 06:00 daily.</p>
+<p><strong>CLI:</strong> <code>dxcrm push status</code> · <code>dxcrm push revoke &lt;id&gt;</code> · <code>dxcrm push renew --all</code></p>
 </section>
 
 <hr>

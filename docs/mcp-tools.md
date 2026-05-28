@@ -782,6 +782,105 @@ get_goal_status({ "goalId": "goal_1748697600000_a3f7x2" })
 
 ---
 
+## D17 — Real-Time Push Ingestion
+
+### `register_push_subscription`
+
+Register a real-time push subscription so providers send events directly to dxcrm (no polling). Gmail Pub/Sub, Microsoft Graph webhooks, and Slack Events API are supported.
+
+**RBAC:** admin only
+
+**Input:**
+```json
+{
+  "provider": "gmail",
+  "slug": "acme-corp",
+  "webhookUrl": "https://myserver.com/webhooks/gmail",
+  "gmailTopicName": "projects/my-project/topics/gmail-push"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `provider` | `"gmail" \| "microsoft-graph" \| "slack"` | ✅ | Push provider |
+| `slug` | string | ✅ | Customer slug |
+| `webhookUrl` | string | ✅ | Public HTTPS URL for provider callbacks |
+| `gmailTopicName` | string | Gmail only | Cloud Pub/Sub topic name |
+| `microsoftClientState` | string | MS Graph | HMAC verification secret |
+| `microsoftResource` | string | MS Graph | Resource path (e.g. `/me/mailFolders/Inbox/messages`) |
+| `slackTeamId` | string | Slack | Workspace team ID |
+| `slackChannelId` | string | Slack | Optional specific channel to monitor |
+
+**Output:**
+```json
+{
+  "subscriptionId": "psub_1716892800_a1b2c3",
+  "provider": "gmail",
+  "slug": "acme-corp",
+  "status": "active",
+  "expiresAt": "2026-06-04T06:00:00.000Z",
+  "createdAt": "2026-05-28T06:00:00.000Z"
+}
+```
+
+> **Note:** Gmail subscriptions expire after 7 days, MS Graph after 3 days. The daemon auto-renews them daily at 06:00.
+
+**Webhook endpoints exposed by `dxcrm server start`:**
+- `POST /webhooks/gmail` — Gmail Pub/Sub callbacks
+- `ALL /webhooks/microsoft` — MS Graph webhooks (GET for validation handshake)
+- `POST /webhooks/slack` — Slack Events API (POST for url_verification + events)
+
+**CLI equivalent:** `dxcrm push register <slug> --provider gmail --webhook-url <url> --topic-name <topic>`
+
+---
+
+### `get_push_status`
+
+Get the status of all active push subscriptions.
+
+**RBAC:** any
+
+**Input:**
+```json
+{
+  "slug": "acme-corp",
+  "provider": "gmail"
+}
+```
+All fields are optional. Omit both to return all subscriptions.
+
+**Output:**
+```json
+{
+  "subscriptions": [
+    {
+      "id": "psub_1716892800_a1b2c3",
+      "provider": "gmail",
+      "slug": "acme-corp",
+      "status": "active",
+      "expiresAt": "2026-06-04T06:00:00.000Z",
+      "expiresInHours": 162,
+      "needsRenewal": false,
+      "lastEventAt": "2026-05-28T09:45:00.000Z",
+      "eventsProcessed": 47,
+      "webhookUrl": "https://myserver.com/webhooks/gmail"
+    }
+  ],
+  "summary": {
+    "total": 3,
+    "active": 2,
+    "expiringSoon": 0,
+    "expired": 1
+  }
+}
+```
+
+`needsRenewal: true` when `expiresInHours < 24`.
+
+**CLI equivalent:** `dxcrm push status [--slug <slug>] [--provider <provider>]`
+
+---
+
 ## Recommended Workflow
 
 ```
@@ -804,5 +903,7 @@ Playbook create:     create_playbook(slug, name, trigger, content)
 After won/lost deal: distill_playbook(slug, dealName, outcome)
 Set quarterly goal:  pursue_goal(goal, deadline)
 Check goal progress: get_goal_status()
+Enable real-time:    register_push_subscription(provider, slug, webhookUrl)
+Push sub status:     get_push_status()
 Unsure what to use:  get_capabilities()
 ```

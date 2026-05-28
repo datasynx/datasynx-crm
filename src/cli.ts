@@ -20,6 +20,7 @@ import { securityReportCommand } from "./commands/security-report.js";
 import { stagesCommand } from "./commands/pipeline-stages.js";
 import { pluginCommand } from "./commands/plugin.js";
 import { goalCommand } from "./commands/goal.js";
+import { pushCommand } from "./commands/push.js";
 
 const program = new Command();
 program
@@ -50,5 +51,6 @@ program.addCommand(securityReportCommand);
 program.addCommand(stagesCommand);
 program.addCommand(pluginCommand);
 program.addCommand(goalCommand);
+program.addCommand(pushCommand);
 
 await program.parseAsync(process.argv);

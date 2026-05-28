@@ -112,6 +112,17 @@ dxcrm create "Acme Corp" --domain acme.com --email ceo@acme.com
 | `dxcrm goal update <goalId> --progress <n>` | Update goal progress (0–100%) |
 | `dxcrm goal cancel <goalId>` | Cancel an active goal |
 
+### Push Subscriptions (Real-Time Ingestion)
+
+| Command | Description |
+|---|---|
+| `dxcrm push register <slug> --provider gmail --webhook-url <url>` | Register Gmail Pub/Sub push subscription |
+| `dxcrm push register <slug> --provider microsoft-graph --webhook-url <url>` | Register MS Graph webhook |
+| `dxcrm push register <slug> --provider slack --webhook-url <url> --team-id <id>` | Register Slack Events subscription |
+| `dxcrm push status [--slug <slug>] [--provider <p>]` | Show all subscriptions with expiry |
+| `dxcrm push revoke <id>` | Revoke a subscription |
+| `dxcrm push renew --all` | Manually renew expiring subscriptions |
+
 ### Pipeline Stages
 
 | Command | Description |
@@ -188,6 +199,8 @@ These tools are available to any AI agent connected via MCP (Claude Code, Codex,
 | `distill_playbook` | LLM-extract reusable playbook from won/lost deal history | rep+ |
 | `pursue_goal` | Set goal + decompose into prioritized deal action plan | manager+ |
 | `get_goal_status` | Get active goals, progress, and sub-goal breakdown | any |
+| `register_push_subscription` | Register real-time push subscription (Gmail/MS Graph/Slack) | admin |
+| `get_push_status` | Show push subscriptions with expiry and event counts | any |
 
 ### Tool Examples
 
@@ -267,6 +280,18 @@ pursue_goal({
 
 // Check goal progress
 get_goal_status()
+
+// Register Gmail Pub/Sub push subscription (events arrive in <60s instead of 30min polling)
+register_push_subscription({
+  "provider": "gmail",
+  "slug": "acme-corp",
+  "webhookUrl": "https://myserver.com/webhooks/gmail",
+  "gmailTopicName": "projects/my-project/topics/gmail-push"
+})
+
+// Check all active push subscriptions
+get_push_status()
+// → { subscriptions: [{ id, provider, slug, status, expiresInHours, needsRenewal, eventsProcessed }], summary: {...} }
 ```
 
 ---

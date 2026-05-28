@@ -4,6 +4,8 @@ import path from "path";
 export interface SlugSyncState {
   lastGmailSync?: string;
   lastCalendarSync?: string;
+  lastGmailPushHistoryId?: string;
+  lastMicrosoftPushAt?: string;
 }
 
 export interface SyncState {
