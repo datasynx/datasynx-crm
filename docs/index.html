@@ -127,7 +127,7 @@
   <a href="#cli-gdpr">dxcrm gdpr</a>
   <a href="#cli-backup">dxcrm backup</a>
 
-  <div class="nav-section">MCP Tools (23)</div>
+  <div class="nav-section">MCP Tools (25)</div>
   <a href="#mcp-capabilities">get_capabilities</a>
   <a href="#mcp-context">get_customer_context</a>
   <a href="#mcp-search">search_customer_knowledge</a>
@@ -151,6 +151,8 @@
   <a href="#mcp-create-playbook">create_playbook</a>
   <a href="#mcp-list-playbooks">list_playbooks</a>
   <a href="#mcp-distill-playbook">distill_playbook</a>
+  <a href="#mcp-pursue-goal">pursue_goal</a>
+  <a href="#mcp-get-goal-status">get_goal_status</a>
 
   <div class="nav-section">Integrations</div>
   <a href="#int-gmail">Gmail</a>
@@ -869,6 +871,36 @@ approve_agent_action({
   reasoning: <span class="str">"Deal won by ROI framing. Champion was CEO."</span>
 }</code></pre>
 <p><strong>Fallback successRate:</strong> <code>won</code> → 1.0, <code>lost</code> → 0.0 when LLM omits the field. Error cases: missing <code>interactions.md</code> or unparseable LLM response.</p>
+</section>
+
+<section id="mcp-pursue-goal">
+<h2>MCP Tool: pursue_goal</h2>
+<p>Set a revenue or pipeline goal and get a <strong>decomposed action plan</strong>. Analyzes current pipeline P50 (Monte Carlo, D14), calculates the gap, and ranks deals by weighted leverage (value × probability × health). Persists goal to <code>.agentic/goals.json</code>. <strong>RBAC: manager+</strong></p>
+<pre><code>pursue_goal({ goal: <span class="str">"Close €500k ARR this quarter"</span>, deadline: <span class="str">"2026-09-30"</span> })
+
+<span class="comment">// Returns:</span>
+{
+  goalId: <span class="str">"goal_1748697600000_a3f7x2"</span>,
+  target: <span class="num">500000</span>,
+  decomposition: {
+    analysis: <span class="str">"Current pipeline P50: €287k. Gap: €213k. 3 deal(s) identified."</span>,
+    currentPipeline: <span class="num">287000</span>, gap: <span class="num">213000</span>,
+    subGoals: [{ priority: <span class="num">1</span>, action: <span class="str">"Accelerate acme-corp/Enterprise License"</span>, targetDelta: <span class="num">75000</span>, nextStep: <span class="str">"..."</span> }],
+    probabilisticOutcome: <span class="str">"If all recommended deals close: ~€512k"</span>
+  }
+}</code></pre>
+<p><strong>Target parsing:</strong> <code>€500k</code> → 500000, <code>$2M</code> → 2000000, <code>€1.5 million</code> → 1500000. Goal type auto-inferred: <em>revenue</em> / <em>pipeline</em> / <em>relationship</em> / <em>churn_prevention</em>.</p>
+</section>
+
+<section id="mcp-get-goal-status">
+<h2>MCP Tool: get_goal_status</h2>
+<p>Get all active goals or a specific goal by ID. Returns progress, days remaining, and top sub-goals.</p>
+<pre><code>get_goal_status()                              <span class="comment">// all active goals</span>
+get_goal_status({ goalId: <span class="str">"goal_abc123"</span> })   <span class="comment">// specific goal</span>
+
+<span class="comment">// Returns:</span>
+{ goals: [{ id, description, target, progress, status, deadline, daysRemaining, subGoals }], activeCount, completedCount }</code></pre>
+<p><strong>CLI:</strong> <code>dxcrm goal set "..." --deadline YYYY-MM-DD</code> · <code>dxcrm goal status</code> · <code>dxcrm goal update &lt;id&gt; --progress N</code> · <code>dxcrm goal cancel &lt;id&gt;</code></p>
 </section>
 
 <hr>

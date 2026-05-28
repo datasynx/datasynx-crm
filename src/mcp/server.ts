@@ -26,6 +26,8 @@ import { registerGetPlaybook } from "./tools/get-playbook.js";
 import { registerCreatePlaybook } from "./tools/create-playbook.js";
 import { registerListPlaybooks } from "./tools/list-playbooks.js";
 import { registerDistillPlaybook } from "./tools/distill-playbook.js";
+import { registerPursueGoal } from "./tools/pursue-goal.js";
+import { registerGetGoalStatus } from "./tools/get-goal-status.js";
 
 export function createMcpServer(): McpServer {
   const server = new McpServer({
@@ -33,7 +35,7 @@ export function createMcpServer(): McpServer {
     version: "0.1.0",
   });
 
-  // Register all 23 tools
+  // Register all 25 tools
   // IMPORTANT: Use server.registerTool() — server.tool() is deprecated in v2
   registerGetCapabilities(server);
   registerGetActiveSession(server);
@@ -58,6 +60,8 @@ export function createMcpServer(): McpServer {
   registerCreatePlaybook(server);
   registerListPlaybooks(server);
   registerDistillPlaybook(server);
+  registerPursueGoal(server);
+  registerGetGoalStatus(server);
 
   return server;
 }

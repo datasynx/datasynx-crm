@@ -19,6 +19,7 @@ import { gdprCommand } from "./commands/gdpr.js";
 import { securityReportCommand } from "./commands/security-report.js";
 import { stagesCommand } from "./commands/pipeline-stages.js";
 import { pluginCommand } from "./commands/plugin.js";
+import { goalCommand } from "./commands/goal.js";
 
 const program = new Command();
 program
@@ -48,5 +49,6 @@ program.addCommand(gdprCommand);
 program.addCommand(securityReportCommand);
 program.addCommand(stagesCommand);
 program.addCommand(pluginCommand);
+program.addCommand(goalCommand);
 
 await program.parseAsync(process.argv);

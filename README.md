@@ -103,6 +103,15 @@ dxcrm create "Acme Corp" --domain acme.com --email ceo@acme.com
 | `dxcrm server status` | Check if HTTP server is running |
 | `dxcrm audit` | Show audit trail (`--slug`, `--actor`, `--limit`) |
 
+### Goals
+
+| Command | Description |
+|---|---|
+| `dxcrm goal set "<description>" --deadline <date>` | Set a goal + get decomposed action plan |
+| `dxcrm goal status` | Show all active goals with progress |
+| `dxcrm goal update <goalId> --progress <n>` | Update goal progress (0–100%) |
+| `dxcrm goal cancel <goalId>` | Cancel an active goal |
+
 ### Pipeline Stages
 
 | Command | Description |
@@ -177,6 +186,8 @@ These tools are available to any AI agent connected via MCP (Claude Code, Codex,
 | `create_playbook` | Create or update a playbook with trigger DSL | rep+ |
 | `list_playbooks` | List all playbooks for a customer | any |
 | `distill_playbook` | LLM-extract reusable playbook from won/lost deal history | rep+ |
+| `pursue_goal` | Set goal + decompose into prioritized deal action plan | manager+ |
+| `get_goal_status` | Get active goals, progress, and sub-goal breakdown | any |
 
 ### Tool Examples
 
@@ -246,6 +257,16 @@ distill_playbook({
   "dealName": "Q3 Enterprise License",
   "outcome": "won"
 })
+
+// Set a revenue goal — get decomposed action plan
+pursue_goal({
+  "goal": "Close €500k ARR this quarter",
+  "deadline": "2026-09-30",
+  "context": "Focus on existing pipeline"
+})
+
+// Check goal progress
+get_goal_status()
 ```
 
 ---

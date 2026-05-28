@@ -702,6 +702,86 @@ distill_playbook({
 
 ---
 
+### pursue_goal
+
+Set a revenue or pipeline goal and get an AI-decomposed action plan. Analyzes current pipeline P50 via Monte Carlo simulation (D14), calculates the gap, and ranks deals by weighted leverage. Persists goal to `.agentic/goals.json`. RBAC: manager+.
+
+```json
+pursue_goal({
+  "goal": "Close €500k ARR this quarter",
+  "deadline": "2026-09-30",
+  "context": "Focus on existing pipeline, no new prospecting"
+})
+
+// Output
+{
+  "goalId": "goal_1748697600000_a3f7x2",
+  "description": "Close €500k ARR this quarter",
+  "target": 500000,
+  "deadline": "2026-09-30",
+  "type": "revenue",
+  "decomposition": {
+    "analysis": "Current pipeline P50: €287k. Gap to target: €213k. Top 3 deal(s) identified.",
+    "currentPipeline": 287000,
+    "gap": 213000,
+    "subGoals": [
+      {
+        "priority": 1,
+        "action": "Accelerate acme-corp/Enterprise License",
+        "slug": "acme-corp",
+        "dealName": "Enterprise License",
+        "why": "€75k deal in negotiation — health 42/100",
+        "nextStep": "Schedule an urgent check-in call",
+        "targetDelta": 75000,
+        "playbookName": "enterprise-renewal"
+      }
+    ],
+    "probabilisticOutcome": "If all recommended deals close: ~€512k (target: €500k)."
+  }
+}
+```
+
+**Goal types auto-inferred from description:** `revenue` (close/ARR/MRR), `pipeline` (prospect/lead), `relationship` (meeting/call), `churn_prevention` (retain/renewal).
+
+**Target parsing:** supports `€500k`, `$2M`, `€1.5 million`, `500000`. Returns 0 if no number found.
+
+---
+
+### get_goal_status
+
+Get all active goals or a specific goal. Returns progress, days remaining, and top sub-goals.
+
+```json
+// All active goals
+get_goal_status()
+
+// Specific goal
+get_goal_status({ "goalId": "goal_1748697600000_a3f7x2" })
+
+// Output
+{
+  "goals": [
+    {
+      "id": "goal_1748697600000_a3f7x2",
+      "description": "Close €500k ARR this quarter",
+      "target": 500000,
+      "progress": 45,
+      "status": "active",
+      "deadline": "2026-09-30",
+      "daysRemaining": 125,
+      "subGoals": [...],
+      "createdAt": "2026-05-27T..."
+    }
+  ],
+  "activeCount": 1,
+  "completedCount": 0
+}
+```
+
+**CLI equivalent:** `dxcrm goal status` / `dxcrm goal set "..." --deadline YYYY-MM-DD` / `dxcrm goal update <id> --progress N` / `dxcrm goal cancel <id>`.
+
+---
+
 ## Recommended Workflow
 
 ```
@@ -722,5 +802,7 @@ Revenue simulation:  simulate_revenue({ horizon: "quarter" })
 Playbook lookup:     get_playbook(slug, { stage, value, daysSinceContact })
 Playbook create:     create_playbook(slug, name, trigger, content)
 After won/lost deal: distill_playbook(slug, dealName, outcome)
+Set quarterly goal:  pursue_goal(goal, deadline)
+Check goal progress: get_goal_status()
 Unsure what to use:  get_capabilities()
 ```

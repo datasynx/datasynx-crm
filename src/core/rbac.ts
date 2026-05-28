@@ -9,9 +9,9 @@ export interface RbacConfig {
 }
 
 const ALLOWED_TOOLS: Record<Role, string[]> = {
-  admin: ["log_interaction", "update_deal", "update_customer_facts", "export_customer"],
-  manager: ["log_interaction", "update_deal"],
-  rep: ["log_interaction", "update_deal"],
+  admin:   ["log_interaction", "update_deal", "update_customer_facts", "export_customer", "pursue_goal"],
+  manager: ["log_interaction", "update_deal", "pursue_goal"],
+  rep:     ["log_interaction", "update_deal"],
 };
 
 function rbacPath(dataDir: string): string {

@@ -36,6 +36,8 @@ files on your machine. No cloud, no HubSpot, no per-seat pricing.
 | create_playbook | Create or update a playbook with trigger DSL | rep+ |
 | list_playbooks | List all playbooks for a customer | any |
 | distill_playbook | LLM-extract playbook from won/lost deal history | rep+ |
+| pursue_goal | Set goal + get decomposed action plan (pipeline analysis) | manager+ |
+| get_goal_status | Get active goals, progress, and sub-goal breakdown | any |
 
 ## Tool Reference
 
@@ -342,4 +344,45 @@ dxcrm import --from salesforce --mode api --token <tok> --url https://myco.sales
 \`\`\`
 Two-pass: contacts → customers, tasks → interactions (WhoId attribution)
 sourceRef: \`salesforce://task/<id>\` | API: Salesforce REST v58.0
+
+## CLI Reference (D16 — Goal-Based Orchestration)
+
+### dxcrm goal set
+Set a goal and get a decomposed action plan based on current pipeline state.
+\`\`\`
+dxcrm goal set "Close €500k ARR this quarter" --deadline 2026-09-30
+\`\`\`
+
+### dxcrm goal status
+Show all active goals with progress bars and days remaining.
+\`\`\`
+dxcrm goal status
+\`\`\`
+
+### dxcrm goal update
+Manually update goal progress (0–100%).
+\`\`\`
+dxcrm goal update goal_abc123 --progress 45
+\`\`\`
+
+### dxcrm goal cancel
+Cancel an active goal.
+\`\`\`
+dxcrm goal cancel goal_abc123
+\`\`\`
+
+### pursue_goal (MCP)
+Sets a goal and returns a structured decomposition plan with sub-goals per deal.
+RBAC: manager+. Persists to .agentic/goals.json.
+\`\`\`
+pursue_goal({ goal: "Close €500k ARR this quarter", deadline: "2026-09-30" })
+\`\`\`
+Returns: { goalId, target, decomposition: { analysis, currentPipeline, gap, subGoals, probabilisticOutcome } }
+
+### get_goal_status (MCP)
+Returns all active goals or a specific goal by ID. Shows progress, days remaining, top sub-goals.
+\`\`\`
+get_goal_status()                         // all active goals
+get_goal_status({ goalId: "goal_abc" })  // specific goal
+\`\`\`
 `.trim();
