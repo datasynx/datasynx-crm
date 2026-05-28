@@ -1,5 +1,6 @@
 import { readGraph, getStakeholders, type MissingRole } from "./graph.js";
 import { readHealth } from "./relationship-health.js";
+import type { ExternalSignal } from "../sync/external-signals.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -99,7 +100,7 @@ export function buildStakeholderMap(
 export function buildRiskAssessment(
   people: StakeholderProfile[],
   missingRoles: MissingRole[],
-  _signals: unknown[]
+  signals: ExternalSignal[] = []
 ): string {
   const risks: string[] = [];
 
@@ -122,6 +123,11 @@ export function buildRiskAssessment(
     risks.push(
       `Low health score (<40): ${lowHealth.map((p) => p.name).join(", ")}.`
     );
+  }
+
+  const negativeSignals = signals.filter((s) => s.impact === "negative");
+  for (const sig of negativeSignals.slice(0, 2)) {
+    risks.push(`External signal: ${sig.summary}`);
   }
 
   return risks.length > 0 ? risks.join(" ") : "No critical risks detected.";

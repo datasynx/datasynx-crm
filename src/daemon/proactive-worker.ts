@@ -7,6 +7,7 @@ import path from "path";
 import { computeCustomerHealth, readHealth } from "../core/relationship-health.js";
 import { readPipeline } from "../fs/pipeline-writer.js";
 import { buildDailyBriefing, enqueueTask, type NotificationChannel } from "../core/proactive-agent.js";
+import { fetchSignalsForCustomer } from "../sync/external-signals.js";
 
 const MAX_CUSTOMERS_PER_CYCLE = 50;
 
@@ -100,6 +101,35 @@ export async function runDailyProactiveChecks(
             });
             result.tasksEnqueued++;
           }
+        }
+
+        // External signals — read domain/name from main_facts if available
+        try {
+          const factsPath = path.join(dataDir, "customers", slug, "main_facts.md");
+          if (fs.existsSync(factsPath)) {
+            const raw = fs.readFileSync(factsPath, "utf-8");
+            const domainMatch = raw.match(/^domain:\s*(.+)$/im);
+            const nameMatch = raw.match(/^name:\s*(.+)$/im);
+            const domain = domainMatch?.[1]?.trim();
+            const companyName = nameMatch?.[1]?.trim() ?? slug;
+            if (domain) {
+              const signals = await fetchSignalsForCustomer(dataDir, slug, domain, companyName, today);
+              for (const signal of signals) {
+                if (signal.impact === "neutral") continue;
+                await enqueueTask(dataDir, {
+                  type: "external_signal_alert",
+                  slug,
+                  priority: signal.impact === "negative" ? "urgent" : "high",
+                  payload: signal,
+                  scheduledFor: new Date().toISOString(),
+                  channel,
+                });
+                result.tasksEnqueued++;
+              }
+            }
+          }
+        } catch {
+          // External signals are best-effort — never block the rest of the cycle
         }
 
         result.customersChecked++;
