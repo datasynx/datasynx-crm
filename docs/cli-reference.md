@@ -544,3 +544,89 @@ dxcrm import --from hubspot --mode api \
 - Calls: `hubspot://call/<engagement-id>`
 - Emails: `hubspot://email/<engagement-id>`
 - Meetings: `hubspot://meeting/<engagement-id>`
+
+---
+
+## dxcrm sequence
+
+Manage email sequences.
+
+```bash
+dxcrm sequence list                           # List all sequences
+dxcrm sequence create <id> --name <name>      # Create sequence
+dxcrm sequence enroll <sequenceId> --slug <slug> --email <email>  # Enroll contact
+dxcrm sequence status                         # Show active enrollments
+dxcrm sequence run                            # Manually trigger daily cycle
+```
+
+---
+
+## dxcrm quote
+
+Generate and manage customer quotes.
+
+```bash
+dxcrm quote generate --slug <slug> --deal <dealName>  # Open interactive quote builder
+dxcrm quote list [--slug <slug>]                      # List all quotes
+dxcrm quote get <quoteNumber>                         # Get quote details
+```
+
+---
+
+## dxcrm ticket
+
+Manage support tickets.
+
+```bash
+dxcrm ticket list [--slug <slug>] [--status open] [--priority urgent]
+dxcrm ticket create <slug> --title <title> [--priority high] [--assignee <email>]
+dxcrm ticket update <slug> <ticketId> --status in-progress
+dxcrm ticket close <slug> <ticketId> [--resolution "Fixed in v2.1"]
+```
+
+**Priority levels:** urgent → high → normal → low
+
+**Status flow:** open → in-progress → waiting → resolved → closed
+
+---
+
+## dxcrm survey
+
+Manage NPS/CSAT surveys.
+
+```bash
+dxcrm survey create <id> [--type nps|csat|ces] [--question <q>]
+dxcrm survey send <surveyId> --slug <slug> --email <email> [--server <url>]
+dxcrm survey results <surveyId> [--slug <slug>]
+```
+
+**Example:**
+```bash
+dxcrm survey create nps-q2 --type nps
+dxcrm survey send nps-q2 --slug acme-corp --email alice@acme.com
+dxcrm survey results nps-q2
+```
+
+---
+
+## dxcrm kb
+
+Manage the knowledge base.
+
+```bash
+dxcrm kb list [--category <cat>] [--public]
+dxcrm kb get <id>
+dxcrm kb search <query> [--public]
+dxcrm kb create <id> --title <title> [--category <cat>] [--ticket <ticketId>]
+dxcrm kb delete <id>
+```
+
+**Storage:** `.agentic/knowledge-base/<category>/<id>.md` (gray-matter frontmatter + Markdown body)
+
+**Example workflow:**
+```bash
+# After closing a ticket, create a KB article
+dxcrm ticket close acme-corp T-042 --resolution "Increased rate limits"
+dxcrm kb create api-rate-limits --title "API Rate Limits FAQ" --category technical --ticket T-042
+# Edit .agentic/knowledge-base/technical/api-rate-limits.md
+```

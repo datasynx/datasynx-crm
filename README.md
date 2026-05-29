@@ -166,6 +166,51 @@ dxcrm create "Acme Corp" --domain acme.com --email ceo@acme.com
 | `dxcrm backup schedule --every day --keep 7` | Schedule automatic backups |
 | `dxcrm restore <path>` | Restore from backup |
 
+### Email Sequences (H1)
+
+| Command | Description |
+|---|---|
+| `dxcrm sequence list` | List all sequences |
+| `dxcrm sequence create <id> --name <name>` | Create a new sequence |
+| `dxcrm sequence enroll <id> --slug <slug> --email <email>` | Enroll contact |
+| `dxcrm sequence status` | Show active enrollments |
+| `dxcrm sequence run` | Manually trigger daily send cycle |
+
+### Quotes (H4)
+
+| Command | Description |
+|---|---|
+| `dxcrm quote generate --slug <slug> --deal <dealName>` | Generate HTML quote (Q-YYYY-NNN) |
+| `dxcrm quote list [--slug <slug>]` | List all quotes |
+| `dxcrm quote get <quoteNumber>` | Get quote details |
+
+### Tickets (H6)
+
+| Command | Description |
+|---|---|
+| `dxcrm ticket list [--slug <slug>] [--status open] [--priority urgent]` | List tickets |
+| `dxcrm ticket create <slug> --title <title> [--priority high]` | Open ticket with SLA |
+| `dxcrm ticket update <slug> <ticketId> --status in-progress` | Update ticket |
+| `dxcrm ticket close <slug> <ticketId> [--resolution <text>]` | Close ticket |
+
+### Surveys (H7)
+
+| Command | Description |
+|---|---|
+| `dxcrm survey create <id> [--type nps\|csat\|ces]` | Create survey definition |
+| `dxcrm survey send <surveyId> --slug <slug> --email <email>` | Generate survey token + email |
+| `dxcrm survey results <surveyId> [--slug <slug>]` | Show NPS score + responses |
+
+### Knowledge Base (H8)
+
+| Command | Description |
+|---|---|
+| `dxcrm kb list [--category <cat>] [--public]` | List KB articles |
+| `dxcrm kb get <id>` | Get article body |
+| `dxcrm kb search <query> [--public]` | Full-text search |
+| `dxcrm kb create <id> --title <title> [--category <cat>]` | Create article |
+| `dxcrm kb delete <id>` | Delete article |
+
 ---
 
 ## MCP Tools (for AI Agents)
@@ -204,6 +249,24 @@ These tools are available to any AI agent connected via MCP (Claude Code, Codex,
 | `get_org_intelligence` | Stakeholder map: champions, buyers, blockers, health scores, risk flags | any |
 | `open_deal_room` | Multi-agent deal brief: graph + health + simulation + playbook in one call | any |
 | `get_proactive_briefing` | Daily briefing: urgent alerts, opportunities, P50/P90 forecast, top action | any |
+| `list_email_templates` | List email templates by category (outreach/followup/support) | any |
+| `get_email_template` | Get full template with variable placeholders | any |
+| `draft_email` | Draft personalized email from template + customer facts | rep+ |
+| `enroll_in_sequence` | Enroll contact in multi-step email sequence | rep+ |
+| `list_sequence_enrollments` | List enrollments; filter by slug or status | any |
+| `unenroll_from_sequence` | Pause an active enrollment | rep+ |
+| `list_sequences` | List all sequences with step count + enrollment count | any |
+| `generate_quote` | Create HTML quote with auto-numbering (Q-YYYY-NNN) | rep+ |
+| `get_quote_status` | Get quote or list all quotes for a customer | any |
+| `get_booking_link` | Get Calendly booking URL, optionally pre-filled with customer info | rep+ |
+| `create_ticket` | Open support ticket with auto-SLA due date | rep+ |
+| `update_ticket` | Update ticket status or assignee | rep+ |
+| `list_tickets` | List tickets sorted by priority (cross-customer) | any |
+| `close_ticket` | Close ticket and optionally log resolution as interaction | rep+ |
+| `send_nps_survey` | Generate NPS survey token + HTML email body | rep+ |
+| `get_survey_results` | NPS score, promoters/passives/detractors, all responses | any |
+| `search_knowledge_base` | Full-text search across KB articles | any |
+| `create_kb_article` | Create or update knowledge base article | rep+ |
 
 ### Tool Examples
 
