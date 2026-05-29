@@ -5,14 +5,15 @@ import { success, error, info, bold } from "../ui/colors.js";
 import { readSyncState } from "../fs/sync-state.js";
 import { readUnmatched } from "../fs/unmatched-transcripts.js";
 import { getSession } from "../core/session-store.js";
+import { readAllSessions } from "../commands/session.js";
 
 export function formatAge(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 60) return `vor ${mins} Min`;
+  if (mins < 60) return `${mins}m ago`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `vor ${hours} Std`;
-  return `vor ${Math.floor(hours / 24)} Tagen`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 function checkDaemon(dataDir: string): { running: boolean; pid?: number } {
@@ -68,7 +69,7 @@ export async function runStatus(
     console.log(bold(" Unmatched Transcripts"));
     console.log(sep);
     if (unmatched.length === 0) {
-      console.log(info(" Keine unmatched Transcripts (leer)."));
+      console.log(info(" No unmatched transcripts."));
     } else {
       for (const entry of unmatched) {
         console.log(
@@ -97,15 +98,15 @@ export async function runStatus(
   console.log(` Daemon:     ${daemonLine}`);
 
   // Customer count
-  console.log(` Kunden:     ${slugs.length} aktiv`);
+  console.log(` Customers:  ${slugs.length} active`);
 
   // Session line
-  const session = getSession();
+  const session = getSession() ?? readAllSessions(dir)[0] ?? null;
   if (session) {
     const ownerPart = session.owner ? ` [${session.owner}]` : "";
     console.log(` Session:    ${session.customerName} (${session.customerSlug})${ownerPart}`);
   } else {
-    console.log(` Session:    keine`);
+    console.log(` Session:    none`);
   }
 
   // Sync lines
@@ -115,7 +116,7 @@ export async function runStatus(
       const state = syncState[slug];
       const ageStr = state?.lastGmailSync
         ? `Gmail ${formatAge(state.lastGmailSync)}`
-        : "noch kein Sync";
+        : "no sync yet";
       console.log(`   ${slug}:   ${ageStr}`);
     }
   }
@@ -135,15 +136,15 @@ export async function runStatus(
   if (serverUrl) {
     const teamSessions = await fetchTeamSessions(serverUrl);
     if (teamSessions && teamSessions.length > 0) {
-      console.log(bold("\n Team-Übersicht:"));
+      console.log(bold("\n Team overview:"));
       for (const s of teamSessions) {
-        const ownerPart = s.owner ? `${s.owner}` : "anonym";
+        const ownerPart = s.owner ? `${s.owner}` : "anonymous";
         console.log(info(`   ${ownerPart.padEnd(15)} → ${s.customerName} (${s.customerSlug})`));
       }
     } else if (teamSessions !== null) {
-      console.log(info(" Team: keine aktiven Sessions"));
+      console.log(info(" Team: no active sessions"));
     } else {
-      console.log(info(` Team: Server nicht erreichbar (${serverUrl})`));
+      console.log(info(` Team: server unreachable (${serverUrl})`));
     }
   }
 

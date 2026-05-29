@@ -187,7 +187,8 @@ new CronJob(
   null,
   false,
   undefined,
-  true // waitForCompletion
+  false, // unrefTimeout — keep event loop alive
+  true   // waitForCompletion
 );
 
 // Scheduled backup check — hourly, runs backup if >1 day since last
@@ -207,7 +208,8 @@ new CronJob(
   null,
   false,
   undefined,
-  true // waitForCompletion
+  false, // unrefTimeout — keep event loop alive
+  true   // waitForCompletion
 );
 
 // Daily push subscription renewal at 06:00
@@ -244,7 +246,8 @@ new CronJob(
   null,
   false,
   undefined,
-  true
+  false, // unrefTimeout — keep event loop alive
+  true   // waitForCompletion
 );
 
 // Daily proactive checks at 07:00 — relationship decay, deal risk, daily briefing
@@ -278,7 +281,8 @@ new CronJob(
   null,
   false,
   undefined,
-  true // waitForCompletion
+  false, // unrefTimeout — keep event loop alive
+  true   // waitForCompletion
 );
 
 await startWatcher();

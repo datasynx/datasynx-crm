@@ -73,7 +73,8 @@ sessionCommand.command("close").action(() => {
 });
 
 sessionCommand.command("status").action(() => {
-  const s = getSession();
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+  const s = getSession() ?? readAllSessions(dataDir)[0] ?? null;
   if (!s) {
     console.log(info("No active session."));
   } else {

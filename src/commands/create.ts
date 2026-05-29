@@ -12,7 +12,7 @@ export async function createCustomer(opts: {
   dataDir?: string;
 }): Promise<{ id: string; dir: string }> {
   const id = slugify(opts.name, { lower: true });
-  const dataDir = opts.dataDir ?? process.cwd();
+  const dataDir = opts.dataDir ?? process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   await ensureCustomerDir(dataDir, id);
   const dir = path.join(dataDir, "customers", id);
 

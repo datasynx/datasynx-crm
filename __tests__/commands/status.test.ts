@@ -76,7 +76,7 @@ describe("runStatus — sync state", () => {
     await runStatus({}, "/data");
     const output = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
     expect(output).toMatch(/acme-corp/);
-    expect(output).toMatch(/vor 2 Std/);
+    expect(output).toMatch(/2h ago/);
     logSpy.mockRestore();
   });
 
@@ -89,7 +89,7 @@ describe("runStatus — sync state", () => {
     const { runStatus } = await import("../../src/commands/status.js");
     await runStatus({}, "/data");
     const output = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(output).toMatch(/noch kein Sync/i);
+    expect(output).toMatch(/no sync yet/i);
     logSpy.mockRestore();
   });
 });
@@ -130,7 +130,7 @@ describe("runStatus — unmatched", () => {
     const { runStatus } = await import("../../src/commands/status.js");
     await runStatus({ unmatched: true }, "/data");
     const output = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
-    expect(output).toMatch(/keine|leer|empty|0/i);
+    expect(output).toMatch(/no unmatched|empty|0/i);
     logSpy.mockRestore();
   });
 });

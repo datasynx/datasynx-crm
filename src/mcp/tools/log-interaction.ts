@@ -21,16 +21,18 @@ export async function handleLogInteraction(
     nextSteps?: string[];
     direction?: "inbound" | "outbound";
     source?: string;
+    date?: string;
   },
   dataDir: string = DATA_DIR
 ): Promise<{
   content: Array<{ type: "text"; text: string }>;
 }> {
   const today = new Date().toISOString().split("T")[0] as string;
+  const interactionDate = input.date ?? today;
   const sourceRef = input.source ?? `agent://log/${Date.now()}`;
 
   const entry: InteractionEntry = {
-    date: today,
+    date: interactionDate,
     type: input.type,
     with: input.with,
     summary: input.summary,
@@ -51,7 +53,7 @@ export async function handleLogInteraction(
     // Graph auto-update: fire-and-forget
     updateGraphFromInteraction(dataDir, input.slug, {
       withStr: input.with,
-      interactionDate: today,
+      interactionDate: interactionDate,
     }).catch(() => {
       // non-critical — interaction already written
     });
@@ -66,7 +68,7 @@ export async function handleLogInteraction(
     if (fs.existsSync(mainFactsPath)) {
       try {
         const raw = matter(fs.readFileSync(mainFactsPath, "utf-8"));
-        raw.data.last_touchpoint = today;
+        raw.data.last_touchpoint = interactionDate;
         // js-yaml quotes YYYY-MM-DD strings; strip quotes to keep plain date format
         let serialized = matter.stringify(raw.content, raw.data);
         serialized = serialized.replace(
@@ -156,9 +158,14 @@ Returns: { success: boolean, path: string, entry: string }`,
           .string()
           .optional()
           .describe("Source reference (e.g. gmail://thread/123). Auto-generated if omitted."),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .describe("Date of interaction (YYYY-MM-DD). Defaults to today."),
       }),
     },
-    async ({ slug, type, summary, with: withStr, nextSteps, direction, source }) =>
+    async ({ slug, type, summary, with: withStr, nextSteps, direction, source, date }) =>
       handleLogInteraction({
         slug,
         type,
@@ -167,6 +174,7 @@ Returns: { success: boolean, path: string, entry: string }`,
         ...(nextSteps !== undefined ? { nextSteps } : {}),
         ...(direction !== undefined ? { direction } : {}),
         ...(source !== undefined ? { source } : {}),
+        ...(date !== undefined ? { date } : {}),
       })
   );
 }
