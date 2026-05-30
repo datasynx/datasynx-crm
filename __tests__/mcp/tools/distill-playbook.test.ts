@@ -34,21 +34,26 @@ describe("distill_playbook tool", () => {
 
   it("calls llmFn with a prompt", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: "## 2026-05-01 · Call\n**Summary:** Good call.",
+      [`${DATA_DIR}/customers/${SLUG}/interactions.md`]:
+        "## 2026-05-01 · Call\n**Summary:** Good call.",
     });
     const { handleDistillPlaybook } = await import("../../../src/mcp/tools/distill-playbook.js");
     let receivedPrompt = "";
     await handleDistillPlaybook(
       { slug: SLUG, dealName: "Enterprise", outcome: "won" },
       DATA_DIR,
-      async (p) => { receivedPrompt = p; return validLlmResponse; }
+      async (p) => {
+        receivedPrompt = p;
+        return validLlmResponse;
+      }
     );
     expect(receivedPrompt).toContain("Enterprise");
   });
 
   it("writes playbook and returns success on valid LLM response", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: "## 2026-05-01 · Call\n**Summary:** Good call.",
+      [`${DATA_DIR}/customers/${SLUG}/interactions.md`]:
+        "## 2026-05-01 · Call\n**Summary:** Good call.",
     });
     const { handleDistillPlaybook } = await import("../../../src/mcp/tools/distill-playbook.js");
     const res = await handleDistillPlaybook(

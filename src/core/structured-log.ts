@@ -16,7 +16,7 @@ const LEVELS: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 
 
 function getMinLevel(): LogLevel {
   const env = process.env["DXCRM_LOG_LEVEL"];
-  return (env && (env as LogLevel) in LEVELS) ? (env as LogLevel) : "debug";
+  return env && (env as LogLevel) in LEVELS ? (env as LogLevel) : "debug";
 }
 
 function safeStringify(obj: unknown): string {

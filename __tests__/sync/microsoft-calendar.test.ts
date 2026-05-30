@@ -41,9 +41,7 @@ const ONE_EVENT_RESPONSE = {
       bodyPreview: "Demo of the new features",
       start: { dateTime: "2026-05-10T10:00:00Z" },
       end: { dateTime: "2026-05-10T11:00:00Z" },
-      attendees: [
-        { emailAddress: { name: "Alice Smith", address: "alice@acme.com" } },
-      ],
+      attendees: [{ emailAddress: { name: "Alice Smith", address: "alice@acme.com" } }],
       organizer: { emailAddress: { name: "Bob Jones", address: "bob@us.com" } },
     },
   ],
@@ -53,7 +51,11 @@ describe("syncMicrosoftCalendar", () => {
   it("returns zero synced/skipped/errors on 200 empty response", async () => {
     fetchMock.mockResolvedValue({ ok: true, json: () => Promise.resolve(EMPTY_RESPONSE) });
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok",
+    });
     expect(result.synced).toBe(0);
     expect(result.skipped).toBe(0);
     expect(result.errors).toHaveLength(0);
@@ -63,7 +65,11 @@ describe("syncMicrosoftCalendar", () => {
     fetchMock.mockResolvedValue({ ok: true, json: () => Promise.resolve(ONE_EVENT_RESPONSE) });
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok",
+    });
     expect(result.synced).toBe(1);
     expect(result.skipped).toBe(0);
     expect(result.errors).toHaveLength(0);
@@ -81,7 +87,11 @@ describe("syncMicrosoftCalendar", () => {
     fetchMock.mockResolvedValue({ ok: true, json: () => Promise.resolve(ONE_EVENT_RESPONSE) });
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok",
+    });
     expect(result.skipped).toBe(1);
     expect(result.synced).toBe(0);
     expect(vi.mocked(appendInteraction)).not.toHaveBeenCalled();
@@ -90,7 +100,11 @@ describe("syncMicrosoftCalendar", () => {
   it("handles network errors gracefully", async () => {
     fetchMock.mockRejectedValue(new Error("ECONNREFUSED"));
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok",
+    });
     expect(result.synced).toBe(0);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toMatch(/ECONNREFUSED/);
@@ -99,7 +113,11 @@ describe("syncMicrosoftCalendar", () => {
   it("handles Graph API non-200 gracefully", async () => {
     fetchMock.mockResolvedValue({ ok: false, status: 401, statusText: "Unauthorized" });
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "bad" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "bad",
+    });
     expect(result.synced).toBe(0);
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toMatch(/401/);
@@ -137,7 +155,11 @@ describe("syncMicrosoftCalendar", () => {
 
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok",
+    });
     expect(result.synced).toBe(2);
     expect(vi.mocked(appendInteraction)).toHaveBeenCalledTimes(2);
   });
@@ -148,7 +170,11 @@ describe("syncMicrosoftCalendar", () => {
     fetchMock.mockResolvedValue({ ok: true, json: () => Promise.resolve(ONE_EVENT_RESPONSE) });
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { syncMicrosoftCalendar } = await import("../../src/sync/microsoft-calendar.js");
-    const result = await syncMicrosoftCalendar({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok" });
+    const result = await syncMicrosoftCalendar({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok",
+    });
     expect(result.synced).toBe(1);
     // appendInteraction is called with (dataDir, slug, entry)
     const mockFn = vi.mocked(appendInteraction);

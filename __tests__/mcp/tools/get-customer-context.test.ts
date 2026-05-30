@@ -19,10 +19,7 @@ describe("get_customer_context tool", () => {
   it("returns formatted context for an existing customer", async () => {
     mockBuildContext.mockResolvedValue("# Customer Context: acme-corp\n\nSome context here.");
 
-    const result = await handleGetCustomerContext(
-      { slug: "acme-corp" },
-      "/data"
-    );
+    const result = await handleGetCustomerContext({ slug: "acme-corp" }, "/data");
 
     expect(result.content).toBeDefined();
     const text = (result.content[0] as { type: string; text: string }).text;
@@ -33,10 +30,7 @@ describe("get_customer_context tool", () => {
   it("returns error message for non-existent customer (not a throw)", async () => {
     mockBuildContext.mockRejectedValue(new Error("Customer 'unknown' not found"));
 
-    const result = await handleGetCustomerContext(
-      { slug: "unknown" },
-      "/data"
-    );
+    const result = await handleGetCustomerContext({ slug: "unknown" }, "/data");
 
     expect(result.content).toBeDefined();
     const text = (result.content[0] as { type: string; text: string }).text;

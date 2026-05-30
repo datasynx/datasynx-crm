@@ -92,7 +92,11 @@ export async function processTranscriptFileAutoMatch(
   }
 
   const slugs = fs.readdirSync(customersDir).filter((s) => {
-    try { return fs.statSync(path.join(customersDir, s)).isDirectory(); } catch { return false; }
+    try {
+      return fs.statSync(path.join(customersDir, s)).isDirectory();
+    } catch {
+      return false;
+    }
   });
 
   if (slugs.length === 0) {

@@ -21,7 +21,8 @@ export async function handleGetPushStatus(
       const expiresInHours = s.expiresAt
         ? Math.round((new Date(s.expiresAt).getTime() - now) / (60 * 60 * 1000))
         : null;
-      const needsRenewal = s.expiresAt !== null && (new Date(s.expiresAt).getTime() - now) < RENEWAL_THRESHOLD_MS;
+      const needsRenewal =
+        s.expiresAt !== null && new Date(s.expiresAt).getTime() - now < RENEWAL_THRESHOLD_MS;
 
       return {
         id: s.id,
@@ -47,14 +48,21 @@ export async function handleGetPushStatus(
     };
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ subscriptions, summary }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ subscriptions, summary }, null, 2),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -77,13 +85,19 @@ Args:
 Returns: { subscriptions: [{ id, provider, slug, status, expiresAt, expiresInHours, needsRenewal, lastEventAt, eventsProcessed }], summary: { total, active, expiringSoon, expired } }`,
       inputSchema: z.object({
         slug: z.string().optional().describe("Filter by customer slug"),
-        provider: z.enum(["gmail", "microsoft-graph", "slack"]).optional().describe("Filter by provider"),
+        provider: z
+          .enum(["gmail", "microsoft-graph", "slack"])
+          .optional()
+          .describe("Filter by provider"),
       }),
     },
     async ({ slug, provider }) =>
-      handleGetPushStatus({
-        ...(slug !== undefined ? { slug } : {}),
-        ...(provider !== undefined ? { provider } : {}),
-      }, DATA_DIR)
+      handleGetPushStatus(
+        {
+          ...(slug !== undefined ? { slug } : {}),
+          ...(provider !== undefined ? { provider } : {}),
+        },
+        DATA_DIR
+      )
   );
 }

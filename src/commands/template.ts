@@ -21,20 +21,18 @@ templateCommand
     }
   });
 
-templateCommand
-  .command("get <id>")
-  .action((id: string) => {
-    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-    const tmpl = getTemplate(dataDir, id);
-    if (!tmpl) {
-      console.error(error(`Template '${id}' not found`));
-      process.exit(1);
-    }
-    console.log(bold(`Subject: ${tmpl.subject}`));
-    console.log(`Category: ${tmpl.category}  Language: ${tmpl.language}`);
-    console.log(`Variables: ${tmpl.variables.join(", ") || "(none defined)"}`);
-    console.log("\n" + tmpl.body);
-  });
+templateCommand.command("get <id>").action((id: string) => {
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+  const tmpl = getTemplate(dataDir, id);
+  if (!tmpl) {
+    console.error(error(`Template '${id}' not found`));
+    process.exit(1);
+  }
+  console.log(bold(`Subject: ${tmpl.subject}`));
+  console.log(`Category: ${tmpl.category}  Language: ${tmpl.language}`);
+  console.log(`Variables: ${tmpl.variables.join(", ") || "(none defined)"}`);
+  console.log("\n" + tmpl.body);
+});
 
 templateCommand
   .command("preview <id>")
@@ -75,15 +73,13 @@ templateCommand
     console.log(success(`✓ Template '${id}' created in category '${opts.category}'`));
   });
 
-templateCommand
-  .command("delete <id>")
-  .action((id: string) => {
-    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-    const deleted = deleteTemplate(dataDir, id);
-    if (deleted) {
-      console.log(success(`✓ Template '${id}' deleted`));
-    } else {
-      console.error(error(`Template '${id}' not found`));
-      process.exit(1);
-    }
-  });
+templateCommand.command("delete <id>").action((id: string) => {
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+  const deleted = deleteTemplate(dataDir, id);
+  if (deleted) {
+    console.log(success(`✓ Template '${id}' deleted`));
+  } else {
+    console.error(error(`Template '${id}' not found`));
+    process.exit(1);
+  }
+});

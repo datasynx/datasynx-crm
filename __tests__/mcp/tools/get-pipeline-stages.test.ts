@@ -11,7 +11,8 @@ const DATA_DIR = "/data";
 
 describe("handleGetPipelineStages", () => {
   it("returns DEFAULT_STAGES when no custom config", async () => {
-    const { handleGetPipelineStages } = await import("../../../src/mcp/tools/get-pipeline-stages.js");
+    const { handleGetPipelineStages } =
+      await import("../../../src/mcp/tools/get-pipeline-stages.js");
     const { DEFAULT_STAGES } = await import("../../../src/core/pipeline-stages.js");
     const result = await handleGetPipelineStages({}, DATA_DIR);
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
@@ -21,13 +22,12 @@ describe("handleGetPipelineStages", () => {
   });
 
   it("returns custom stages when configured", async () => {
-    const customStages = [
-      { id: "discovery", label: "Discovery", order: 1, probability: 20 },
-    ];
+    const customStages = [{ id: "discovery", label: "Discovery", order: 1, probability: 20 }];
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/pipeline-stages.json`]: JSON.stringify(customStages),
     });
-    const { handleGetPipelineStages } = await import("../../../src/mcp/tools/get-pipeline-stages.js");
+    const { handleGetPipelineStages } =
+      await import("../../../src/mcp/tools/get-pipeline-stages.js");
     const result = await handleGetPipelineStages({}, DATA_DIR);
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       stages: Array<{ id: string }>;

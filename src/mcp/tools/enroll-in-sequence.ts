@@ -1,6 +1,6 @@
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getSequence, writeEnrollment, readEnrollments } from "../../fs/sequence-store.js";
+import { getSequence, writeEnrollment } from "../../fs/sequence-store.js";
 import { getTemplate } from "../../fs/template-store.js";
 
 const DATA_DIR = process.cwd();
@@ -12,10 +12,12 @@ export async function handleEnrollInSequence(
   const sequence = getSequence(dataDir, input.sequenceId);
   if (!sequence) {
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ error: `Sequence '${input.sequenceId}' not found` }),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ error: `Sequence '${input.sequenceId}' not found` }),
+        },
+      ],
     };
   }
 
@@ -24,10 +26,14 @@ export async function handleEnrollInSequence(
   const template = getTemplate(dataDir, firstStep.templateId);
   if (!template) {
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ error: `Template '${firstStep.templateId}' for step 0 not found` }),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            error: `Template '${firstStep.templateId}' for step 0 not found`,
+          }),
+        },
+      ],
     };
   }
 
@@ -48,14 +54,16 @@ export async function handleEnrollInSequence(
   await writeEnrollment(dataDir, enrollment);
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({
-        enrollmentId,
-        sequenceName: sequence.name,
-        totalSteps: sequence.steps.length,
-      }),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({
+          enrollmentId,
+          sequenceName: sequence.name,
+          totalSteps: sequence.steps.length,
+        }),
+      },
+    ],
   };
 }
 

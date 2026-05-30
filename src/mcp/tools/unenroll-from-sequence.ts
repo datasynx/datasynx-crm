@@ -12,18 +12,25 @@ export async function handleUnenrollFromSequence(
 
   if (!updated) {
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ success: false, error: `Enrollment '${input.enrollmentId}' not found` }),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            success: false,
+            error: `Enrollment '${input.enrollmentId}' not found`,
+          }),
+        },
+      ],
     };
   }
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({ success: true }),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({ success: true }),
+      },
+    ],
   };
 }
 
@@ -37,7 +44,6 @@ Returns: { success: boolean }`,
         enrollmentId: z.string().describe("ID of the enrollment to pause"),
       }),
     },
-    ({ enrollmentId }) =>
-      handleUnenrollFromSequence({ enrollmentId }, dataDir)
+    ({ enrollmentId }) => handleUnenrollFromSequence({ enrollmentId }, dataDir)
   );
 }

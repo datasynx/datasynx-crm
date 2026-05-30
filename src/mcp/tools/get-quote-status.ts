@@ -11,7 +11,14 @@ export async function handleGetQuoteStatus(
   if (input.quoteNumber) {
     const quote = readQuote(dataDir, input.quoteNumber);
     if (!quote) {
-      return { content: [{ type: "text", text: JSON.stringify({ error: `Quote '${input.quoteNumber}' not found` }) }] };
+      return {
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ error: `Quote '${input.quoteNumber}' not found` }),
+          },
+        ],
+      };
     }
     return { content: [{ type: "text", text: JSON.stringify(quote, null, 2) }] };
   }

@@ -188,7 +188,7 @@ describe("sendTelegram", () => {
     makeHttpsMockReq(200);
     const req = makeHttpsMockReq(200);
     await sendTelegram("tok", "999", "Test message");
-    const writtenBody = (req.write.mock.calls[0]![0] as string);
+    const writtenBody = req.write.mock.calls[0]![0] as string;
     const parsed = JSON.parse(writtenBody) as { chat_id: string; text: string };
     expect(parsed.chat_id).toBe("999");
     expect(parsed.text).toBe("Test message");
@@ -228,7 +228,7 @@ describe("sendSlack", () => {
   it("includes text in request body", async () => {
     const req = makeHttpsMockReq(200);
     await sendSlack("https://hooks.slack.com/services/T00/B00/xxx", "Hello Slack");
-    const writtenBody = (req.write.mock.calls[0]![0] as string);
+    const writtenBody = req.write.mock.calls[0]![0] as string;
     const parsed = JSON.parse(writtenBody) as { text: string };
     expect(parsed.text).toBe("Hello Slack");
   });

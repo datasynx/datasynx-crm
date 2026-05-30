@@ -31,14 +31,14 @@ export function listContacts(dataDir: string, slug: string): CustomerContact[] {
       const r = CustomerContactSchema.safeParse(item);
       return r.success ? [r.data] : [];
     });
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 export function upsertContact(dataDir: string, slug: string, contact: CustomerContact): void {
   const contacts = listContacts(dataDir, slug);
-  const idx = contacts.findIndex(
-    (c) => c.email.toLowerCase() === contact.email.toLowerCase()
-  );
+  const idx = contacts.findIndex((c) => c.email.toLowerCase() === contact.email.toLowerCase());
   if (idx >= 0) {
     contacts[idx] = { ...contacts[idx], ...contact };
   } else {

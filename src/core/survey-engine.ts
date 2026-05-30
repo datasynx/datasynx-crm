@@ -2,7 +2,12 @@ import fs from "fs";
 import path from "path";
 import { createHmac } from "crypto";
 import yaml from "js-yaml";
-import { SurveyDefinitionSchema, SurveyResponseSchema, type SurveyDefinition, type SurveyResponse } from "../schemas/survey.js";
+import {
+  SurveyDefinitionSchema,
+  SurveyResponseSchema,
+  type SurveyDefinition,
+  type SurveyResponse,
+} from "../schemas/survey.js";
 
 const SURVEY_SECRET = process.env["DXCRM_SURVEY_SECRET"] ?? "dxcrm-survey-default-secret";
 
@@ -35,7 +40,8 @@ export function writeSurvey(dataDir: string, survey: SurveyDefinition): void {
 export function listSurveys(dataDir: string): SurveyDefinition[] {
   const dir = surveysDir(dataDir);
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith(".yaml"))
     .flatMap((f) => {
       const s = getSurvey(dataDir, f.replace(/\.yaml$/, ""));
@@ -50,10 +56,20 @@ export function generateSurveyToken(slug: string, contactEmail: string, surveyId
     .slice(0, 16);
 }
 
-export function buildSurveyEmail(survey: SurveyDefinition, serverUrl: string, token: string): { subject: string; body: string } {
-  const scores = Array.from({ length: survey.scale.max - survey.scale.min + 1 }, (_, i) => i + survey.scale.min);
+export function buildSurveyEmail(
+  survey: SurveyDefinition,
+  serverUrl: string,
+  token: string
+): { subject: string; body: string } {
+  const scores = Array.from(
+    { length: survey.scale.max - survey.scale.min + 1 },
+    (_, i) => i + survey.scale.min
+  );
   const buttons = scores
-    .map((s) => `<a href="${serverUrl}/survey/respond?token=${token}&score=${s}" style="display:inline-block;margin:4px;padding:10px 16px;background:#1a1a2e;color:white;text-decoration:none;border-radius:4px;">${s}</a>`)
+    .map(
+      (s) =>
+        `<a href="${serverUrl}/survey/respond?token=${token}&score=${s}" style="display:inline-block;margin:4px;padding:10px 16px;background:#1a1a2e;color:white;text-decoration:none;border-radius:4px;">${s}</a>`
+    )
     .join("");
 
   const body = `<p>${survey.question}</p>
@@ -79,8 +95,14 @@ export async function recordSurveyResponse(
   const files = fs.readdirSync(pendingDir).filter((f) => f.endsWith(".json"));
   for (const file of files) {
     try {
-      const pending = JSON.parse(fs.readFileSync(path.join(pendingDir, file), "utf-8") as string) as {
-        token: string; surveyId: string; slug: string; contactEmail: string; sentAt: string;
+      const pending = JSON.parse(
+        fs.readFileSync(path.join(pendingDir, file), "utf-8") as string
+      ) as {
+        token: string;
+        surveyId: string;
+        slug: string;
+        contactEmail: string;
+        sentAt: string;
       };
       if (pending.token !== token) continue;
 
@@ -110,10 +132,15 @@ export async function recordSurveyResponse(
   return null;
 }
 
-export function loadSurveyResponses(dataDir: string, surveyId: string, slug?: string): SurveyResponse[] {
+export function loadSurveyResponses(
+  dataDir: string,
+  surveyId: string,
+  slug?: string
+): SurveyResponse[] {
   const dir = responsesDir(dataDir, surveyId);
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
     .flatMap((f) => {
       try {

@@ -97,7 +97,8 @@ describe("getKbArticle", () => {
 describe("deleteKbArticle", () => {
   it("deletes an existing article", async () => {
     vol.fromJSON({});
-    const { writeKbArticle, deleteKbArticle, listKbArticles } = await import("../../src/fs/knowledge-base.js");
+    const { writeKbArticle, deleteKbArticle, listKbArticles } =
+      await import("../../src/fs/knowledge-base.js");
     writeKbArticle(DATA_DIR, makeArticle({ id: "del-me" }));
     const deleted = deleteKbArticle(DATA_DIR, "del-me");
     expect(deleted).toBe(true);
@@ -117,8 +118,24 @@ describe("searchKbSimple", () => {
   it("finds articles by title keyword", async () => {
     vol.fromJSON({});
     const { writeKbArticle, searchKbSimple } = await import("../../src/fs/knowledge-base.js");
-    writeKbArticle(DATA_DIR, makeArticle({ id: "a", title: "Password Reset Guide", body: "How to reset your password.", tags: ["password"] }));
-    writeKbArticle(DATA_DIR, makeArticle({ id: "b", title: "Billing FAQ", body: "Payment info and invoices.", tags: ["billing"] }));
+    writeKbArticle(
+      DATA_DIR,
+      makeArticle({
+        id: "a",
+        title: "Password Reset Guide",
+        body: "How to reset your password.",
+        tags: ["password"],
+      })
+    );
+    writeKbArticle(
+      DATA_DIR,
+      makeArticle({
+        id: "b",
+        title: "Billing FAQ",
+        body: "Payment info and invoices.",
+        tags: ["billing"],
+      })
+    );
     const results = searchKbSimple(DATA_DIR, "password");
     expect(results).toHaveLength(1);
     expect(results[0]?.id).toBe("a");

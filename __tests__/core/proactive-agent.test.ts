@@ -54,8 +54,21 @@ describe("enqueueTask", () => {
   it("multiple tasks accumulate in the queue", async () => {
     vol.fromJSON({ [`${DATA_DIR}/.agentic/`]: null });
     const { enqueueTask, readQueue } = await import("../../src/core/proactive-agent.js");
-    await enqueueTask(DATA_DIR, { type: "daily_briefing", priority: "normal", payload: {}, scheduledFor: TODAY, channel: "mcp_tool_response" });
-    await enqueueTask(DATA_DIR, { type: "deal_risk_alert", slug: SLUG, priority: "urgent", payload: {}, scheduledFor: TODAY, channel: "mcp_tool_response" });
+    await enqueueTask(DATA_DIR, {
+      type: "daily_briefing",
+      priority: "normal",
+      payload: {},
+      scheduledFor: TODAY,
+      channel: "mcp_tool_response",
+    });
+    await enqueueTask(DATA_DIR, {
+      type: "deal_risk_alert",
+      slug: SLUG,
+      priority: "urgent",
+      payload: {},
+      scheduledFor: TODAY,
+      channel: "mcp_tool_response",
+    });
     const queue = readQueue(DATA_DIR);
     expect(queue.length).toBe(2);
   });
@@ -82,8 +95,8 @@ describe("buildDailyBriefing", () => {
     });
     const { buildDailyBriefing } = await import("../../src/core/proactive-agent.js");
     const briefing = await buildDailyBriefing(DATA_DIR, TODAY);
-    const hasDecayAlert = briefing.urgent.some((u) =>
-      u.toLowerCase().includes("max") || u.toLowerCase().includes(SLUG)
+    const hasDecayAlert = briefing.urgent.some(
+      (u) => u.toLowerCase().includes("max") || u.toLowerCase().includes(SLUG)
     );
     expect(hasDecayAlert).toBe(true);
   });

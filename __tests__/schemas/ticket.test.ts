@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { TicketSchema, TicketStatusSchema, TicketPrioritySchema } from "../../src/schemas/ticket.js";
+import {
+  TicketSchema,
+  TicketStatusSchema,
+  TicketPrioritySchema,
+} from "../../src/schemas/ticket.js";
 
 describe("TicketSchema", () => {
   const valid = {

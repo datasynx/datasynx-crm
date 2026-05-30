@@ -47,10 +47,7 @@ describe("search_customer_knowledge tool", () => {
   it("uses default limit of 5 when not specified", async () => {
     mockSearch.mockResolvedValue([]);
 
-    await handleSearchCustomerKnowledge(
-      { slug: "acme-corp", query: "something" },
-      "/data"
-    );
+    await handleSearchCustomerKnowledge({ slug: "acme-corp", query: "something" }, "/data");
 
     expect(mockSearch).toHaveBeenCalledWith("/data", "acme-corp", "something", 5);
   });

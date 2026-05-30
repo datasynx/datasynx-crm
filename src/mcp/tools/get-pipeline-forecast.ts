@@ -23,10 +23,12 @@ export async function handleGetPipelineForecast(
     const customersDir = path.join(dataDir, "customers");
     if (!fs.existsSync(customersDir)) {
       return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({ deals: [], totalWeightedValue: 0, byStage: {} }, null, 2),
-        }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify({ deals: [], totalWeightedValue: 0, byStage: {} }, null, 2),
+          },
+        ],
       };
     }
 
@@ -54,7 +56,7 @@ export async function handleGetPipelineForecast(
           stage: deal.stage,
           value,
           probability: prob,
-          weightedValue: Math.round(value * prob / 100),
+          weightedValue: Math.round((value * prob) / 100),
         };
         if (deal.close_date !== undefined) forecastDeal.closeDate = deal.close_date;
         allDeals.push(forecastDeal);
@@ -62,25 +64,32 @@ export async function handleGetPipelineForecast(
     }
 
     const totalWeightedValue = allDeals.reduce((sum, d) => sum + d.weightedValue, 0);
-    const byStage = allDeals.reduce<Record<string, { count: number; weightedValue: number }>>((acc, d) => {
-      if (!acc[d.stage]) acc[d.stage] = { count: 0, weightedValue: 0 };
-      acc[d.stage]!.count++;
-      acc[d.stage]!.weightedValue += d.weightedValue;
-      return acc;
-    }, {});
+    const byStage = allDeals.reduce<Record<string, { count: number; weightedValue: number }>>(
+      (acc, d) => {
+        if (!acc[d.stage]) acc[d.stage] = { count: 0, weightedValue: 0 };
+        acc[d.stage]!.count++;
+        acc[d.stage]!.weightedValue += d.weightedValue;
+        return acc;
+      },
+      {}
+    );
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ deals: allDeals, totalWeightedValue, byStage }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ deals: allDeals, totalWeightedValue, byStage }, null, 2),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }

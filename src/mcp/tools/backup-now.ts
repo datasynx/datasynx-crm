@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import fs from "fs";
 import path from "path";
@@ -20,7 +20,9 @@ export async function handleBackupNow(
   }).catch(() => null);
 
   if (!manifest) {
-    return { content: [{ type: "text", text: "Backup failed. Check disk space and permissions." }] };
+    return {
+      content: [{ type: "text", text: "Backup failed. Check disk space and permissions." }],
+    };
   }
 
   const sizeMb = fs.existsSync(zipPath)
@@ -31,17 +33,21 @@ export async function handleBackupNow(
     content: [
       {
         type: "text",
-        text: JSON.stringify({
-          path: zipPath,
-          createdAt: manifest.createdAt,
-          customerCount: manifest.customerCount,
-          fileCount: manifest.fileCount,
-          sizeMb: `${sizeMb} MB`,
-          directories: manifest.directories,
-          verified: true,
-          ...(input.remote ? { uploadedTo: input.remote } : {}),
-          ...(input.note ? { note: input.note } : {}),
-        }, null, 2),
+        text: JSON.stringify(
+          {
+            path: zipPath,
+            createdAt: manifest.createdAt,
+            customerCount: manifest.customerCount,
+            fileCount: manifest.fileCount,
+            sizeMb: `${sizeMb} MB`,
+            directories: manifest.directories,
+            verified: true,
+            ...(input.remote ? { uploadedTo: input.remote } : {}),
+            ...(input.note ? { note: input.note } : {}),
+          },
+          null,
+          2
+        ),
       },
     ],
   };
@@ -54,13 +60,19 @@ export function registerBackupNow(server: McpServer): void {
       description:
         "Trigger an immediate backup of all CRM data (customers/ + .agentic/). Returns backup path, size, and integrity status. Use before risky operations or on user request.",
       inputSchema: z.object({
-        remote: z.string().optional().describe("Upload destination: s3://bucket/path/, rsync://user@host:/path/, or local directory"),
+        remote: z
+          .string()
+          .optional()
+          .describe(
+            "Upload destination: s3://bucket/path/, rsync://user@host:/path/, or local directory"
+          ),
         note: z.string().optional().describe("Optional note to tag this backup"),
       }),
     },
-    ({ remote, note }) => handleBackupNow({
-      ...(remote !== undefined ? { remote } : {}),
-      ...(note !== undefined ? { note } : {}),
-    })
+    ({ remote, note }) =>
+      handleBackupNow({
+        ...(remote !== undefined ? { remote } : {}),
+        ...(note !== undefined ? { note } : {}),
+      })
   );
 }

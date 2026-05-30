@@ -108,8 +108,7 @@ export class OpenClawAdapter implements FrameworkAdapter {
       transport: "stdio",
       configPath: OPENCLAW_JSON,
       harnessFiles,
-      notes:
-        "Config hot-reloaded by Gateway. SOUL.md + AGENTS.md + TOOLS.md written to workspace.",
+      notes: "Config hot-reloaded by Gateway. SOUL.md + AGENTS.md + TOOLS.md written to workspace.",
     };
   }
 

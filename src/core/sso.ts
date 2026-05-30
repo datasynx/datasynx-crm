@@ -38,10 +38,7 @@ export async function getSsoAuthorizationUrl(
   return url;
 }
 
-export async function authenticateWithCode(
-  code: string,
-  apiKey?: string
-): Promise<SsoSession> {
+export async function authenticateWithCode(code: string, apiKey?: string): Promise<SsoSession> {
   const key = apiKey ?? process.env["WORKOS_API_KEY"];
   if (!key) {
     throw new Error("WORKOS_API_KEY not configured");

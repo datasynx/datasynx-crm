@@ -160,7 +160,11 @@ describe("buildStakeholderMap", () => {
   it("returns empty people when graph has no person nodes", async () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/graph.json`]: JSON.stringify({
-        schemaVersion: "1", slug: SLUG, nodes: [], edges: [], updatedAt: new Date().toISOString(),
+        schemaVersion: "1",
+        slug: SLUG,
+        nodes: [],
+        edges: [],
+        updatedAt: new Date().toISOString(),
       }),
       [`${DATA_DIR}/customers/${SLUG}/health.json`]: makeHealthJson(),
     });
@@ -218,7 +222,11 @@ describe("buildStakeholderMap — today parameter", () => {
 describe("buildRiskAssessment", () => {
   it("mentions no champion risk when champion missing", async () => {
     const { buildRiskAssessment } = await import("../../src/core/org-intelligence.js");
-    const assessment = buildRiskAssessment([], [{ role: "champion" as const, urgency: "important" as const, suggestion: "Find a champion" }], []);
+    const assessment = buildRiskAssessment(
+      [],
+      [{ role: "champion" as const, urgency: "important" as const, suggestion: "Find a champion" }],
+      []
+    );
     expect(assessment.toLowerCase()).toContain("champion");
   });
 

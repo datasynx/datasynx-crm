@@ -38,7 +38,9 @@ describe("get_playbook tool", () => {
 
   it("returns only matching playbooks when deal context provided", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/match.md`]: makePlaybookMd("deal_stage_negotiation AND value > 50000"),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/match.md`]: makePlaybookMd(
+        "deal_stage_negotiation AND value > 50000"
+      ),
       [`${DATA_DIR}/customers/${SLUG}/playbooks/nomatch.md`]: makePlaybookMd("deal_stage_proposal"),
     });
     const { handleGetPlaybook } = await import("../../../src/mcp/tools/get-playbook.js");

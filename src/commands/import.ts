@@ -31,12 +31,22 @@ function parseCSV(content: string): Array<Record<string, string>> {
   return lines.slice(1).map((line) => {
     const values = line.split(",").map((v) => v.trim().replace(/^"|"$/g, ""));
     const row: Record<string, string> = {};
-    headers.forEach((h, i) => { row[h] = values[i] ?? ""; });
+    headers.forEach((h, i) => {
+      row[h] = values[i] ?? "";
+    });
     return row;
   });
 }
 
-const IMPORT_TARGET_FIELDS = ["name", "email", "domain", "notes", "date", "activityType", "sourceId"] as const;
+const IMPORT_TARGET_FIELDS = [
+  "name",
+  "email",
+  "domain",
+  "notes",
+  "date",
+  "activityType",
+  "sourceId",
+] as const;
 
 function ensureCustomer(
   dataDir: string,
@@ -66,14 +76,34 @@ function ensureCustomer(
     `last_touchpoint: ${today}`,
     "tags: []",
     "---",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   fs.writeFileSync(mainFactsPath, `${frontmatter}\n\n# Customer: ${name}\n`, "utf-8");
-  fs.writeFileSync(path.join(customerDir, "interactions.md"), `# Interactions — ${name}\n\n`, "utf-8");
+  fs.writeFileSync(
+    path.join(customerDir, "interactions.md"),
+    `# Interactions — ${name}\n\n`,
+    "utf-8"
+  );
   fs.writeFileSync(path.join(customerDir, "pipeline.md"), `# Pipeline — ${name}\n\n`, "utf-8");
   fs.writeFileSync(
     path.join(customerDir, "sources.json"),
-    JSON.stringify({ gmail: { query: domain ? `from:${domain} OR to:${domain}` : email ? `from:${email} OR to:${email}` : "", enabled: true }, transcripts: { paths: [], extensions: [".txt", ".vtt"], enabled: false } }, null, 2),
+    JSON.stringify(
+      {
+        gmail: {
+          query: domain
+            ? `from:${domain} OR to:${domain}`
+            : email
+              ? `from:${email} OR to:${email}`
+              : "",
+          enabled: true,
+        },
+        transcripts: { paths: [], extensions: [".txt", ".vtt"], enabled: false },
+      },
+      null,
+      2
+    ),
     "utf-8"
   );
 
@@ -106,7 +136,12 @@ async function runSalesforceFileImport(
   opts: { dryRun?: boolean },
   dir: string
 ): Promise<ImportResult> {
-  const result: ImportResult = { customersCreated: 0, interactionsImported: 0, skipped: 0, errors: [] };
+  const result: ImportResult = {
+    customersCreated: 0,
+    interactionsImported: 0,
+    skipped: 0,
+    errors: [],
+  };
 
   let dataDir = sourcePath;
   let tmpDir: string | null = null;
@@ -121,12 +156,13 @@ async function runSalesforceFileImport(
     return result;
   }
 
-  const accountsCsv = readCsvFromDirectory(dataDir, "Accounts.csv")
-    ?? readCsvFromDirectory(dataDir, "accounts.csv");
-  const activitiesCsv = readCsvFromDirectory(dataDir, "Activities.csv")
-    ?? readCsvFromDirectory(dataDir, "activities.csv")
-    ?? readCsvFromDirectory(dataDir, "Tasks.csv")
-    ?? readCsvFromDirectory(dataDir, "tasks.csv");
+  const accountsCsv =
+    readCsvFromDirectory(dataDir, "Accounts.csv") ?? readCsvFromDirectory(dataDir, "accounts.csv");
+  const activitiesCsv =
+    readCsvFromDirectory(dataDir, "Activities.csv") ??
+    readCsvFromDirectory(dataDir, "activities.csv") ??
+    readCsvFromDirectory(dataDir, "Tasks.csv") ??
+    readCsvFromDirectory(dataDir, "tasks.csv");
 
   if (!accountsCsv) {
     result.errors.push("Could not find Accounts.csv in Salesforce export");
@@ -138,7 +174,11 @@ async function runSalesforceFileImport(
   const activities = activitiesCsv ? parseCSV(activitiesCsv) : [];
 
   if (opts.dryRun) {
-    console.log(info(`Dry run — ${accounts.length} accounts, ${activities.length} activities from Salesforce export`));
+    console.log(
+      info(
+        `Dry run — ${accounts.length} accounts, ${activities.length} activities from Salesforce export`
+      )
+    );
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true });
     return result;
   }
@@ -168,15 +208,32 @@ async function runSalesforceFileImport(
     const sourceRef = `salesforce://row/${id}`;
     const { readInteractions } = await import("../fs/interactions-writer.js");
     const existing = await readInteractions(dir, slug).catch(() => "");
-    if (existing.includes(sourceRef)) { result.skipped++; continue; }
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
 
     const date = row["ActivityDate"] ?? row["CreatedDate"] ?? new Date().toISOString().slice(0, 10);
     const notes = (row["Description"] ?? row["Subject"] ?? "").slice(0, 500);
     const t = (row["Type"] ?? "").toLowerCase();
-    const type = t.includes("call") ? "Call" as const : t.includes("email") ? "Email" as const : t.includes("meeting") ? "Meeting" as const : "Note" as const;
+    const type = t.includes("call")
+      ? ("Call" as const)
+      : t.includes("email")
+        ? ("Email" as const)
+        : t.includes("meeting")
+          ? ("Meeting" as const)
+          : ("Note" as const);
 
     try {
-      await appendInteraction(dir, slug, { date, type, with: slug, summary: notes, nextSteps: [], sourceRef, synced: new Date().toISOString() });
+      await appendInteraction(dir, slug, {
+        date,
+        type,
+        with: slug,
+        summary: notes,
+        nextSteps: [],
+        sourceRef,
+        synced: new Date().toISOString(),
+      });
       result.interactionsImported++;
     } catch (err) {
       result.errors.push(`Activity ${id}: ${(err as Error).message}`);
@@ -192,7 +249,12 @@ async function runPipedriveFileImport(
   opts: { dryRun?: boolean },
   dir: string
 ): Promise<ImportResult> {
-  const result: ImportResult = { customersCreated: 0, interactionsImported: 0, skipped: 0, errors: [] };
+  const result: ImportResult = {
+    customersCreated: 0,
+    interactionsImported: 0,
+    skipped: 0,
+    errors: [],
+  };
 
   let dataDir = sourcePath;
   let tmpDir: string | null = null;
@@ -207,10 +269,12 @@ async function runPipedriveFileImport(
     return result;
   }
 
-  const orgsCsv = readCsvFromDirectory(dataDir, "organizations.csv")
-    ?? readCsvFromDirectory(dataDir, "Organizations.csv");
-  const activitiesCsv = readCsvFromDirectory(dataDir, "activities.csv")
-    ?? readCsvFromDirectory(dataDir, "Activities.csv");
+  const orgsCsv =
+    readCsvFromDirectory(dataDir, "organizations.csv") ??
+    readCsvFromDirectory(dataDir, "Organizations.csv");
+  const activitiesCsv =
+    readCsvFromDirectory(dataDir, "activities.csv") ??
+    readCsvFromDirectory(dataDir, "Activities.csv");
 
   if (!orgsCsv) {
     result.errors.push("Could not find organizations.csv in Pipedrive export");
@@ -222,7 +286,11 @@ async function runPipedriveFileImport(
   const activities = activitiesCsv ? parseCSV(activitiesCsv) : [];
 
   if (opts.dryRun) {
-    console.log(info(`Dry run — ${orgs.length} organizations, ${activities.length} activities from Pipedrive export`));
+    console.log(
+      info(
+        `Dry run — ${orgs.length} organizations, ${activities.length} activities from Pipedrive export`
+      )
+    );
     if (tmpDir) fs.rmSync(tmpDir, { recursive: true });
     return result;
   }
@@ -251,15 +319,34 @@ async function runPipedriveFileImport(
     const sourceRef = `pipedrive://row/${id}`;
     const { readInteractions } = await import("../fs/interactions-writer.js");
     const existing = await readInteractions(dir, slug).catch(() => "");
-    if (existing.includes(sourceRef)) { result.skipped++; continue; }
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
 
-    const date = row["due_date"] ?? row["add_time"]?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
+    const date =
+      row["due_date"] ?? row["add_time"]?.slice(0, 10) ?? new Date().toISOString().slice(0, 10);
     const notes = (row["note"] ?? row["subject"] ?? "").slice(0, 500);
     const t = (row["type"] ?? "").toLowerCase();
-    const type = t === "call" ? "Call" as const : t === "email" ? "Email" as const : t === "meeting" ? "Meeting" as const : "Note" as const;
+    const type =
+      t === "call"
+        ? ("Call" as const)
+        : t === "email"
+          ? ("Email" as const)
+          : t === "meeting"
+            ? ("Meeting" as const)
+            : ("Note" as const);
 
     try {
-      await appendInteraction(dir, slug, { date, type, with: slug, summary: notes, nextSteps: [], sourceRef, synced: new Date().toISOString() });
+      await appendInteraction(dir, slug, {
+        date,
+        type,
+        with: slug,
+        summary: notes,
+        nextSteps: [],
+        sourceRef,
+        synced: new Date().toISOString(),
+      });
       result.interactionsImported++;
     } catch (err) {
       result.errors.push(`Activity ${id}: ${(err as Error).message}`);
@@ -272,11 +359,24 @@ async function runPipedriveFileImport(
 
 export async function runImport(
   sourcePath: string,
-  opts: { from: string; dryRun?: boolean; mode?: string; token?: string; url?: string; ownerMap?: Record<string, string>; resume?: boolean },
+  opts: {
+    from: string;
+    dryRun?: boolean;
+    mode?: string;
+    token?: string;
+    url?: string;
+    ownerMap?: Record<string, string>;
+    resume?: boolean;
+  },
   dataDir?: string
 ): Promise<ImportResult> {
   const dir = dataDir ?? process.cwd();
-  const result: ImportResult = { customersCreated: 0, interactionsImported: 0, skipped: 0, errors: [] };
+  const result: ImportResult = {
+    customersCreated: 0,
+    interactionsImported: 0,
+    skipped: 0,
+    errors: [],
+  };
 
   // API import modes — bypass file reading
   if (opts.from === "salesforce" && opts.mode === "api") {
@@ -288,7 +388,12 @@ export async function runImport(
 
   // HubSpot multi-file export directory: route to dedicated importer
   // Single-file HubSpot CSV falls through to generic LLM-mapping flow below
-  if (opts.from === "hubspot" && sourcePath && fs.existsSync(sourcePath) && fs.statSync(sourcePath).isDirectory()) {
+  if (
+    opts.from === "hubspot" &&
+    sourcePath &&
+    fs.existsSync(sourcePath) &&
+    fs.statSync(sourcePath).isDirectory()
+  ) {
     const { runHubSpotCsvImport } = await import("./import-hubspot.js");
     const r = await runHubSpotCsvImport(sourcePath, dir, {
       ...(opts.dryRun ? { dryRun: true } : {}),
@@ -383,7 +488,13 @@ export async function runImport(
       : `${prefix}://row/${rowHash}`;
 
     const date = activityDate
-      ? (() => { try { return new Date(activityDate).toISOString().slice(0, 10); } catch { return new Date().toISOString().slice(0, 10); } })()
+      ? (() => {
+          try {
+            return new Date(activityDate).toISOString().slice(0, 10);
+          } catch {
+            return new Date().toISOString().slice(0, 10);
+          }
+        })()
       : new Date().toISOString().slice(0, 10);
 
     const type = (() => {
@@ -426,16 +537,24 @@ async function runSalesforceApiImport(
   opts: { token?: string; url?: string; dryRun?: boolean },
   dir: string
 ): Promise<ImportResult> {
-  const result: ImportResult = { customersCreated: 0, interactionsImported: 0, skipped: 0, errors: [] };
+  const result: ImportResult = {
+    customersCreated: 0,
+    interactionsImported: 0,
+    skipped: 0,
+    errors: [],
+  };
   const token = opts.token ?? process.env["SFDC_TOKEN"] ?? "";
   const instanceUrl = opts.url ?? process.env["SFDC_URL"] ?? "";
 
   if (!token || !instanceUrl) {
-    console.error(error("✗ Salesforce API mode requires --token and --url (or SFDC_TOKEN + SFDC_URL env vars)"));
+    console.error(
+      error("✗ Salesforce API mode requires --token and --url (or SFDC_TOKEN + SFDC_URL env vars)")
+    );
     process.exit(1);
   }
 
-  const { fetchSalesforceContacts, fetchSalesforceTasks } = await import("../sync/salesforce-client.js");
+  const { fetchSalesforceContacts, fetchSalesforceTasks } =
+    await import("../sync/salesforce-client.js");
 
   let contacts: Awaited<ReturnType<typeof fetchSalesforceContacts>>;
   let tasks: Awaited<ReturnType<typeof fetchSalesforceTasks>>;
@@ -449,7 +568,9 @@ async function runSalesforceApiImport(
   }
 
   if (opts.dryRun) {
-    console.log(info(`Dry run — ${contacts.length} contacts, ${tasks.length} tasks from Salesforce`));
+    console.log(
+      info(`Dry run — ${contacts.length} contacts, ${tasks.length} tasks from Salesforce`)
+    );
     return result;
   }
 
@@ -478,12 +599,21 @@ async function runSalesforceApiImport(
     const sourceRef = `salesforce://task/${task.Id}`;
     const { readInteractions } = await import("../fs/interactions-writer.js");
     const existing = await readInteractions(dir, slug).catch(() => "");
-    if (existing.includes(sourceRef)) { result.skipped++; continue; }
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
 
     const date = task.ActivityDate ?? new Date().toISOString().slice(0, 10);
     const notes = (task.Description ?? task.Subject ?? "").slice(0, 500);
     const t = (task.Type ?? "").toLowerCase();
-    const type = t.includes("call") ? "Call" as const : t.includes("email") ? "Email" as const : t.includes("meeting") ? "Meeting" as const : "Note" as const;
+    const type = t.includes("call")
+      ? ("Call" as const)
+      : t.includes("email")
+        ? ("Email" as const)
+        : t.includes("meeting")
+          ? ("Meeting" as const)
+          : ("Note" as const);
 
     try {
       await appendInteraction(dir, slug, {
@@ -508,16 +638,24 @@ export async function runPipedriveApiImport(
   opts: { token?: string; url?: string; dryRun?: boolean },
   dir: string = process.cwd()
 ): Promise<ImportResult> {
-  const result: ImportResult = { customersCreated: 0, interactionsImported: 0, skipped: 0, errors: [] };
+  const result: ImportResult = {
+    customersCreated: 0,
+    interactionsImported: 0,
+    skipped: 0,
+    errors: [],
+  };
   const token = opts.token ?? process.env["PIPEDRIVE_TOKEN"] ?? "";
   const instanceUrl = opts.url ?? process.env["PIPEDRIVE_URL"] ?? "";
 
   if (!token || !instanceUrl) {
-    result.errors.push("Pipedrive API mode requires --token and --url (or PIPEDRIVE_TOKEN + PIPEDRIVE_URL env vars)");
+    result.errors.push(
+      "Pipedrive API mode requires --token and --url (or PIPEDRIVE_TOKEN + PIPEDRIVE_URL env vars)"
+    );
     return result;
   }
 
-  const { fetchPipedrivePersons, fetchPipedriveActivities } = await import("../sync/pipedrive-client.js");
+  const { fetchPipedrivePersons, fetchPipedriveActivities } =
+    await import("../sync/pipedrive-client.js");
 
   let persons: Awaited<ReturnType<typeof fetchPipedrivePersons>>;
   let activities: Awaited<ReturnType<typeof fetchPipedriveActivities>>;
@@ -533,7 +671,9 @@ export async function runPipedriveApiImport(
   }
 
   if (opts.dryRun) {
-    console.log(info(`Dry run — ${persons.length} persons, ${activities.length} activities from Pipedrive`));
+    console.log(
+      info(`Dry run — ${persons.length} persons, ${activities.length} activities from Pipedrive`)
+    );
     return result;
   }
 
@@ -557,23 +697,31 @@ export async function runPipedriveApiImport(
 
   // Pass 2: activities → interactions
   for (const activity of activities) {
-    const slug = (activity.person_id && slugByPersonId.get(activity.person_id))
-      ?? (activity.org_id && slugByOrgId.get(activity.org_id))
-      ?? undefined;
+    const slug =
+      (activity.person_id && slugByPersonId.get(activity.person_id)) ??
+      (activity.org_id && slugByOrgId.get(activity.org_id)) ??
+      undefined;
     if (!slug) continue;
 
     const sourceRef = `pipedrive://activity/${activity.id}`;
     const { readInteractions } = await import("../fs/interactions-writer.js");
     const existing = await readInteractions(dir, slug).catch(() => "");
-    if (existing.includes(sourceRef)) { result.skipped++; continue; }
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
 
     const date = activity.due_date ?? new Date().toISOString().slice(0, 10);
     const notes = (activity.note ?? activity.subject ?? "").slice(0, 500);
     const t = (activity.type ?? "").toLowerCase();
-    const type = t === "call" ? "Call" as const
-      : t === "email" ? "Email" as const
-      : t === "meeting" ? "Meeting" as const
-      : "Note" as const;
+    const type =
+      t === "call"
+        ? ("Call" as const)
+        : t === "email"
+          ? ("Email" as const)
+          : t === "meeting"
+            ? ("Meeting" as const)
+            : ("Note" as const);
 
     try {
       await appendInteraction(dir, slug, {
@@ -604,70 +752,96 @@ export const importCommand = new Command("import")
   .option("--url <url>", "Instance URL (e.g. https://myco.salesforce.com)")
   .option("--analyze", "Analyze export and show what would be imported (no write)")
   .option("--resume", "Resume a previously interrupted import")
-  .option("--owner-map <mapping>", 'Map HubSpot owner emails to reps: "alice@hs.com=alice,bob@hs.com=bob"')
-  .action(async (sourcePath: string, opts: {
-    from: string; dryRun?: boolean; mode?: string; token?: string; url?: string;
-    analyze?: boolean; resume?: boolean; ownerMap?: string;
-  }) => {
-    const dryRun = opts.dryRun ?? false;
+  .option(
+    "--owner-map <mapping>",
+    'Map HubSpot owner emails to reps: "alice@hs.com=alice,bob@hs.com=bob"'
+  )
+  .action(
+    async (
+      sourcePath: string,
+      opts: {
+        from: string;
+        dryRun?: boolean;
+        mode?: string;
+        token?: string;
+        url?: string;
+        analyze?: boolean;
+        resume?: boolean;
+        ownerMap?: string;
+      }
+    ) => {
+      const dryRun = opts.dryRun ?? false;
 
-    // Parse owner map
-    const ownerMap: Record<string, string> = {};
-    if (opts.ownerMap) {
-      for (const pair of opts.ownerMap.split(",")) {
-        const [hs, rep] = pair.split("=");
-        if (hs && rep) ownerMap[hs.trim()] = rep.trim();
+      // Parse owner map
+      const ownerMap: Record<string, string> = {};
+      if (opts.ownerMap) {
+        for (const pair of opts.ownerMap.split(",")) {
+          const [hs, rep] = pair.split("=");
+          if (hs && rep) ownerMap[hs.trim()] = rep.trim();
+        }
+      }
+
+      // HubSpot analyze mode
+      if (opts.analyze && opts.from === "hubspot" && sourcePath) {
+        const { analyzeHubSpotExport } = await import("./import-hubspot.js");
+        const analysis = await analyzeHubSpotExport(sourcePath);
+        console.log(bold("\nDatasynxOpenCRM — HubSpot Import Analysis"));
+        console.log("==========================================");
+        console.log(info(`Companies:      ${analysis.companiesFound}`));
+        console.log(
+          info(
+            `Contacts:       ${analysis.contactsFound} (${analysis.unmappedContacts} unmapped companies)`
+          )
+        );
+        console.log(info(`Deals:          ${analysis.dealsFound}`));
+        console.log(info(`Engagements:    ${analysis.engagementsFound}`));
+        if (analysis.customPropertiesDetected.length > 0) {
+          console.log(
+            info(`\nCustom Properties: ${analysis.customPropertiesDetected.length} detected`)
+          );
+          console.log(
+            `  ${analysis.customPropertiesDetected.slice(0, 10).join(", ")}${analysis.customPropertiesDetected.length > 10 ? " ..." : ""}`
+          );
+        }
+        if (analysis.ownersDetected.length > 0) {
+          console.log(info(`\nOwners detected: ${analysis.ownersDetected.join(", ")}`));
+          console.log(
+            `  Use --owner-map "${analysis.ownersDetected.map((o) => `${o}=<rep>`).join(",")}"`
+          );
+        }
+        if (analysis.unknownStages.length > 0) {
+          console.log(
+            info(`\nUnknown stages (→ "qualified"): ${analysis.unknownStages.join(", ")}`)
+          );
+        }
+        console.log(info(`\nEstimated import time: ~${analysis.estimatedMinutes} min`));
+        console.log(info(`\nRun without --analyze to start import.`));
+        return;
+      }
+
+      if (!dryRun) {
+        console.log(info(`Importing from ${bold(opts.from)}: ${sourcePath}`));
+      }
+
+      const result = await runImport(sourcePath, {
+        from: opts.from,
+        ...(dryRun ? { dryRun: true } : {}),
+        ...(opts.mode ? { mode: opts.mode } : {}),
+        ...(opts.token ? { token: opts.token } : {}),
+        ...(opts.url ? { url: opts.url } : {}),
+        ...(opts.resume ? { resume: true } : {}),
+        ownerMap,
+      });
+
+      if (!dryRun) {
+        console.log(success(`✓ Import complete:`));
+        console.log(info(`  Customers created:      ${result.customersCreated}`));
+        console.log(info(`  Interactions imported:  ${result.interactionsImported}`));
+        console.log(info(`  Skipped (duplicates):   ${result.skipped}`));
+        if (result.errors.length > 0) {
+          console.log(error(`  Errors (${result.errors.length}):`));
+          result.errors.slice(0, 5).forEach((e) => console.log(error(`    ${e}`)));
+        }
       }
     }
-
-    // HubSpot analyze mode
-    if (opts.analyze && opts.from === "hubspot" && sourcePath) {
-      const { analyzeHubSpotExport } = await import("./import-hubspot.js");
-      const analysis = await analyzeHubSpotExport(sourcePath);
-      console.log(bold("\nDatasynxOpenCRM — HubSpot Import Analysis"));
-      console.log("==========================================");
-      console.log(info(`Companies:      ${analysis.companiesFound}`));
-      console.log(info(`Contacts:       ${analysis.contactsFound} (${analysis.unmappedContacts} unmapped companies)`));
-      console.log(info(`Deals:          ${analysis.dealsFound}`));
-      console.log(info(`Engagements:    ${analysis.engagementsFound}`));
-      if (analysis.customPropertiesDetected.length > 0) {
-        console.log(info(`\nCustom Properties: ${analysis.customPropertiesDetected.length} detected`));
-        console.log(`  ${analysis.customPropertiesDetected.slice(0, 10).join(", ")}${analysis.customPropertiesDetected.length > 10 ? " ..." : ""}`);
-      }
-      if (analysis.ownersDetected.length > 0) {
-        console.log(info(`\nOwners detected: ${analysis.ownersDetected.join(", ")}`));
-        console.log(`  Use --owner-map "${analysis.ownersDetected.map((o) => `${o}=<rep>`).join(",")}"`);
-      }
-      if (analysis.unknownStages.length > 0) {
-        console.log(info(`\nUnknown stages (→ "qualified"): ${analysis.unknownStages.join(", ")}`));
-      }
-      console.log(info(`\nEstimated import time: ~${analysis.estimatedMinutes} min`));
-      console.log(info(`\nRun without --analyze to start import.`));
-      return;
-    }
-
-    if (!dryRun) {
-      console.log(info(`Importing from ${bold(opts.from)}: ${sourcePath}`));
-    }
-
-    const result = await runImport(sourcePath, {
-      from: opts.from,
-      ...(dryRun ? { dryRun: true } : {}),
-      ...(opts.mode ? { mode: opts.mode } : {}),
-      ...(opts.token ? { token: opts.token } : {}),
-      ...(opts.url ? { url: opts.url } : {}),
-      ...(opts.resume ? { resume: true } : {}),
-      ownerMap,
-    });
-
-    if (!dryRun) {
-      console.log(success(`✓ Import complete:`));
-      console.log(info(`  Customers created:      ${result.customersCreated}`));
-      console.log(info(`  Interactions imported:  ${result.interactionsImported}`));
-      console.log(info(`  Skipped (duplicates):   ${result.skipped}`));
-      if (result.errors.length > 0) {
-        console.log(error(`  Errors (${result.errors.length}):`));
-        result.errors.slice(0, 5).forEach((e) => console.log(error(`    ${e}`)));
-      }
-    }
-  });
+  );

@@ -73,9 +73,7 @@ export async function indexInLanceDB(
       .whenNotMatchedInsertAll()
       .execute(data);
   } catch (err) {
-    process.stderr.write(
-      `[lancedb] indexInLanceDB failed: ${(err as Error).message}\n`
-    );
+    process.stderr.write(`[lancedb] indexInLanceDB failed: ${(err as Error).message}\n`);
   }
 }
 
@@ -111,10 +109,7 @@ export async function searchKnowledge(
 
     const table = await db.openTable(tableName);
 
-    const results = await table
-      .search(Array.from(vectorFloat32))
-      .limit(limit)
-      .toArray();
+    const results = await table.search(Array.from(vectorFloat32)).limit(limit).toArray();
 
     return results.map((r: Record<string, unknown>) => ({
       content: String(r["text"] ?? ""),

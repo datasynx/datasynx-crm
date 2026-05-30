@@ -33,10 +33,9 @@ export async function fetchStripeCustomerByEmail(
   };
   const sub = subData.data[0];
 
-  const invRes = await fetch(
-    `https://api.stripe.com/v1/invoices?customer=${customerId}&limit=10`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const invRes = await fetch(`https://api.stripe.com/v1/invoices?customer=${customerId}&limit=10`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   const invData = (await invRes.json()) as {
     data: Array<{ id: string; amount_paid: number; status: string; created: number }>;
   };
@@ -85,9 +84,7 @@ export async function handleGetStripeContext(
   }
   const context = await fetchStripeCustomerByEmail(stripeToken, email);
   return {
-    content: [
-      { type: "text", text: JSON.stringify({ success: true, ...context }, null, 2) },
-    ],
+    content: [{ type: "text", text: JSON.stringify({ success: true, ...context }, null, 2) }],
   };
 }
 

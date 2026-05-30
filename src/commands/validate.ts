@@ -107,5 +107,3 @@ export const validateCommand = new Command("validate")
   .action(async (opts: { fix?: boolean }) => {
     await runValidate(opts, process.env["DXCRM_DATA_DIR"] ?? process.cwd());
   });
-
-

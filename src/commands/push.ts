@@ -1,5 +1,10 @@
 import { Command } from "commander";
-import { register, readSubscriptions, revoke, renewExpiringSubscriptions } from "../sync/push-manager.js";
+import {
+  register,
+  readSubscriptions,
+  revoke,
+  renewExpiringSubscriptions,
+} from "../sync/push-manager.js";
 import type { PushProvider } from "../sync/push-manager.js";
 import { success, error, info, bold } from "../ui/colors.js";
 
@@ -59,11 +64,16 @@ export async function runPushStatus(options: { slug?: string; provider?: string 
       ? Math.round((new Date(s.expiresAt).getTime() - now) / (60 * 60 * 1000))
       : null;
     const expiryStr = expiresIn !== null ? `${expiresIn}h remaining` : "no expiry";
-    const needsRenewal = s.expiresAt !== null && (new Date(s.expiresAt).getTime() - now) < 24 * 60 * 60 * 1000;
+    const needsRenewal =
+      s.expiresAt !== null && new Date(s.expiresAt).getTime() - now < 24 * 60 * 60 * 1000;
 
     console.log(bold(`  ${s.id}`));
     console.log(info(`  ${s.provider} → ${s.slug} [${s.status}]`));
-    console.log(info(`  Events: ${s.eventsProcessed}  |  Expires: ${expiryStr}${needsRenewal ? " ⚠ RENEW SOON" : ""}`));
+    console.log(
+      info(
+        `  Events: ${s.eventsProcessed}  |  Expires: ${expiryStr}${needsRenewal ? " ⚠ RENEW SOON" : ""}`
+      )
+    );
     console.log(info(`  Last event: ${s.lastEventAt ?? "—"}`));
     console.log("");
   }
@@ -74,7 +84,7 @@ export async function runPushRevoke(id: string): Promise<void> {
   try {
     await revoke(dataDir, id);
     console.log(success(`✓ Subscription ${bold(id)} revoked`));
-  } catch (err_) {
+  } catch {
     console.error(error(`✗ Subscription not found: ${id}`));
     process.exit(1);
   }
@@ -93,16 +103,21 @@ export async function runPushRenew(options: { all?: boolean; id?: string }): Pro
     console.log(info(`  Use the daemon's automatic renewal (daily 06:00) or re-register.`));
     return;
   }
-  const result = await renewExpiringSubscriptions(dataDir, async () => {
-    throw new Error("No default renew function — use provider-specific tooling");
-  }, 24);
+  const result = await renewExpiringSubscriptions(
+    dataDir,
+    async () => {
+      throw new Error("No default renew function — use provider-specific tooling");
+    },
+    24
+  );
   console.log(info(`  Renewed: ${result.renewed.length}  |  Errors: ${result.errors.length}`));
   if (result.renewed.length > 0) console.log(success(`✓ Renewed: ${result.renewed.join(", ")}`));
   if (result.errors.length > 0) console.log(error(`✗ Errors: ${result.errors.join(", ")}`));
 }
 
-export const pushCommand = new Command("push")
-  .description("Manage real-time push subscriptions (Gmail Pub/Sub, MS Graph, Slack Events)");
+export const pushCommand = new Command("push").description(
+  "Manage real-time push subscriptions (Gmail Pub/Sub, MS Graph, Slack Events)"
+);
 
 pushCommand
   .command("register <slug>")
@@ -114,17 +129,22 @@ pushCommand
   .option("--resource <path>", "MS Graph: resource path")
   .option("--team-id <id>", "Slack: workspace team ID")
   .option("--channel-id <id>", "Slack: optional channel ID")
-  .action(async (slug: string, opts: {
-    provider: PushProvider;
-    webhookUrl: string;
-    topicName?: string;
-    clientState?: string;
-    resource?: string;
-    teamId?: string;
-    channelId?: string;
-  }) => {
-    await runPushRegister(slug, opts);
-  });
+  .action(
+    async (
+      slug: string,
+      opts: {
+        provider: PushProvider;
+        webhookUrl: string;
+        topicName?: string;
+        clientState?: string;
+        resource?: string;
+        teamId?: string;
+        channelId?: string;
+      }
+    ) => {
+      await runPushRegister(slug, opts);
+    }
+  );
 
 pushCommand
   .command("status")

@@ -110,8 +110,7 @@ export async function recognizeCustomer(
     });
 
     const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text")
-      return { slug: null, confidence: "low" };
+    if (!textBlock || textBlock.type !== "text") return { slug: null, confidence: "low" };
 
     try {
       const parsed = JSON.parse(textBlock.text) as {
@@ -152,7 +151,15 @@ export type FieldMapping = Record<string, string | null>;
 
 // Alias table: CRM field name → list of CSV column patterns (lowercased substrings)
 const FIELD_ALIASES: Record<string, string[]> = {
-  name: ["company name", "company", "organization", "organisation", "account name", "name", "firma"],
+  name: [
+    "company name",
+    "company",
+    "organization",
+    "organisation",
+    "account name",
+    "name",
+    "firma",
+  ],
   email: ["email address", "e-mail", "email", "e-mail address", "mail"],
   domain: ["company domain", "website", "domain", "url", "web", "homepage"],
   phone: ["phone number", "phone", "tel", "telephone", "mobile", "cell"],
@@ -160,16 +167,31 @@ const FIELD_ALIASES: Record<string, string[]> = {
   primary_contact: ["contact name", "contact person", "contact", "ansprechpartner", "kontakt"],
   timezone: ["timezone", "time zone", "tz"],
   // Import-specific fields
-  notes: ["notes", "description", "body", "comment", "details", "note", "inhalt", "subject", "summary"],
+  notes: [
+    "notes",
+    "description",
+    "body",
+    "comment",
+    "details",
+    "note",
+    "inhalt",
+    "subject",
+    "summary",
+  ],
   date: ["activity date", "activity_date", "due date", "date", "created_at", "timestamp", "time"],
   activityType: ["activity type", "activity_type", "activitytype", "type", "category", "art"],
-  sourceId: ["record id", "record_id", "source id", "source_id", "external id", "external_id", "activity id"],
+  sourceId: [
+    "record id",
+    "record_id",
+    "source id",
+    "source_id",
+    "external id",
+    "external_id",
+    "activity id",
+  ],
 };
 
-export function mapCsvFieldsHeuristic(
-  headers: string[],
-  targetFields: string[]
-): FieldMapping {
+export function mapCsvFieldsHeuristic(headers: string[], targetFields: string[]): FieldMapping {
   const result: FieldMapping = {};
   const usedHeaders = new Set<string>();
 
@@ -204,7 +226,7 @@ const FIELD_SEMANTICS = `CRM field semantics:
 
 export async function mapCsvFields(
   headers: string[],
-  targetFields: string[],
+  targetFields: string[]
 ): Promise<FieldMapping> {
   const client = getClient();
   if (!client) return mapCsvFieldsHeuristic(headers, targetFields);
@@ -238,10 +260,16 @@ Rules:
     });
 
     const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") return mapCsvFieldsHeuristic(headers, targetFields);
+    if (!textBlock || textBlock.type !== "text")
+      return mapCsvFieldsHeuristic(headers, targetFields);
 
     try {
-      const raw = JSON.parse(textBlock.text.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "").trim()) as Record<string, string | null>;
+      const raw = JSON.parse(
+        textBlock.text
+          .replace(/^```(?:json)?\n?/, "")
+          .replace(/\n?```$/, "")
+          .trim()
+      ) as Record<string, string | null>;
       const validated: FieldMapping = {};
       const headerSet = new Set(headers);
       for (const field of targetFields) {

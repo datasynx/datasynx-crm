@@ -15,8 +15,18 @@ afterEach(() => {
 
 const CONTACTS_RESPONSE = {
   records: [
-    { Id: "c001", Name: "Alice Smith", Email: "alice@acme.com", Account: { Website: "https://acme.com" } },
-    { Id: "c002", Name: "Bob Jones", Email: "bob@beta.de", Account: { Website: "https://beta.de" } },
+    {
+      Id: "c001",
+      Name: "Alice Smith",
+      Email: "alice@acme.com",
+      Account: { Website: "https://acme.com" },
+    },
+    {
+      Id: "c002",
+      Name: "Bob Jones",
+      Email: "bob@beta.de",
+      Account: { Website: "https://beta.de" },
+    },
   ],
   totalSize: 2,
   done: true,
@@ -24,8 +34,22 @@ const CONTACTS_RESPONSE = {
 
 const TASKS_RESPONSE = {
   records: [
-    { Id: "t001", Subject: "Call with Alice", Description: "Discussed renewal", ActivityDate: "2026-05-01", Type: "Call", WhoId: "c001" },
-    { Id: "t002", Subject: "Email", Description: "Sent proposal", ActivityDate: "2026-05-02", Type: "Email", WhoId: "c001" },
+    {
+      Id: "t001",
+      Subject: "Call with Alice",
+      Description: "Discussed renewal",
+      ActivityDate: "2026-05-01",
+      Type: "Call",
+      WhoId: "c001",
+    },
+    {
+      Id: "t002",
+      Subject: "Email",
+      Description: "Sent proposal",
+      ActivityDate: "2026-05-02",
+      Type: "Email",
+      WhoId: "c001",
+    },
   ],
   totalSize: 2,
   done: true,
@@ -52,7 +76,9 @@ describe("fetchSalesforceContacts", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       expect.stringContaining("myco.salesforce.com"),
-      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer my_token" }) })
+      expect.objectContaining({
+        headers: expect.objectContaining({ Authorization: "Bearer my_token" }),
+      })
     );
   });
 
@@ -60,7 +86,9 @@ describe("fetchSalesforceContacts", () => {
     fetchMock.mockResolvedValue({ ok: false, status: 401, statusText: "Unauthorized" });
     const { fetchSalesforceContacts } = await import("../../src/sync/salesforce-client.js");
 
-    await expect(fetchSalesforceContacts("https://myco.salesforce.com", "bad")).rejects.toThrow(/401/);
+    await expect(fetchSalesforceContacts("https://myco.salesforce.com", "bad")).rejects.toThrow(
+      /401/
+    );
   });
 });
 

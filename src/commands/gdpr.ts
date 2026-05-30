@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import fs from "fs";
 import path from "path";
-import { success, error, info, bold } from "../ui/colors.js";
+import { success, info, bold } from "../ui/colors.js";
 import { writeAuditEntry, getActor } from "../fs/audit-log.js";
 import { withJsonFile } from "../core/file-lock.js";
 
@@ -69,9 +69,7 @@ export async function runGdprErase(
   const globalQueuePath = path.join(dir, ".agentic", "agent-queue.json");
   if (fs.existsSync(globalQueuePath)) {
     await withJsonFile<unknown[]>(globalQueuePath, (tasks) =>
-      (Array.isArray(tasks) ? tasks : []).filter(
-        (t) => (t as { slug?: string }).slug !== slug
-      )
+      (Array.isArray(tasks) ? tasks : []).filter((t) => (t as { slug?: string }).slug !== slug)
     );
   }
 
@@ -143,7 +141,9 @@ gdprCommand
   .command("erase <slug>")
   .description("Permanently erase all data for a customer (Art. 17 right to erasure)")
   .option("--confirm", "Confirm permanent deletion (required)")
-  .action((slug: string, opts: { confirm?: boolean }) => runGdprErase(slug, opts, process.env["DXCRM_DATA_DIR"]));
+  .action((slug: string, opts: { confirm?: boolean }) =>
+    runGdprErase(slug, opts, process.env["DXCRM_DATA_DIR"])
+  );
 
 gdprCommand
   .command("list-erasures")

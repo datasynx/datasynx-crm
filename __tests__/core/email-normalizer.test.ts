@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-beforeEach(() => { vi.resetModules(); });
+beforeEach(() => {
+  vi.resetModules();
+});
 
 describe("normalizeEmail", () => {
   it("lowercases plain email addresses", async () => {

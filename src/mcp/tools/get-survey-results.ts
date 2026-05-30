@@ -15,25 +15,31 @@ export async function handleGetSurveyResults(
   const detractors = responses.filter((r) => r.score <= 6).length;
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({
-        surveyId: input.surveyId,
-        ...(input.slug ? { slug: input.slug } : {}),
-        totalResponses: responses.length,
-        npsScore: nps,
-        promoters,
-        passives,
-        detractors,
-        responses: responses.map((r) => ({
-          slug: r.slug,
-          email: r.contactEmail,
-          score: r.score,
-          ...(r.comment ? { comment: r.comment } : {}),
-          respondedAt: r.respondedAt,
-        })),
-      }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          {
+            surveyId: input.surveyId,
+            ...(input.slug ? { slug: input.slug } : {}),
+            totalResponses: responses.length,
+            npsScore: nps,
+            promoters,
+            passives,
+            detractors,
+            responses: responses.map((r) => ({
+              slug: r.slug,
+              email: r.contactEmail,
+              score: r.score,
+              ...(r.comment ? { comment: r.comment } : {}),
+              respondedAt: r.respondedAt,
+            })),
+          },
+          null,
+          2
+        ),
+      },
+    ],
   };
 }
 

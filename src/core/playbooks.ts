@@ -25,10 +25,14 @@ export interface Playbook {
 export interface TriggerCondition {
   type:
     | "stage"
-    | "value_gt" | "value_lt"
-    | "days_stalled_gt" | "days_stalled_lt"
-    | "health_lt" | "health_gt"
-    | "no_champion" | "has_champion";
+    | "value_gt"
+    | "value_lt"
+    | "days_stalled_gt"
+    | "days_stalled_lt"
+    | "health_lt"
+    | "health_gt"
+    | "no_champion"
+    | "has_champion";
   value?: number;
   stage?: string;
 }
@@ -90,7 +94,11 @@ export function readPlaybook(dataDir: string, slug: string, name: string): Playb
   };
 }
 
-export async function writePlaybook(dataDir: string, slug: string, playbook: Playbook): Promise<void> {
+export async function writePlaybook(
+  dataDir: string,
+  slug: string,
+  playbook: Playbook
+): Promise<void> {
   const dir = playbooksDir(dataDir, slug);
   const filePath = path.join(dir, `${playbook.name}.md`);
   await withFileQueue(filePath, async () => {
@@ -149,17 +157,26 @@ function parseTokens(tokens: string[]): TriggerCondition[] {
 
 export function parseTrigger(triggerStr: string | null | undefined): TriggerCondition[] {
   if (!triggerStr?.trim()) return [];
-  const tokens = triggerStr.split(/\s+AND\s+/).map((t) => t.trim()).filter(Boolean);
+  const tokens = triggerStr
+    .split(/\s+AND\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
   return parseTokens(tokens);
 }
 
 export function parseTriggerFull(triggerStr: string | null | undefined): ParsedTrigger {
   if (!triggerStr?.trim()) return { conditions: [], operator: "AND" };
-  const orTokens = triggerStr.split(/\s+OR\s+/).map((t) => t.trim()).filter(Boolean);
+  const orTokens = triggerStr
+    .split(/\s+OR\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
   if (orTokens.length > 1) {
     return { conditions: parseTokens(orTokens), operator: "OR" };
   }
-  const andTokens = triggerStr.split(/\s+AND\s+/).map((t) => t.trim()).filter(Boolean);
+  const andTokens = triggerStr
+    .split(/\s+AND\s+/)
+    .map((t) => t.trim())
+    .filter(Boolean);
   return { conditions: parseTokens(andTokens), operator: "AND" };
 }
 
@@ -169,17 +186,27 @@ export function evaluateCondition(
   daysSinceContact: number
 ): boolean {
   switch (cond.type) {
-    case "stage":           return deal.stage === cond.stage;
-    case "value_gt":        return deal.value > (cond.value ?? 0);
-    case "value_lt":        return deal.value < (cond.value ?? Infinity);
+    case "stage":
+      return deal.stage === cond.stage;
+    case "value_gt":
+      return deal.value > (cond.value ?? 0);
+    case "value_lt":
+      return deal.value < (cond.value ?? Infinity);
     // v1: days_stalled uses daysSinceContact as proxy (stage-change timestamps not tracked)
-    case "days_stalled_gt": return daysSinceContact > (cond.value ?? 0);
-    case "days_stalled_lt": return daysSinceContact < (cond.value ?? Infinity);
-    case "health_lt":       return deal.healthScore < (cond.value ?? 100);
-    case "health_gt":       return deal.healthScore > (cond.value ?? 0);
-    case "no_champion":     return !deal.championPresent;
-    case "has_champion":    return deal.championPresent;
-    default:                return false;
+    case "days_stalled_gt":
+      return daysSinceContact > (cond.value ?? 0);
+    case "days_stalled_lt":
+      return daysSinceContact < (cond.value ?? Infinity);
+    case "health_lt":
+      return deal.healthScore < (cond.value ?? 100);
+    case "health_gt":
+      return deal.healthScore > (cond.value ?? 0);
+    case "no_champion":
+      return !deal.championPresent;
+    case "has_champion":
+      return deal.championPresent;
+    default:
+      return false;
   }
 }
 
@@ -209,12 +236,20 @@ export function matchPlaybooks(
     const matched = conditions.filter((c) => evaluateCondition(c, deal, daysSinceContact));
     const isMatch = operator === "OR" ? matched.length > 0 : matched.length === conditions.length;
     if (isMatch) {
-      results.push({ playbook: pb, score: 1.0, matchedConditions: matched, totalConditions: conditions.length });
+      results.push({
+        playbook: pb,
+        score: 1.0,
+        matchedConditions: matched,
+        totalConditions: conditions.length,
+      });
     }
   }
   return results.sort((a, b) => {
-    const rateDiff = (b.playbook.frontmatter.successRate ?? 0) - (a.playbook.frontmatter.successRate ?? 0);
-    return rateDiff !== 0 ? rateDiff : (b.playbook.frontmatter.usedCount ?? 0) - (a.playbook.frontmatter.usedCount ?? 0);
+    const rateDiff =
+      (b.playbook.frontmatter.successRate ?? 0) - (a.playbook.frontmatter.successRate ?? 0);
+    return rateDiff !== 0
+      ? rateDiff
+      : (b.playbook.frontmatter.usedCount ?? 0) - (a.playbook.frontmatter.usedCount ?? 0);
   });
 }
 

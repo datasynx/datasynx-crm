@@ -17,9 +17,7 @@ describe("withRetry", () => {
 
   it("retries on failure and succeeds on second attempt", async () => {
     const { withRetry } = await import("../../src/core/resilience.js");
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("transient"))
-      .mockResolvedValue("ok");
+    const fn = vi.fn().mockRejectedValueOnce(new Error("transient")).mockResolvedValue("ok");
     const result = await withRetry(fn, { attempts: 3, backoffMs: 1 });
     expect(result).toBe("ok");
     expect(fn).toHaveBeenCalledTimes(2);
@@ -36,16 +34,16 @@ describe("withRetry", () => {
     const { withRetry } = await import("../../src/core/resilience.js");
     const fn = vi.fn().mockRejectedValue(new Error("auth_failed"));
     const shouldRetry = (err: Error) => err.message.includes("transient");
-    await expect(withRetry(fn, { attempts: 5, backoffMs: 1, shouldRetry })).rejects.toThrow("auth_failed");
+    await expect(withRetry(fn, { attempts: 5, backoffMs: 1, shouldRetry })).rejects.toThrow(
+      "auth_failed"
+    );
     // Should not retry at all since shouldRetry returns false
     expect(fn).toHaveBeenCalledOnce();
   });
 
   it("retries only when shouldRetry returns true", async () => {
     const { withRetry } = await import("../../src/core/resilience.js");
-    const fn = vi.fn()
-      .mockRejectedValueOnce(new Error("rate_limit"))
-      .mockResolvedValue("ok");
+    const fn = vi.fn().mockRejectedValueOnce(new Error("rate_limit")).mockResolvedValue("ok");
     const shouldRetry = (err: Error) => err.message.includes("rate_limit");
     const result = await withRetry(fn, { attempts: 3, backoffMs: 1, shouldRetry });
     expect(result).toBe("ok");
@@ -61,7 +59,8 @@ describe("withRetry", () => {
       return real(fn as () => void, 0);
     });
 
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error("fail"))
       .mockRejectedValueOnce(new Error("fail"))
       .mockResolvedValue("ok");
@@ -81,7 +80,8 @@ describe("withRetry", () => {
       return real(fn as () => void, 0);
     });
 
-    const fn = vi.fn()
+    const fn = vi
+      .fn()
       .mockRejectedValueOnce(new Error("a"))
       .mockRejectedValueOnce(new Error("b"))
       .mockRejectedValueOnce(new Error("c"))

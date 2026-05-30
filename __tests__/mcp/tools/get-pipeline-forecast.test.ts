@@ -10,7 +10,8 @@ beforeEach(() => {
 describe("get_pipeline_forecast tool", () => {
   it("returns empty when no customers directory", async () => {
     vol.fromJSON({});
-    const { handleGetPipelineForecast } = await import("../../../src/mcp/tools/get-pipeline-forecast.js");
+    const { handleGetPipelineForecast } =
+      await import("../../../src/mcp/tools/get-pipeline-forecast.js");
     const result = await handleGetPipelineForecast({}, "/data");
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       deals: unknown[];
@@ -28,7 +29,8 @@ describe("get_pipeline_forecast tool", () => {
       "/data/customers/acme-corp/pipeline.md": `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------||\n| Deal A | proposal | 100000 | EUR | 50 |  |  | ${today} |\n`,
       "/data/customers/beta-gmbh/pipeline.md": `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------||\n| Deal B | qualified | 80000 | EUR | 30 |  |  | ${today} |\n`,
     });
-    const { handleGetPipelineForecast } = await import("../../../src/mcp/tools/get-pipeline-forecast.js");
+    const { handleGetPipelineForecast } =
+      await import("../../../src/mcp/tools/get-pipeline-forecast.js");
     const result = await handleGetPipelineForecast({}, "/data");
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       deals: Array<{ slug: string; dealName: string; weightedValue: number }>;
@@ -47,7 +49,8 @@ describe("get_pipeline_forecast tool", () => {
     vol.fromJSON({
       "/data/customers/acme-corp/pipeline.md": `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------||\n| Won Deal | won | 50000 | EUR | 100 |  |  | ${today} |\n| Lost Deal | lost | 30000 | EUR | 0 |  |  | ${today} |\n| Open Deal | proposal | 20000 | EUR | 60 |  |  | ${today} |\n`,
     });
-    const { handleGetPipelineForecast } = await import("../../../src/mcp/tools/get-pipeline-forecast.js");
+    const { handleGetPipelineForecast } =
+      await import("../../../src/mcp/tools/get-pipeline-forecast.js");
     const result = await handleGetPipelineForecast({}, "/data");
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       deals: unknown[];
@@ -61,7 +64,8 @@ describe("get_pipeline_forecast tool", () => {
       "/data/customers/acme-corp/pipeline.md": `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------||\n| Deal A | proposal | 100000 | EUR | 50 |  |  | ${today} |\n`,
       "/data/customers/beta-gmbh/pipeline.md": `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------||\n| Deal B | qualified | 80000 | EUR | 30 |  |  | ${today} |\n`,
     });
-    const { handleGetPipelineForecast } = await import("../../../src/mcp/tools/get-pipeline-forecast.js");
+    const { handleGetPipelineForecast } =
+      await import("../../../src/mcp/tools/get-pipeline-forecast.js");
     const result = await handleGetPipelineForecast({ filter: "acme" }, "/data");
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       deals: Array<{ slug: string }>;
@@ -72,7 +76,8 @@ describe("get_pipeline_forecast tool", () => {
 
   it("handles error gracefully", async () => {
     vol.fromJSON({ "/data/customers/broken/pipeline.md": "not-a-table" });
-    const { handleGetPipelineForecast } = await import("../../../src/mcp/tools/get-pipeline-forecast.js");
+    const { handleGetPipelineForecast } =
+      await import("../../../src/mcp/tools/get-pipeline-forecast.js");
     // Should not throw even with broken data
     const result = await handleGetPipelineForecast({}, "/data");
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {

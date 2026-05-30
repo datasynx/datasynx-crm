@@ -164,10 +164,7 @@ describe("GrokAdapter", () => {
     await new GrokAdapter().install(TEST_CONFIG);
 
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(
-      path.join(TEST_CONFIG.dataDir, "AGENTS.md"),
-      "utf-8"
-    ) as string;
+    const content = fs.readFileSync(path.join(TEST_CONFIG.dataDir, "AGENTS.md"), "utf-8") as string;
     expect((content.match(/DatasynxOpenCRM/g) ?? []).length).toBe(1);
   });
 
@@ -180,10 +177,7 @@ describe("GrokAdapter", () => {
     await new GrokAdapter().install(TEST_CONFIG);
 
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(
-      path.join(TEST_CONFIG.dataDir, "AGENTS.md"),
-      "utf-8"
-    ) as string;
+    const content = fs.readFileSync(path.join(TEST_CONFIG.dataDir, "AGENTS.md"), "utf-8") as string;
     expect(content).toContain("Other Agents");
     expect(content).toContain("DatasynxOpenCRM");
   });

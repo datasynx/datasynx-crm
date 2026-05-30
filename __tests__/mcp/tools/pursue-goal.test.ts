@@ -11,7 +11,16 @@ const DATA_DIR = "/data";
 
 const mockBuildFn = async () => ({
   deals: [
-    { slug: "acme", name: "Enterprise", stage: "negotiation", value: 80000, probability: 60, healthScore: 50, daysSinceContact: 5, championPresent: false },
+    {
+      slug: "acme",
+      name: "Enterprise",
+      stage: "negotiation",
+      value: 80000,
+      probability: 60,
+      healthScore: 50,
+      daysSinceContact: 5,
+      championPresent: false,
+    },
   ],
   externalSignals: [] as [],
   iterations: 100,
@@ -53,11 +62,9 @@ describe("pursue_goal tool", () => {
     });
     process.env["DXCRM_ACTOR"] = "alice";
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
-    const res = await handlePursueGoal(
-      { goal: "Close €500k", deadline: "2026-09-30" },
-      DATA_DIR,
-      { buildInputFn: mockBuildFn }
-    );
+    const res = await handlePursueGoal({ goal: "Close €500k", deadline: "2026-09-30" }, DATA_DIR, {
+      buildInputFn: mockBuildFn,
+    });
     const data = JSON.parse(res.content[0]!.text);
     expect(data.success).toBe(false);
     expect(data.error).toContain("Access denied");
@@ -85,11 +92,18 @@ describe("pursue_goal tool", () => {
     let capturedDesc = "";
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
     await handlePursueGoal(
-      { goal: "Close €100k this quarter", deadline: "2026-09-30", context: "Existing pipeline only" },
+      {
+        goal: "Close €100k this quarter",
+        deadline: "2026-09-30",
+        context: "Existing pipeline only",
+      },
       DATA_DIR,
       {
         buildInputFn: mockBuildFn,
-        llmFn: async (p) => { capturedDesc = p; return "{}"; },
+        llmFn: async (p) => {
+          capturedDesc = p;
+          return "{}";
+        },
       }
     );
     expect(capturedDesc).toContain("Close €100k");
@@ -98,8 +112,12 @@ describe("pursue_goal tool", () => {
   it("goal persisted — second call reads previous goal", async () => {
     vol.fromJSON({});
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
-    await handlePursueGoal({ goal: "Close €100k", deadline: "2026-09-30" }, DATA_DIR, { buildInputFn: mockBuildFn });
-    await handlePursueGoal({ goal: "Close €200k", deadline: "2026-12-31" }, DATA_DIR, { buildInputFn: mockBuildFn });
+    await handlePursueGoal({ goal: "Close €100k", deadline: "2026-09-30" }, DATA_DIR, {
+      buildInputFn: mockBuildFn,
+    });
+    await handlePursueGoal({ goal: "Close €200k", deadline: "2026-12-31" }, DATA_DIR, {
+      buildInputFn: mockBuildFn,
+    });
     const { readGoals } = await import("../../../src/core/goal-engine.js");
     expect(readGoals(DATA_DIR)).toHaveLength(2);
   });
@@ -115,12 +133,12 @@ describe("pursue_goal tool", () => {
   it("returns error response on unexpected exception", async () => {
     vol.fromJSON({});
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
-    const badBuildFn = async () => { throw new Error("network timeout"); };
-    const res = await handlePursueGoal(
-      { goal: "Close €100k", deadline: "2026-09-30" },
-      DATA_DIR,
-      { buildInputFn: badBuildFn as never }
-    );
+    const badBuildFn = async () => {
+      throw new Error("network timeout");
+    };
+    const res = await handlePursueGoal({ goal: "Close €100k", deadline: "2026-09-30" }, DATA_DIR, {
+      buildInputFn: badBuildFn as never,
+    });
     const data = JSON.parse(res.content[0]!.text);
     expect(data.success).toBe(false);
   });

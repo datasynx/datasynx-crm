@@ -46,9 +46,7 @@ describe("syncGoogleDriveFiles", () => {
       })
     );
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
     const result = await syncGoogleDriveFiles(BASE_OPTS);
 
     expect(result.synced).toBe(0);
@@ -66,7 +64,8 @@ describe("syncGoogleDriveFiles", () => {
 
     vi.stubGlobal(
       "fetch",
-      vi.fn()
+      vi
+        .fn()
         .mockResolvedValueOnce({
           ok: true,
           json: async () => ({ files: [docFile] }),
@@ -81,12 +80,8 @@ describe("syncGoogleDriveFiles", () => {
 
     vol.fromJSON({ "/data/customers/acme-corp/interactions.md": "" });
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
-    const { appendInteraction } = await import(
-      "../../src/fs/interactions-writer.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
+    const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
 
     const result = await syncGoogleDriveFiles(BASE_OPTS);
 
@@ -118,12 +113,8 @@ describe("syncGoogleDriveFiles", () => {
       })
     );
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
-    const { appendInteraction } = await import(
-      "../../src/fs/interactions-writer.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
+    const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
 
     const result = await syncGoogleDriveFiles(BASE_OPTS);
 
@@ -145,12 +136,8 @@ describe("syncGoogleDriveFiles", () => {
     };
 
     // readInteractions returns content with existing sourceRef
-    const { readInteractions } = await import(
-      "../../src/fs/interactions-writer.js"
-    );
-    vi.mocked(readInteractions).mockResolvedValue(
-      `**Source:** ${existingRef}\n`
-    );
+    const { readInteractions } = await import("../../src/fs/interactions-writer.js");
+    vi.mocked(readInteractions).mockResolvedValue(`**Source:** ${existingRef}\n`);
 
     vi.stubGlobal(
       "fetch",
@@ -161,12 +148,8 @@ describe("syncGoogleDriveFiles", () => {
       })
     );
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
-    const { appendInteraction } = await import(
-      "../../src/fs/interactions-writer.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
+    const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
 
     const result = await syncGoogleDriveFiles(BASE_OPTS);
 
@@ -187,7 +170,8 @@ describe("syncGoogleDriveFiles", () => {
       mimeType: "application/pdf",
     };
 
-    const fetchMock = vi.fn()
+    const fetchMock = vi
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ files: [file1], nextPageToken: "tok_page2" }),
@@ -201,9 +185,7 @@ describe("syncGoogleDriveFiles", () => {
 
     vi.stubGlobal("fetch", fetchMock);
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
     const result = await syncGoogleDriveFiles(BASE_OPTS);
 
     expect(result.synced).toBe(2);
@@ -223,9 +205,7 @@ describe("syncGoogleDriveFiles", () => {
       })
     );
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
     const result = await syncGoogleDriveFiles(BASE_OPTS);
 
     expect(result.errors.length).toBeGreaterThan(0);
@@ -249,12 +229,8 @@ describe("syncGoogleDriveFiles", () => {
       })
     );
 
-    const { syncGoogleDriveFiles } = await import(
-      "../../src/sync/google-drive-sync.js"
-    );
-    const { appendInteraction } = await import(
-      "../../src/fs/interactions-writer.js"
-    );
+    const { syncGoogleDriveFiles } = await import("../../src/sync/google-drive-sync.js");
+    const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
 
     await syncGoogleDriveFiles(BASE_OPTS);
 

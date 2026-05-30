@@ -30,11 +30,9 @@ describe("get_goal_status tool", () => {
   it("returns active goals with daysRemaining", async () => {
     vol.fromJSON({});
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
-    await handlePursueGoal(
-      { goal: "Close €100k", deadline: "2026-12-31" },
-      DATA_DIR,
-      { buildInputFn: mockBuildFn }
-    );
+    await handlePursueGoal({ goal: "Close €100k", deadline: "2026-12-31" }, DATA_DIR, {
+      buildInputFn: mockBuildFn,
+    });
     const { handleGetGoalStatus } = await import("../../../src/mcp/tools/get-goal-status.js");
     const res = await handleGetGoalStatus({}, DATA_DIR);
     const data = JSON.parse(res.content[0]!.text);
@@ -46,7 +44,9 @@ describe("get_goal_status tool", () => {
   it("excludes cancelled goals from default listing", async () => {
     vol.fromJSON({});
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
-    const res1 = await handlePursueGoal({ goal: "Close €100k", deadline: "2026-09-30" }, DATA_DIR, { buildInputFn: mockBuildFn });
+    const res1 = await handlePursueGoal({ goal: "Close €100k", deadline: "2026-09-30" }, DATA_DIR, {
+      buildInputFn: mockBuildFn,
+    });
     const goalId = JSON.parse(res1.content[0]!.text).goalId as string;
     const { cancelGoal } = await import("../../../src/core/goal-engine.js");
     cancelGoal(DATA_DIR, goalId);
@@ -59,7 +59,9 @@ describe("get_goal_status tool", () => {
   it("returns specific goal when goalId provided", async () => {
     vol.fromJSON({});
     const { handlePursueGoal } = await import("../../../src/mcp/tools/pursue-goal.js");
-    const r = await handlePursueGoal({ goal: "Close €200k", deadline: "2026-09-30" }, DATA_DIR, { buildInputFn: mockBuildFn });
+    const r = await handlePursueGoal({ goal: "Close €200k", deadline: "2026-09-30" }, DATA_DIR, {
+      buildInputFn: mockBuildFn,
+    });
     const goalId = JSON.parse(r.content[0]!.text).goalId as string;
     const { handleGetGoalStatus } = await import("../../../src/mcp/tools/get-goal-status.js");
     const res = await handleGetGoalStatus({ goalId }, DATA_DIR);

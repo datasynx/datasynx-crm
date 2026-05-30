@@ -88,9 +88,7 @@ export function writeHealth(dataDir: string, slug: string, health: HealthSnapsho
 // ─── Parsing ──────────────────────────────────────────────────────────────────
 
 export function parseContactInteractions(content: string): ParsedInteraction[] {
-  const blocks = content
-    .split(/(?=^## \d{4}-\d{2}-\d{2})/m)
-    .filter((b) => b.trim().length > 0);
+  const blocks = content.split(/(?=^## \d{4}-\d{2}-\d{2})/m).filter((b) => b.trim().length > 0);
 
   const result: ParsedInteraction[] = [];
   for (const block of blocks) {
@@ -231,7 +229,12 @@ export function groupInteractionsByContact(
     const contactId = makePersonId(ix.withStr, slug);
 
     if (!map.has(contactId)) {
-      const entry: { contactId: string; name: string; email?: string; interactions: ParsedInteraction[] } = {
+      const entry: {
+        contactId: string;
+        name: string;
+        email?: string;
+        interactions: ParsedInteraction[];
+      } = {
         contactId,
         name,
         interactions: [],
@@ -350,10 +353,7 @@ export function computeCustomerHealth(
 
 // ─── Fire-and-forget update ───────────────────────────────────────────────────
 
-export async function updateHealthFromInteraction(
-  dataDir: string,
-  slug: string
-): Promise<void> {
+export async function updateHealthFromInteraction(dataDir: string, slug: string): Promise<void> {
   const health = computeCustomerHealth(dataDir, slug);
   writeHealth(dataDir, slug, health);
 }

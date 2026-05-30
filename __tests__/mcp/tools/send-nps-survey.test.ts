@@ -30,7 +30,10 @@ describe("handleSendNpsSurvey", () => {
   it("returns error when survey not found", async () => {
     vol.fromJSON({});
     const { handleSendNpsSurvey } = await import("../../../src/mcp/tools/send-nps-survey.js");
-    const result = await handleSendNpsSurvey({ slug: "acme", contactEmail: "a@acme.com", surveyId: "missing" }, DATA_DIR);
+    const result = await handleSendNpsSurvey(
+      { slug: "acme", contactEmail: "a@acme.com", surveyId: "missing" },
+      DATA_DIR
+    );
     const parsed = JSON.parse(result.content[0].text) as { error: string };
     expect(parsed.error).toContain("missing");
   });
@@ -41,11 +44,19 @@ describe("handleSendNpsSurvey", () => {
     });
     const { handleSendNpsSurvey } = await import("../../../src/mcp/tools/send-nps-survey.js");
     const result = await handleSendNpsSurvey(
-      { slug: "acme", contactEmail: "alice@acme.com", surveyId: SURVEY_ID, serverUrl: "http://localhost:3847" },
+      {
+        slug: "acme",
+        contactEmail: "alice@acme.com",
+        surveyId: SURVEY_ID,
+        serverUrl: "http://localhost:3847",
+      },
       DATA_DIR
     );
     const parsed = JSON.parse(result.content[0].text) as {
-      token: string; subject: string; body: string; surveyUrl: string;
+      token: string;
+      subject: string;
+      body: string;
+      surveyUrl: string;
     };
     expect(parsed.token).toBeTruthy();
     expect(parsed.subject).toBeTruthy();
@@ -75,8 +86,14 @@ describe("handleSendNpsSurvey", () => {
       [`${DATA_DIR}/.agentic/surveys/${SURVEY_ID}.yaml`]: makeSurveyYaml(),
     });
     const { handleSendNpsSurvey } = await import("../../../src/mcp/tools/send-nps-survey.js");
-    const r1 = await handleSendNpsSurvey({ slug: "acme", contactEmail: "alice@acme.com", surveyId: SURVEY_ID }, DATA_DIR);
-    const r2 = await handleSendNpsSurvey({ slug: "acme", contactEmail: "alice@acme.com", surveyId: SURVEY_ID }, DATA_DIR);
+    const r1 = await handleSendNpsSurvey(
+      { slug: "acme", contactEmail: "alice@acme.com", surveyId: SURVEY_ID },
+      DATA_DIR
+    );
+    const r2 = await handleSendNpsSurvey(
+      { slug: "acme", contactEmail: "alice@acme.com", surveyId: SURVEY_ID },
+      DATA_DIR
+    );
     const t1 = (JSON.parse(r1.content[0].text) as { token: string }).token;
     const t2 = (JSON.parse(r2.content[0].text) as { token: string }).token;
     expect(t1).toBe(t2);

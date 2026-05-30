@@ -1,6 +1,12 @@
 import { Command } from "commander";
 import { success, error, info, bold } from "../ui/colors.js";
-import { listKbArticles, getKbArticle, writeKbArticle, deleteKbArticle, searchKbSimple } from "../fs/knowledge-base.js";
+import {
+  listKbArticles,
+  getKbArticle,
+  writeKbArticle,
+  deleteKbArticle,
+  searchKbSimple,
+} from "../fs/knowledge-base.js";
 import type { KbArticle } from "../schemas/kb-article.js";
 
 export const kbCommand = new Command("kb").description("Manage the knowledge base");
@@ -16,7 +22,10 @@ kbCommand
       ...(opts.category ? { category: opts.category } : {}),
       ...(opts.public ? { publicOnly: true } : {}),
     });
-    if (articles.length === 0) { console.log(info("No articles found.")); return; }
+    if (articles.length === 0) {
+      console.log(info("No articles found."));
+      return;
+    }
     for (const a of articles) {
       const pub = a.public ? " [public]" : "";
       console.log(`  ${bold(a.id)}  [${a.category}]  ${a.title}${pub}`);
@@ -29,7 +38,10 @@ kbCommand
   .action((id: string) => {
     const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const article = getKbArticle(dataDir, id);
-    if (!article) { console.error(error(`Article '${id}' not found`)); process.exit(1); }
+    if (!article) {
+      console.error(error(`Article '${id}' not found`));
+      process.exit(1);
+    }
     console.log(bold(article.title));
     console.log(`Category: ${article.category}  Tags: ${article.tags.join(", ") || "(none)"}`);
     console.log("\n" + article.body);
@@ -42,7 +54,10 @@ kbCommand
   .action((query: string, opts: { public?: boolean }) => {
     const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const results = searchKbSimple(dataDir, query, opts.public ? { publicOnly: true } : {});
-    if (results.length === 0) { console.log(info("No results.")); return; }
+    if (results.length === 0) {
+      console.log(info("No results."));
+      return;
+    }
     for (const a of results) {
       console.log(`  ${bold(a.id)}  ${a.title}`);
       console.log(`    ${a.body.slice(0, 120).replace(/\n/g, " ")}...`);

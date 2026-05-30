@@ -9,9 +9,7 @@ export function formatInteractionEntry(entry: InteractionEntry): string {
   const header = `## ${entry.date} · ${entry.type}${entry.direction ? ` · ${entry.direction}` : ""}`;
   const withLabel = entry.type === "Email" ? "Subject" : "With";
   const nextStepsBlock =
-    entry.nextSteps.length > 0
-      ? entry.nextSteps.map((s) => `- [ ] ${s}`).join("\n")
-      : "- [ ] —";
+    entry.nextSteps.length > 0 ? entry.nextSteps.map((s) => `- [ ] ${s}`).join("\n") : "- [ ] —";
 
   return `${header}
 **${withLabel}:** ${entry.with}

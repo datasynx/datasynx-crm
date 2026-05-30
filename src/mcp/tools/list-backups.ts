@@ -1,4 +1,4 @@
-import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { readBackupLog, listBackupsInDir } from "../../commands/backup.js";
 
@@ -25,19 +25,23 @@ export async function handleListBackups(
     content: [
       {
         type: "text",
-        text: JSON.stringify({
-          count: limited.length,
-          totalAvailable: entries.length,
-          backups: limited.map((e) => ({
-            filename: e.filename,
-            createdAt: e.createdAt,
-            sizeMb: e.sizeBytes > 0 ? `${(e.sizeBytes / 1024 / 1024).toFixed(1)} MB` : "unknown",
-            verified: e.verified,
-            encrypted: e.encrypted,
-            customerCount: e.customerCount,
-            fileCount: e.fileCount,
-          })),
-        }, null, 2),
+        text: JSON.stringify(
+          {
+            count: limited.length,
+            totalAvailable: entries.length,
+            backups: limited.map((e) => ({
+              filename: e.filename,
+              createdAt: e.createdAt,
+              sizeMb: e.sizeBytes > 0 ? `${(e.sizeBytes / 1024 / 1024).toFixed(1)} MB` : "unknown",
+              verified: e.verified,
+              encrypted: e.encrypted,
+              customerCount: e.customerCount,
+              fileCount: e.fileCount,
+            })),
+          },
+          null,
+          2
+        ),
       },
     ],
   };
@@ -50,7 +54,13 @@ export function registerListBackups(server: McpServer): void {
       description:
         "List available CRM backups with metadata (date, size, verification status, customer count). Shows log-tracked backups first, falls back to directory scan.",
       inputSchema: z.object({
-        limit: z.number().int().min(1).max(50).default(10).describe("Maximum number of backups to return"),
+        limit: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .default(10)
+          .describe("Maximum number of backups to return"),
       }),
     },
     (input) => handleListBackups(input)

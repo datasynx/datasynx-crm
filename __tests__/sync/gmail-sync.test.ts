@@ -57,8 +57,7 @@ describe("syncGmail", () => {
   it("skips emails already in interactions (idempotency)", async () => {
     const source = "gmail://thread/t1";
     vol.fromJSON({
-      "/data/customers/acme-corp/interactions.md":
-        `# Interactions\n\nsourceRef: ${source}\n`,
+      "/data/customers/acme-corp/interactions.md": `# Interactions\n\nsourceRef: ${source}\n`,
     });
 
     const { google } = await import("googleapis");

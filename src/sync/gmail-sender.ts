@@ -4,8 +4,8 @@ export interface SendEmailOpts {
   auth: Auth.OAuth2Client;
   to: string;
   subject: string;
-  body: string;             // HTML or plain text
-  isHtml?: boolean;         // default true
+  body: string; // HTML or plain text
+  isHtml?: boolean; // default true
   replyToMessageId?: string;
   cc?: string[];
 }
@@ -25,10 +25,7 @@ function buildMime(opts: SendEmailOpts): string {
     `Content-Type: ${contentType}`,
     `MIME-Version: 1.0`,
     ...(opts.replyToMessageId
-      ? [
-          `In-Reply-To: ${opts.replyToMessageId}`,
-          `References: ${opts.replyToMessageId}`,
-        ]
+      ? [`In-Reply-To: ${opts.replyToMessageId}`, `References: ${opts.replyToMessageId}`]
       : []),
   ];
   return `${lines.join("\r\n")}\r\n\r\n${opts.body}`;

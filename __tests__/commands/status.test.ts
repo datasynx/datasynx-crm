@@ -113,7 +113,11 @@ describe("runStatus — unmatched", () => {
   it("--unmatched flag lists transcript paths", async () => {
     vol.fromJSON({
       "/data/.agentic/unmatched-transcripts.json": JSON.stringify([
-        { filePath: "/transcripts/meeting.vtt", addedAt: "2026-01-01T00:00:00.000Z", reason: "no_customer_match" },
+        {
+          filePath: "/transcripts/meeting.vtt",
+          addedAt: "2026-01-01T00:00:00.000Z",
+          reason: "no_customer_match",
+        },
       ]),
     });
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -143,13 +147,26 @@ describe("runStatus — team overview", () => {
   it("shows team sessions when server returns sessions", async () => {
     vol.fromJSON({});
     const sessions = [
-      { customerSlug: "acme-corp", customerName: "Acme Corp", owner: "alice", startedAt: "2026-05-28T10:00:00Z" },
-      { customerSlug: "beta-gmbh", customerName: "Beta GmbH", owner: "bob", startedAt: "2026-05-28T11:00:00Z" },
+      {
+        customerSlug: "acme-corp",
+        customerName: "Acme Corp",
+        owner: "alice",
+        startedAt: "2026-05-28T10:00:00Z",
+      },
+      {
+        customerSlug: "beta-gmbh",
+        customerName: "Beta GmbH",
+        owner: "bob",
+        startedAt: "2026-05-28T11:00:00Z",
+      },
     ];
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ sessions }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ sessions }),
+      })
+    );
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const { runStatus } = await import("../../src/commands/status.js");
     await runStatus({ team: "http://localhost:3847" }, "/data");
@@ -162,10 +179,13 @@ describe("runStatus — team overview", () => {
 
   it("shows 'keine aktiven Sessions' when server returns empty list", async () => {
     vol.fromJSON({});
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve({ sessions: [] }),
-    }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ sessions: [] }),
+      })
+    );
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const { runStatus } = await import("../../src/commands/status.js");
     await runStatus({ team: "http://localhost:3847" }, "/data");

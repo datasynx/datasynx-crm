@@ -21,7 +21,11 @@ describe("readUnmatched", () => {
 
   it("returns parsed array when file exists", () => {
     const entries = [
-      { filePath: "/transcripts/foo.vtt", addedAt: "2026-01-01T00:00:00.000Z", reason: "no_customer_match" as const },
+      {
+        filePath: "/transcripts/foo.vtt",
+        addedAt: "2026-01-01T00:00:00.000Z",
+        reason: "no_customer_match" as const,
+      },
     ];
     vol.fromJSON({ [UNMATCHED_PATH]: JSON.stringify(entries) });
     const result = readUnmatched(DATA_DIR);

@@ -11,15 +11,21 @@ export async function handleGetEmailTemplate(
 ): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   const tmpl = getTemplate(dataDir, input.id);
   if (!tmpl) {
-    return { content: [{ type: "text", text: JSON.stringify({ error: `Template '${input.id}' not found` }) }] };
+    return {
+      content: [
+        { type: "text", text: JSON.stringify({ error: `Template '${input.id}' not found` }) },
+      ],
+    };
   }
   const allVars = extractVariables(`${tmpl.subject}\n${tmpl.body}`);
   const unique = [...new Set(allVars)];
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({ ...tmpl, detectedVariables: unique }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({ ...tmpl, detectedVariables: unique }, null, 2),
+      },
+    ],
   };
 }
 
@@ -27,7 +33,8 @@ export function registerGetEmailTemplate(server: McpServer, dataDir: string = DA
   server.registerTool(
     "get_email_template",
     {
-      description: "Get a specific email template by ID, including its body and detected variables.",
+      description:
+        "Get a specific email template by ID, including its body and detected variables.",
       inputSchema: z.object({
         id: z.string().describe("Template ID (e.g. 'enterprise-intro')"),
       }),

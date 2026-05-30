@@ -84,7 +84,8 @@ describe("syncCalendar", () => {
 
   it("skips events already in existing interactions (dedup)", async () => {
     mockEventsList.mockResolvedValue(ONE_EVENT);
-    const { readInteractions, appendInteraction } = await import("../../src/fs/interactions-writer.js");
+    const { readInteractions, appendInteraction } =
+      await import("../../src/fs/interactions-writer.js");
     vi.mocked(readInteractions).mockResolvedValue("gcal://event/gcal-001\n");
     const { syncCalendar } = await import("../../src/sync/calendar-sync.js");
     const result = await syncCalendar(OPTS);
@@ -96,9 +97,7 @@ describe("syncCalendar", () => {
   it("skips events without an id", async () => {
     mockEventsList.mockResolvedValue({
       data: {
-        items: [
-          { summary: "No ID event", start: { dateTime: "2026-05-10T10:00:00Z" } },
-        ],
+        items: [{ summary: "No ID event", start: { dateTime: "2026-05-10T10:00:00Z" } }],
       },
     });
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");

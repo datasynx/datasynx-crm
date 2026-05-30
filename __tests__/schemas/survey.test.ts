@@ -37,7 +37,10 @@ describe("SurveyDefinitionSchema", () => {
   });
 
   it("accepts optional commentPrompt", () => {
-    const result = SurveyDefinitionSchema.safeParse({ ...valid, commentPrompt: "What could we improve?" });
+    const result = SurveyDefinitionSchema.safeParse({
+      ...valid,
+      commentPrompt: "What could we improve?",
+    });
     expect(result.success).toBe(true);
   });
 
@@ -68,7 +71,9 @@ describe("SurveyResponseSchema", () => {
   });
 
   it("rejects invalid email", () => {
-    expect(SurveyResponseSchema.safeParse({ ...valid, contactEmail: "not-an-email" }).success).toBe(false);
+    expect(SurveyResponseSchema.safeParse({ ...valid, contactEmail: "not-an-email" }).success).toBe(
+      false
+    );
   });
 
   it("rejects non-integer score", () => {

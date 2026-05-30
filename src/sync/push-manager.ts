@@ -143,9 +143,8 @@ export async function renewExpiringSubscriptions(
       renewed.push(sub.id);
     } catch {
       const failures = (sub.renewFailures ?? 0) + 1;
-      const newStatus: PushStatus = failures >= PERMANENT_FAILURE_THRESHOLD
-        ? "permanently_failed"
-        : "error";
+      const newStatus: PushStatus =
+        failures >= PERMANENT_FAILURE_THRESHOLD ? "permanently_failed" : "error";
       subs[i] = { ...sub, status: newStatus, renewFailures: failures };
       errors.push(sub.id);
     }

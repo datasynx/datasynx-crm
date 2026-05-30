@@ -76,7 +76,11 @@ export function readGoals(dataDir: string): Goal[] {
 export function writeGoals(dataDir: string, goals: Goal[]): void {
   const p = goalsPath(dataDir);
   fs.mkdirSync(path.dirname(p), { recursive: true });
-  fs.writeFileSync(p, JSON.stringify({ goals, updatedAt: new Date().toISOString() }, null, 2), "utf-8");
+  fs.writeFileSync(
+    p,
+    JSON.stringify({ goals, updatedAt: new Date().toISOString() }, null, 2),
+    "utf-8"
+  );
 }
 
 export function makeGoalId(): string {
@@ -111,10 +115,14 @@ export function inferGoalType(desc: string): GoalType {
 
 export function inferMetric(type: GoalType): GoalMetric {
   switch (type) {
-    case "pipeline":       return "pipeline_created";
-    case "relationship":   return "meetings_booked";
-    case "revenue":        return "revenue";
-    case "churn_prevention": return "revenue";
+    case "pipeline":
+      return "pipeline_created";
+    case "relationship":
+      return "meetings_booked";
+    case "revenue":
+      return "revenue";
+    case "churn_prevention":
+      return "revenue";
   }
 }
 
@@ -131,7 +139,8 @@ export function rankDealsByLeverage(deals: DealSnapshot[]): DealSnapshot[] {
 }
 
 function generateNextStep(deal: DealSnapshot): string {
-  if (deal.healthScore < 40 && !deal.championPresent) return "Re-engage urgently and identify a champion";
+  if (deal.healthScore < 40 && !deal.championPresent)
+    return "Re-engage urgently and identify a champion";
   if (deal.healthScore < 60) return "Schedule an urgent check-in call";
   if (deal.daysSinceContact > 14) return "Reach out — contact is overdue";
   if (!deal.championPresent) return "Identify a champion or economic buyer";
@@ -166,14 +175,17 @@ export function decomposeGoalRuleBased(
       analysis: `No active deals found. Gap to close: €${gap.toLocaleString()}. Focus on building pipeline.`,
       currentPipeline: currentP50,
       gap,
-      subGoals: [{
-        priority: 1,
-        action: "Build pipeline from scratch",
-        slug: "_all",
-        why: `No active deals. Need €${gap.toLocaleString()} to reach target.`,
-        nextStep: "Use list_customers() to find prospects and log_interaction to initiate outreach",
-        targetDelta: target,
-      }],
+      subGoals: [
+        {
+          priority: 1,
+          action: "Build pipeline from scratch",
+          slug: "_all",
+          why: `No active deals. Need €${gap.toLocaleString()} to reach target.`,
+          nextStep:
+            "Use list_customers() to find prospects and log_interaction to initiate outreach",
+          targetDelta: target,
+        },
+      ],
       probabilisticOutcome: `Insufficient pipeline. Need €${gap.toLocaleString()} in new deals.`,
       decomposedAt,
     };
@@ -225,8 +237,9 @@ export function buildDecompositionPrompt(
   const dealLines = deals
     .filter((d) => d.stage !== "won" && d.stage !== "lost")
     .slice(0, 8)
-    .map((d, i) =>
-      `${i + 1}. ${d.slug}/${d.name} — €${d.value.toLocaleString()}, stage: ${d.stage}, health: ${d.healthScore}/100, probability: ${d.probability}%${d.championPresent ? ", champion ✓" : ""}`
+    .map(
+      (d, i) =>
+        `${i + 1}. ${d.slug}/${d.name} — €${d.value.toLocaleString()}, stage: ${d.stage}, health: ${d.healthScore}/100, probability: ${d.probability}%${d.championPresent ? ", champion ✓" : ""}`
     )
     .join("\n");
 
@@ -267,7 +280,11 @@ export function parseLlmDecomposition(
   try {
     const match = response.match(/\{[\s\S]*\}/);
     if (!match) return fallback;
-    const parsed = JSON.parse(match[0]) as Partial<{ analysis: string; subGoals: unknown[]; probabilisticOutcome: string }>;
+    const parsed = JSON.parse(match[0]) as Partial<{
+      analysis: string;
+      subGoals: unknown[];
+      probabilisticOutcome: string;
+    }>;
     if (!parsed.analysis || !Array.isArray(parsed.subGoals)) return fallback;
     return {
       analysis: parsed.analysis,
@@ -307,12 +324,12 @@ export async function pursueGoal(
   const today = options.today ?? new Date().toISOString().slice(0, 10);
   const actor = options.actor ?? getActor();
 
-  const buildFn = options.buildInputFn ?? (
-    (async (dir, horizon, t) => {
+  const buildFn =
+    options.buildInputFn ??
+    ((async (dir, horizon, t) => {
       const { buildSimulationInput } = await import("./revenue-simulation.js");
       return buildSimulationInput(dir, horizon, t);
-    }) as BuildInputFn
-  );
+    }) as BuildInputFn);
 
   const simInput = await buildFn(dataDir, "quarter", today);
   const simResult = runSimulation(simInput);
@@ -329,7 +346,12 @@ export async function pursueGoal(
   const llmFn = options.llmFn ?? callLlm;
   if (options.llmFn !== undefined) {
     const prompt = buildDecompositionPrompt(
-      input.description, target, input.deadline, currentP50, deals, today
+      input.description,
+      target,
+      input.deadline,
+      currentP50,
+      deals,
+      today
     );
     const response = await llmFn(prompt);
     decomposition = parseLlmDecomposition(response, ruleBasedDecomp);
@@ -364,7 +386,11 @@ export function getActiveGoals(dataDir: string): Goal[] {
   return readGoals(dataDir).filter((g) => g.status === "active");
 }
 
-export async function updateGoalProgress(dataDir: string, goalId: string, progress: number): Promise<Goal | null> {
+export async function updateGoalProgress(
+  dataDir: string,
+  goalId: string,
+  progress: number
+): Promise<Goal | null> {
   let updated: Goal | null = null;
   await withJsonFile<{ goals: Goal[]; updatedAt: string }>(goalsPath(dataDir), (current) => {
     const goals: Goal[] = Array.isArray(current?.goals) ? [...current.goals] : [];
@@ -384,7 +410,11 @@ export async function cancelGoal(dataDir: string, goalId: string): Promise<Goal 
     const goals: Goal[] = Array.isArray(current?.goals) ? [...current.goals] : [];
     const idx = goals.findIndex((g) => g.id === goalId);
     if (idx >= 0) {
-      cancelled = { ...goals[idx]!, status: "cancelled" as const, updatedAt: new Date().toISOString() };
+      cancelled = {
+        ...goals[idx]!,
+        status: "cancelled" as const,
+        updatedAt: new Date().toISOString(),
+      };
       goals[idx] = cancelled;
     }
     return { goals, updatedAt: new Date().toISOString() };
@@ -411,9 +441,9 @@ export async function syncGoalProgressFromPipeline(
   const customersDir = path.join(dataDir, "customers");
   let totalWon = 0;
   if (fs.existsSync(customersDir)) {
-    const slugs = fs.readdirSync(customersDir).filter((d) =>
-      fs.statSync(path.join(customersDir, d)).isDirectory()
-    );
+    const slugs = fs
+      .readdirSync(customersDir)
+      .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory());
     for (const slug of slugs) {
       const deals = await readPipeline(dataDir, slug).catch(() => []);
       for (const deal of deals) {

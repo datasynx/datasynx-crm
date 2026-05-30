@@ -95,9 +95,9 @@ describe("installAllDetected", () => {
     // Mock one adapter to throw
     const { ClaudeCodeAdapter } = await import("../../src/setup/adapters/claude-code.js");
     const originalInstall = ClaudeCodeAdapter.prototype.install;
-    ClaudeCodeAdapter.prototype.install = vi.fn().mockRejectedValueOnce(
-      new Error("Simulated install failure")
-    );
+    ClaudeCodeAdapter.prototype.install = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Simulated install failure"));
 
     const results = await installAllDetected(TEST_CONFIG);
 
@@ -128,9 +128,9 @@ describe("installAllDetected", () => {
 
     const { ClaudeCodeAdapter } = await import("../../src/setup/adapters/claude-code.js");
     const originalInstall = ClaudeCodeAdapter.prototype.install;
-    ClaudeCodeAdapter.prototype.install = vi.fn().mockRejectedValueOnce(
-      new Error("permission denied")
-    );
+    ClaudeCodeAdapter.prototype.install = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("permission denied"));
 
     const results = await installAllDetected(TEST_CONFIG);
 

@@ -26,9 +26,15 @@ ticketCommand
     }
 
     for (const { slug, ticket: t } of tickets) {
-      const breach = t.slaDue && t.slaDue < new Date().toISOString().slice(0, 10) && t.status !== "resolved" && t.status !== "closed";
+      const breach =
+        t.slaDue &&
+        t.slaDue < new Date().toISOString().slice(0, 10) &&
+        t.status !== "resolved" &&
+        t.status !== "closed";
       const flag = breach ? " ⚠ SLA" : "";
-      console.log(`  ${bold(t.id)}  [${slug}]  ${t.title}  [${t.status}/${t.priority}]${t.assignee ? `  @${t.assignee}` : ""}${flag}`);
+      console.log(
+        `  ${bold(t.id)}  [${slug}]  ${t.title}  [${t.status}/${t.priority}]${t.assignee ? `  @${t.assignee}` : ""}${flag}`
+      );
     }
   });
 
@@ -39,29 +45,34 @@ ticketCommand
   .option("--description <desc>", "Description")
   .option("--priority <priority>", "Priority: urgent|high|normal|low", "normal")
   .option("--assignee <name>", "Assignee")
-  .action(async (slug: string, opts: { title: string; description?: string; priority: string; assignee?: string }) => {
-    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-    const today = new Date().toISOString().slice(0, 10);
-    const rules = loadSlaRules(dataDir);
-    const priority = (opts.priority as Ticket["priority"]) ?? "normal";
-    const existing = await readTickets(dataDir, slug);
-    const id = nextTicketId(existing);
+  .action(
+    async (
+      slug: string,
+      opts: { title: string; description?: string; priority: string; assignee?: string }
+    ) => {
+      const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+      const today = new Date().toISOString().slice(0, 10);
+      const rules = loadSlaRules(dataDir);
+      const priority = (opts.priority as Ticket["priority"]) ?? "normal";
+      const existing = await readTickets(dataDir, slug);
+      const id = nextTicketId(existing);
 
-    const ticket: Ticket = {
-      id,
-      title: opts.title,
-      status: "open",
-      priority,
-      ...(opts.assignee ? { assignee: opts.assignee } : {}),
-      created: today,
-      slaDue: calcSlaDue(today, priority, rules),
-      ...(opts.description ? { description: opts.description } : {}),
-    };
+      const ticket: Ticket = {
+        id,
+        title: opts.title,
+        status: "open",
+        priority,
+        ...(opts.assignee ? { assignee: opts.assignee } : {}),
+        created: today,
+        slaDue: calcSlaDue(today, priority, rules),
+        ...(opts.description ? { description: opts.description } : {}),
+      };
 
-    await upsertTicket(dataDir, slug, ticket);
-    console.log(success(`✓ Ticket ${bold(id)} created for ${slug}`));
-    console.log(info(`  SLA due: ${ticket.slaDue}`));
-  });
+      await upsertTicket(dataDir, slug, ticket);
+      console.log(success(`✓ Ticket ${bold(id)} created for ${slug}`));
+      console.log(info(`  SLA due: ${ticket.slaDue}`));
+    }
+  );
 
 ticketCommand
   .command("update <ticketId>")

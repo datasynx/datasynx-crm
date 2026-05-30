@@ -1,6 +1,14 @@
 import { Command } from "commander";
 import { success, error, info, bold } from "../ui/colors.js";
-import { getSurvey, writeSurvey, listSurveys, loadSurveyResponses, calcNpsScore, generateSurveyToken, savePendingSurvey } from "../core/survey-engine.js";
+import {
+  getSurvey,
+  writeSurvey,
+  listSurveys,
+  loadSurveyResponses,
+  calcNpsScore,
+  generateSurveyToken,
+  savePendingSurvey,
+} from "../core/survey-engine.js";
 import type { SurveyDefinition } from "../schemas/survey.js";
 
 export const surveyCommand = new Command("survey").description("Manage NPS/CSAT surveys");
@@ -45,7 +53,11 @@ surveyCommand
   .description("Generate survey token for a contact")
   .requiredOption("--slug <slug>", "Customer slug")
   .requiredOption("--email <email>", "Contact email")
-  .option("--server <url>", "Server URL", process.env["DXCRM_SERVER_URL"] ?? "http://localhost:3456")
+  .option(
+    "--server <url>",
+    "Server URL",
+    process.env["DXCRM_SERVER_URL"] ?? "http://localhost:3456"
+  )
   .action(async (surveyId: string, opts: { slug: string; email: string; server: string }) => {
     const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const survey = getSurvey(dataDir, surveyId);
@@ -71,8 +83,14 @@ surveyCommand
     const detractors = responses.filter((r) => r.score <= 6).length;
 
     console.log(bold(`Survey: ${surveyId}`));
-    console.log(info(`Responses: ${responses.length}  NPS: ${nps}  Promoters: ${promoters}  Detractors: ${detractors}`));
+    console.log(
+      info(
+        `Responses: ${responses.length}  NPS: ${nps}  Promoters: ${promoters}  Detractors: ${detractors}`
+      )
+    );
     for (const r of responses) {
-      console.log(`  ${r.slug} <${r.contactEmail}>  score=${r.score}${r.comment ? `  "${r.comment.slice(0, 80)}"` : ""}`);
+      console.log(
+        `  ${r.slug} <${r.contactEmail}>  score=${r.score}${r.comment ? `  "${r.comment.slice(0, 80)}"` : ""}`
+      );
     }
   });

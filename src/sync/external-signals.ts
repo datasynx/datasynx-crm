@@ -62,10 +62,7 @@ export function writeSignals(
 
 // ─── HTTP helper ──────────────────────────────────────────────────────────────
 
-export async function fetchJson<T>(
-  url: string,
-  headers: Record<string, string> = {}
-): Promise<T> {
+export async function fetchJson<T>(url: string, headers: Record<string, string> = {}): Promise<T> {
   return new Promise((resolve, reject) => {
     const u = new URL(url);
     const options = {
@@ -76,14 +73,22 @@ export async function fetchJson<T>(
     };
     const req = https.request(options, (res) => {
       let data = "";
-      res.on("data", (chunk: Buffer) => { data += chunk.toString(); });
+      res.on("data", (chunk: Buffer) => {
+        data += chunk.toString();
+      });
       res.on("end", () => {
-        try { resolve(JSON.parse(data) as T); }
-        catch (e) { reject(e); }
+        try {
+          resolve(JSON.parse(data) as T);
+        } catch (e) {
+          reject(e);
+        }
       });
     });
     req.on("error", reject);
-    req.setTimeout(5000, () => { req.destroy(); reject(new Error("timeout")); });
+    req.setTimeout(5000, () => {
+      req.destroy();
+      reject(new Error("timeout"));
+    });
     req.end();
   });
 }
@@ -98,7 +103,9 @@ interface HNHit {
   created_at: string;
 }
 
-interface HNSearchResult { hits: HNHit[] }
+interface HNSearchResult {
+  hits: HNHit[];
+}
 
 export async function checkCompanyNews(
   domain: string,
@@ -116,16 +123,20 @@ export async function checkCompanyNews(
       if (!title.toLowerCase().includes(query.toLowerCase())) continue;
 
       const titleLc = title.toLowerCase();
-      const type: SignalType =
-        titleLc.includes("fund") ? "funding_round"
-        : titleLc.includes("acqui") ? "acquisition"
-        : titleLc.includes("lay") || titleLc.includes("reduc") ? "layoffs"
-        : "news_mention";
+      const type: SignalType = titleLc.includes("fund")
+        ? "funding_round"
+        : titleLc.includes("acqui")
+          ? "acquisition"
+          : titleLc.includes("lay") || titleLc.includes("reduc")
+            ? "layoffs"
+            : "news_mention";
 
       const impact: SignalImpact =
-        type === "funding_round" || type === "acquisition" ? "positive"
-        : type === "layoffs" ? "negative"
-        : "neutral";
+        type === "funding_round" || type === "acquisition"
+          ? "positive"
+          : type === "layoffs"
+            ? "negative"
+            : "neutral";
 
       signals.push({
         id: `hn_${hit.objectID}`,

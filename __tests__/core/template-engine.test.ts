@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("fs", async () => { const { fs } = await import("memfs"); return { default: fs, ...fs }; });
-vi.mock("@lancedb/lancedb", () => ({ connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }) }));
+vi.mock("fs", async () => {
+  const { fs } = await import("memfs");
+  return { default: fs, ...fs };
+});
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }),
+}));
 
 const DATA_DIR = "/data";
 
@@ -14,7 +19,9 @@ describe("interpolate", () => {
 
   it("replaces multiple variables", async () => {
     const { interpolate } = await import("../../src/core/template-engine.js");
-    expect(interpolate("{{greeting}} {{name}}", { greeting: "Hi", name: "Alice" })).toBe("Hi Alice");
+    expect(interpolate("{{greeting}} {{name}}", { greeting: "Hi", name: "Alice" })).toBe(
+      "Hi Alice"
+    );
   });
 
   it("keeps unresolved variables as-is", async () => {

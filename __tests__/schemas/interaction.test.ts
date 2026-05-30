@@ -24,7 +24,16 @@ describe("InteractionEntrySchema", () => {
   });
 
   it("accepts all valid types", () => {
-    const types = ["Email", "Call", "Meeting", "Note", "Demo", "Proposal", "Contract", "Other"] as const;
+    const types = [
+      "Email",
+      "Call",
+      "Meeting",
+      "Note",
+      "Demo",
+      "Proposal",
+      "Contract",
+      "Other",
+    ] as const;
     for (const type of types) {
       const result = InteractionEntrySchema.safeParse({ ...validEntry, type });
       expect(result.success).toBe(true);

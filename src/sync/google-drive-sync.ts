@@ -61,8 +61,7 @@ export async function syncGoogleDriveFiles(opts: DriveSyncOptions): Promise<Driv
   let totalFetched = 0;
 
   do {
-    let url =
-      `${DRIVE_API_BASE}/files?q=${encodedQuery}&fields=${fields}&pageSize=50`;
+    let url = `${DRIVE_API_BASE}/files?q=${encodedQuery}&fields=${fields}&pageSize=50`;
     if (pageToken) {
       url += `&pageToken=${encodeURIComponent(pageToken)}`;
     }
@@ -116,9 +115,7 @@ export async function syncGoogleDriveFiles(opts: DriveSyncOptions): Promise<Driv
           });
 
           if (!exportRes.ok) {
-            result.errors.push(
-              `Failed to export doc '${file.name}': HTTP ${exportRes.status}`
-            );
+            result.errors.push(`Failed to export doc '${file.name}': HTTP ${exportRes.status}`);
             continue;
           }
 
@@ -165,9 +162,7 @@ export async function syncGoogleDriveFiles(opts: DriveSyncOptions): Promise<Driv
         result.synced++;
         existingInteractions += sourceRef; // prevent double-sync within same run
       } catch (err) {
-        result.errors.push(
-          `Error processing '${file.name}': ${(err as Error).message}`
-        );
+        result.errors.push(`Error processing '${file.name}': ${(err as Error).message}`);
       }
     }
 

@@ -18,7 +18,9 @@ function makePipelineMd(): string {
 | Q3 Renewal | negotiation | 50000 |  | 75 | 2026-06-15 | Budget confirmed | 2026-05-20 |`;
 }
 
-function makeAction(overrides: object = {}): import("../../../src/agents/deal-agent.js").DealAgentAction {
+function makeAction(
+  overrides: object = {}
+): import("../../../src/agents/deal-agent.js").DealAgentAction {
   return {
     actionId: "da_test_abc123",
     type: "alert",
@@ -32,7 +34,9 @@ function makeAction(overrides: object = {}): import("../../../src/agents/deal-ag
   };
 }
 
-function makeQueueJson(actions: import("../../../src/agents/deal-agent.js").DealAgentAction[] = []): string {
+function makeQueueJson(
+  actions: import("../../../src/agents/deal-agent.js").DealAgentAction[] = []
+): string {
   return JSON.stringify({
     schemaVersion: "1",
     slug: SLUG,
@@ -50,7 +54,8 @@ describe("handleApproveAgentAction", () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/agent-queue.json`]: makeQueueJson([]),
     });
-    const { handleApproveAgentAction } = await import("../../../src/mcp/tools/approve-agent-action.js");
+    const { handleApproveAgentAction } =
+      await import("../../../src/mcp/tools/approve-agent-action.js");
     const result = await handleApproveAgentAction(
       { slug: SLUG, actionId: "da_nonexistent_000", approved: true },
       DATA_DIR
@@ -65,7 +70,8 @@ describe("handleApproveAgentAction", () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/agent-queue.json`]: makeQueueJson([action]),
     });
-    const { handleApproveAgentAction, readAgentQueue } = await import("../../../src/mcp/tools/approve-agent-action.js");
+    const { handleApproveAgentAction, readAgentQueue } =
+      await import("../../../src/mcp/tools/approve-agent-action.js");
     const result = await handleApproveAgentAction(
       { slug: SLUG, actionId: action.actionId, approved: false },
       DATA_DIR
@@ -85,7 +91,8 @@ describe("handleApproveAgentAction", () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/agent-queue.json`]: makeQueueJson([action]),
     });
-    const { handleApproveAgentAction, readAgentQueue } = await import("../../../src/mcp/tools/approve-agent-action.js");
+    const { handleApproveAgentAction, readAgentQueue } =
+      await import("../../../src/mcp/tools/approve-agent-action.js");
     const result = await handleApproveAgentAction(
       { slug: SLUG, actionId: action.actionId, approved: true },
       DATA_DIR
@@ -105,7 +112,8 @@ describe("handleApproveAgentAction", () => {
       [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: "",
       [`${DATA_DIR}/customers/${SLUG}/pipeline.md`]: makePipelineMd(),
     });
-    const { handleApproveAgentAction } = await import("../../../src/mcp/tools/approve-agent-action.js");
+    const { handleApproveAgentAction } =
+      await import("../../../src/mcp/tools/approve-agent-action.js");
     const result = await handleApproveAgentAction(
       { slug: SLUG, actionId: action.actionId, approved: true },
       DATA_DIR
@@ -118,10 +126,13 @@ describe("handleApproveAgentAction", () => {
 
 describe("registerApproveAgentAction — MCP registration", () => {
   it("registers tool with name approve_agent_action", async () => {
-    const { registerApproveAgentAction } = await import("../../../src/mcp/tools/approve-agent-action.js");
+    const { registerApproveAgentAction } =
+      await import("../../../src/mcp/tools/approve-agent-action.js");
     const registeredTools: string[] = [];
     const fakeServer = {
-      registerTool: (name: string) => { registeredTools.push(name); },
+      registerTool: (name: string) => {
+        registeredTools.push(name);
+      },
     };
     registerApproveAgentAction(fakeServer as never);
     expect(registeredTools).toContain("approve_agent_action");

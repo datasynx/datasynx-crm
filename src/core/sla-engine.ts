@@ -33,7 +33,11 @@ function addDaysToDate(isoDate: string, days: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function calcSlaDue(createdDate: string, priority: Ticket["priority"], rules: SlaRule[]): string {
+export function calcSlaDue(
+  createdDate: string,
+  priority: Ticket["priority"],
+  rules: SlaRule[]
+): string {
   const rule = rules.find((r) => r.priority === priority) ?? { resolveDays: 5 };
   return addDaysToDate(createdDate, rule.resolveDays);
 }

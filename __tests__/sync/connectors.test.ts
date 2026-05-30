@@ -17,7 +17,12 @@ describe("CopperConnector", () => {
         ok: true,
         json: async () => ({
           data: [
-            { id: 1, name: "Alice Smith", emails: [{ email: "alice@acme.com" }], company_name: "Acme" },
+            {
+              id: 1,
+              name: "Alice Smith",
+              emails: [{ email: "alice@acme.com" }],
+              company_name: "Acme",
+            },
           ],
         }),
       } as Response)
@@ -47,7 +52,9 @@ describe("CopperConnector", () => {
     const { makeCopperConnector } = await import("../../src/sync/connectors/copper.js");
     const connector = makeCopperConnector("user@example.com");
     await expect(async () => {
-      for await (const _ of connector.fetchContacts("bad-token", "")) { /* noop */ }
+      for await (const _ of connector.fetchContacts("bad-token", "")) {
+        /* noop */
+      }
     }).rejects.toThrow("Copper API error");
   });
 
@@ -57,7 +64,12 @@ describe("CopperConnector", () => {
         ok: true,
         json: async () => ({
           data: [
-            { id: 101, type: { category: "call" }, details: "Follow-up call", activity_date: 1748563200 },
+            {
+              id: 101,
+              type: { category: "call" },
+              details: "Follow-up call",
+              activity_date: 1748563200,
+            },
           ],
         }),
       } as Response)
@@ -123,7 +135,13 @@ describe("FreshsalesConnector", () => {
       ok: true,
       json: async () => ({
         contacts: [
-          { id: 1, first_name: "Carol", last_name: "White", email: "carol@gamma.com", account: { name: "Gamma" } },
+          {
+            id: 1,
+            first_name: "Carol",
+            last_name: "White",
+            email: "carol@gamma.com",
+            account: { name: "Gamma" },
+          },
         ],
         meta: { total_pages: 1 },
       }),

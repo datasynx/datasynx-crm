@@ -37,7 +37,10 @@ describe("handleBackupNow", () => {
     const { handleBackupNow } = await import("../../../src/mcp/tools/backup-now.js");
     const result = await handleBackupNow({}, DATA_DIR);
     const parsed = JSON.parse(result.content[0].text) as {
-      customerCount: number; fileCount: number; verified: boolean; sizeMb: string;
+      customerCount: number;
+      fileCount: number;
+      verified: boolean;
+      sizeMb: string;
     };
     expect(parsed.customerCount).toBe(1);
     expect(parsed.fileCount).toBe(4);

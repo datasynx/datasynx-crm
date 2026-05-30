@@ -18,7 +18,10 @@ export async function sendTelegram(token: string, chatId: string, text: string):
           "Content-Length": Buffer.byteLength(body),
         },
       },
-      (res) => { res.resume(); resolve(); }
+      (res) => {
+        res.resume();
+        resolve();
+      }
     );
     req.on("error", reject);
     req.write(body);
@@ -40,7 +43,10 @@ export async function sendSlack(webhookUrl: string, text: string): Promise<void>
           "Content-Length": Buffer.byteLength(body),
         },
       },
-      (res) => { res.resume(); resolve(); }
+      (res) => {
+        res.resume();
+        resolve();
+      }
     );
     req.on("error", reject);
     req.write(body);

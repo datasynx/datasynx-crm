@@ -48,11 +48,34 @@ function seedGraph(slug: string) {
       slug,
       updatedAt: now,
       nodes: [
-        { id: "person:alice@acme.com", type: "person", label: "Alice Smith", properties: { email: "alice@acme.com" }, createdAt: now, updatedAt: now },
-        { id: "person:bob@acme.com", type: "person", label: "Bob Jones", properties: { email: "bob@acme.com" }, createdAt: now, updatedAt: now },
+        {
+          id: "person:alice@acme.com",
+          type: "person",
+          label: "Alice Smith",
+          properties: { email: "alice@acme.com" },
+          createdAt: now,
+          updatedAt: now,
+        },
+        {
+          id: "person:bob@acme.com",
+          type: "person",
+          label: "Bob Jones",
+          properties: { email: "bob@acme.com" },
+          createdAt: now,
+          updatedAt: now,
+        },
       ],
       edges: [
-        { id: "e1", from: "person:alice@acme.com", to: "person:bob@acme.com", type: "KNOWS", weight: 0.8, contactCount: 3, createdAt: now, updatedAt: now },
+        {
+          id: "e1",
+          from: "person:alice@acme.com",
+          to: "person:bob@acme.com",
+          type: "KNOWS",
+          weight: 0.8,
+          contactCount: 3,
+          createdAt: now,
+          updatedAt: now,
+        },
       ],
     }),
   };
@@ -66,22 +89,24 @@ function seedHealth(slug: string) {
       slug,
       overallHealth: 75,
       updatedAt: now,
-      contacts: [{
-        contactId: "person:alice@acme.com",
-        name: "Alice Smith",
-        email: "alice@acme.com",
-        score: 75,
-        grade: "B",
-        trend: "stable",
-        daysSinceContact: 7,
-        avgCadenceDays: 14,
-        sentimentTrend: 0.5,
-        riskFlags: [],
-        lastContact: "2026-05-21",
-        interactionCount30d: 4,
-        recommendation: "Good cadence — schedule next check-in",
-        updatedAt: now,
-      }],
+      contacts: [
+        {
+          contactId: "person:alice@acme.com",
+          name: "Alice Smith",
+          email: "alice@acme.com",
+          score: 75,
+          grade: "B",
+          trend: "stable",
+          daysSinceContact: 7,
+          avgCadenceDays: 14,
+          sentimentTrend: 0.5,
+          riskFlags: [],
+          lastContact: "2026-05-21",
+          interactionCount30d: 4,
+          recommendation: "Good cadence — schedule next check-in",
+          updatedAt: now,
+        },
+      ],
     }),
   };
 }
@@ -251,4 +276,3 @@ describe("open_deal_room MCP tool", () => {
     expect(parsed.dealName).toBe("My Deal");
   });
 });
-

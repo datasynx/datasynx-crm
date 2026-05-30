@@ -23,7 +23,16 @@ export async function handleRegisterPushSubscription(
   try {
     if (!VALID_PROVIDERS.includes(input.provider)) {
       return {
-        content: [{ type: "text", text: JSON.stringify({ success: false, error: `Unknown provider: ${input.provider}` }, null, 2) }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              { success: false, error: `Unknown provider: ${input.provider}` },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
 
@@ -31,7 +40,8 @@ export async function handleRegisterPushSubscription(
 
     const providerData: Record<string, string> = {};
     if (input.gmailTopicName) providerData["gmailTopicName"] = input.gmailTopicName;
-    if (input.microsoftClientState) providerData["microsoftClientState"] = input.microsoftClientState;
+    if (input.microsoftClientState)
+      providerData["microsoftClientState"] = input.microsoftClientState;
     if (input.microsoftResource) providerData["microsoftResource"] = input.microsoftResource;
     if (input.slackTeamId) providerData["slackTeamId"] = input.slackTeamId;
     if (input.slackChannelId) providerData["slackChannelId"] = input.slackChannelId;
@@ -46,22 +56,33 @@ export async function handleRegisterPushSubscription(
       : undefined;
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          subscriptionId: sub.id,
-          provider: sub.provider,
-          slug: sub.slug,
-          status: sub.status,
-          expiresAt: sub.expiresAt,
-          createdAt: sub.createdAt,
-          ...(warning ? { warning } : {}),
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              subscriptionId: sub.id,
+              provider: sub.provider,
+              slug: sub.slug,
+              status: sub.status,
+              expiresAt: sub.expiresAt,
+              createdAt: sub.createdAt,
+              ...(warning ? { warning } : {}),
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -99,16 +120,28 @@ Returns: { subscriptionId, provider, slug, status, expiresAt, createdAt, warning
         slackChannelId: z.string().optional().describe("Slack: optional channel ID"),
       }),
     },
-    async ({ provider, slug, webhookUrl, gmailTopicName, microsoftClientState, microsoftResource, slackTeamId, slackChannelId }) =>
-      handleRegisterPushSubscription({
-        provider,
-        slug,
-        webhookUrl,
-        ...(gmailTopicName !== undefined ? { gmailTopicName } : {}),
-        ...(microsoftClientState !== undefined ? { microsoftClientState } : {}),
-        ...(microsoftResource !== undefined ? { microsoftResource } : {}),
-        ...(slackTeamId !== undefined ? { slackTeamId } : {}),
-        ...(slackChannelId !== undefined ? { slackChannelId } : {}),
-      }, DATA_DIR)
+    async ({
+      provider,
+      slug,
+      webhookUrl,
+      gmailTopicName,
+      microsoftClientState,
+      microsoftResource,
+      slackTeamId,
+      slackChannelId,
+    }) =>
+      handleRegisterPushSubscription(
+        {
+          provider,
+          slug,
+          webhookUrl,
+          ...(gmailTopicName !== undefined ? { gmailTopicName } : {}),
+          ...(microsoftClientState !== undefined ? { microsoftClientState } : {}),
+          ...(microsoftResource !== undefined ? { microsoftResource } : {}),
+          ...(slackTeamId !== undefined ? { slackTeamId } : {}),
+          ...(slackChannelId !== undefined ? { slackChannelId } : {}),
+        },
+        DATA_DIR
+      )
   );
 }

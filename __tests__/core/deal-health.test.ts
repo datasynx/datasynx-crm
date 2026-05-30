@@ -119,9 +119,9 @@ describe("scoreDeal", () => {
   it("grade F for score < 35", () => {
     const result = scoreDeal(baseDeal, {
       daysSinceLastActivity: 65, // -40
-      daysInCurrentStage: 95,   // -25
-      daysToClose: -10,          // -20
-      probability: 5,            // -15
+      daysInCurrentStage: 95, // -25
+      daysToClose: -10, // -20
+      probability: 5, // -15
     });
     // 100 - 40 - 25 - 20 - 15 = 0
     expect(result.score).toBe(0);

@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("fs", async () => { const { fs } = await import("memfs"); return { default: fs, ...fs }; });
-vi.mock("@lancedb/lancedb", () => ({ connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }) }));
+vi.mock("fs", async () => {
+  const { fs } = await import("memfs");
+  return { default: fs, ...fs };
+});
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }),
+}));
 
 const DATA_DIR = "/data";
 
@@ -19,7 +24,10 @@ function makeTemplate(id = "intro", category = "outreach") {
 }
 
 describe("template-store", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("listTemplates returns empty when directory missing", async () => {
     vol.fromJSON({});
@@ -65,7 +73,8 @@ describe("template-store", () => {
 
   it("deleteTemplate removes file and returns true", async () => {
     vol.fromJSON({});
-    const { writeTemplate, deleteTemplate, getTemplate } = await import("../../src/fs/template-store.js");
+    const { writeTemplate, deleteTemplate, getTemplate } =
+      await import("../../src/fs/template-store.js");
     writeTemplate(DATA_DIR, makeTemplate());
     const deleted = deleteTemplate(DATA_DIR, "intro");
     expect(deleted).toBe(true);

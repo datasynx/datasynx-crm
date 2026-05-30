@@ -70,9 +70,13 @@ export async function handleExportCustomer(
       for (const f of files) {
         try {
           if (fs.statSync(path.join(attachmentsDir, f)).isFile()) attachments.push(f);
-        } catch { /* skip */ }
+        } catch {
+          /* skip */
+        }
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   }
 
   if (format === "markdown") {

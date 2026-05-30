@@ -88,9 +88,7 @@ describe("fetchPipedrivePersons", () => {
     fetchMock.mockResolvedValue({ ok: false, status: 401, statusText: "Unauthorized" });
     const { fetchPipedrivePersons } = await import("../../src/sync/pipedrive-client.js");
 
-    await expect(fetchPipedrivePersons("https://myco.pipedrive.com", "bad")).rejects.toThrow(
-      /401/
-    );
+    await expect(fetchPipedrivePersons("https://myco.pipedrive.com", "bad")).rejects.toThrow(/401/);
   });
 });
 
@@ -111,8 +109,8 @@ describe("fetchPipedriveActivities", () => {
     fetchMock.mockResolvedValue({ ok: false, status: 403, statusText: "Forbidden" });
     const { fetchPipedriveActivities } = await import("../../src/sync/pipedrive-client.js");
 
-    await expect(
-      fetchPipedriveActivities("https://myco.pipedrive.com", "bad")
-    ).rejects.toThrow(/403/);
+    await expect(fetchPipedriveActivities("https://myco.pipedrive.com", "bad")).rejects.toThrow(
+      /403/
+    );
   });
 });

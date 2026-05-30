@@ -92,35 +92,26 @@ describe("summarize_meeting tool", () => {
   });
 
   it("defaults to 'Meeting Participant' when with not provided", async () => {
-    await handleSummarizeMeeting(
-      { slug: "acme-corp", transcript: "Hi there" },
-      "/data"
-    );
+    await handleSummarizeMeeting({ slug: "acme-corp", transcript: "Hi there" }, "/data");
 
     const [, , entry] = mockAppend.mock.calls[0] as [string, string, { with: string }];
     expect(entry.with).toBe("Meeting Participant");
   });
 
   it("uses Meeting type for interaction", async () => {
-    await handleSummarizeMeeting(
-      { slug: "acme-corp", transcript: "Content" },
-      "/data"
-    );
+    await handleSummarizeMeeting({ slug: "acme-corp", transcript: "Content" }, "/data");
 
     const [, , entry] = mockAppend.mock.calls[0] as [string, string, { type: string }];
     expect(entry.type).toBe("Meeting");
   });
 
   it("writes audit entry after success", async () => {
-    await handleSummarizeMeeting(
-      { slug: "acme-corp", transcript: "Meeting content" },
-      "/data"
-    );
+    await handleSummarizeMeeting({ slug: "acme-corp", transcript: "Meeting content" }, "/data");
 
     expect(vi.mocked(writeAuditEntry)).toHaveBeenCalledOnce();
     const [, entry] = vi.mocked(writeAuditEntry).mock.calls[0] as [
       string,
-      { tool: string; slug: string }
+      { tool: string; slug: string },
     ];
     expect(entry.tool).toBe("summarize_meeting");
     expect(entry.slug).toBe("acme-corp");

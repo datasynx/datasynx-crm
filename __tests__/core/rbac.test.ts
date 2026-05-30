@@ -215,7 +215,9 @@ describe("assertCanWrite", () => {
   it("error message includes actor and tool name", async () => {
     const { assertCanWrite } = await import("../../src/core/rbac.js");
     expect(() => assertCanWrite("rep", "update_customer_facts", "bob")).toThrow(/bob/);
-    expect(() => assertCanWrite("rep", "update_customer_facts", "bob")).toThrow(/update_customer_facts/);
+    expect(() => assertCanWrite("rep", "update_customer_facts", "bob")).toThrow(
+      /update_customer_facts/
+    );
   });
 });
 

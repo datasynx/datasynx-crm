@@ -1,7 +1,7 @@
 import { Command } from "commander";
 import fs from "fs";
 import path from "path";
-import { success, info } from "../ui/colors.js";
+import { success } from "../ui/colors.js";
 
 const REPORT = `# DatasynxOpenCRM — Security Report
 
@@ -87,7 +87,7 @@ This makes EU data residency guarantees straightforward — a key differentiator
 
 export async function runSecurityReport(
   opts: { output?: string },
-  dataDir?: string
+  _dataDir?: string
 ): Promise<void> {
   const report = REPORT;
 

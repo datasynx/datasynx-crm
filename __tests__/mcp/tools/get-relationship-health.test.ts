@@ -29,7 +29,8 @@ function parseResult(result: { content: Array<{ type: string; text: string }> })
 describe("handleGetRelationshipHealth", () => {
   it("returns overallHealth 100 and empty contacts when no interactions exist", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect(parsed["overallHealth"]).toBe(100);
@@ -40,7 +41,8 @@ describe("handleGetRelationshipHealth", () => {
   it("returns contacts array with health data when interactions exist", async () => {
     const md = `## 2026-05-27 · Call\n**With:** max@acme.com\n**Summary:** Test.\n**Next Steps:**\n- [ ] —\n**Source:** agent://1\n**Synced:** 2026-05-27T10:00:00.000Z\n---\n`;
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: md });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect((parsed["contacts"] as unknown[]).length).toBeGreaterThan(0);
@@ -50,7 +52,8 @@ describe("handleGetRelationshipHealth", () => {
     // Old interaction → NO_CONTACT_30D flag
     const md = `## 2026-04-01 · Call\n**With:** max@acme.com\n**Summary:** Old.\n**Next Steps:**\n- [ ] —\n**Source:** agent://1\n**Synced:** 2026-04-01T10:00:00.000Z\n---\n`;
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: md });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect((parsed["atRiskContacts"] as string[]).length).toBeGreaterThan(0);
@@ -60,7 +63,8 @@ describe("handleGetRelationshipHealth", () => {
     // Very old interaction → trend=cold
     const md = `## 2026-04-01 · Call\n**With:** max@acme.com\n**Summary:** Old.\n**Next Steps:**\n- [ ] —\n**Source:** agent://1\n**Synced:** 2026-04-01T10:00:00.000Z\n---\n`;
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: md });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect((parsed["coldContacts"] as string[]).length).toBeGreaterThan(0);
@@ -70,7 +74,8 @@ describe("handleGetRelationshipHealth", () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/health.json`]: healthJson({ overallHealth: 42 }),
     });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect(parsed["overallHealth"]).toBe(42);
@@ -84,7 +89,8 @@ describe("handleGetRelationshipHealth", () => {
         updatedAt: staleTime,
       }),
     });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     // Recomputed from empty interactions → overallHealth = 100, not 42
@@ -93,7 +99,8 @@ describe("handleGetRelationshipHealth", () => {
 
   it("recomputes when health.json does not exist", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect(typeof parsed["overallHealth"]).toBe("number");
@@ -101,7 +108,8 @@ describe("handleGetRelationshipHealth", () => {
 
   it("includes slug in response", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const result = await handleGetRelationshipHealth({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect(parsed["slug"]).toBe(SLUG);
@@ -110,7 +118,8 @@ describe("handleGetRelationshipHealth", () => {
   it("returns success:false on unexpected error", async () => {
     // Pass a slug that might cause issues — still returns a valid response (empty graph)
     // For a genuine error we need to induce one: pass undefined dataDir triggers path.join
-    const { handleGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { handleGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     // Trigger error by passing invalid dataDir type
     const result = await handleGetRelationshipHealth({ slug: SLUG }, null as unknown as string);
     const parsed = parseResult(result);
@@ -120,10 +129,13 @@ describe("handleGetRelationshipHealth", () => {
 
 describe("registerGetRelationshipHealth — MCP registration", () => {
   it("registers tool with name get_relationship_health", async () => {
-    const { registerGetRelationshipHealth } = await import("../../../src/mcp/tools/get-relationship-health.js");
+    const { registerGetRelationshipHealth } =
+      await import("../../../src/mcp/tools/get-relationship-health.js");
     const registeredTools: string[] = [];
     const fakeServer = {
-      registerTool: (name: string) => { registeredTools.push(name); },
+      registerTool: (name: string) => {
+        registeredTools.push(name);
+      },
     };
     registerGetRelationshipHealth(fakeServer as never);
     expect(registeredTools).toContain("get_relationship_health");

@@ -3,6 +3,7 @@ import path from "path";
 import { readPipeline } from "../fs/pipeline-writer.js";
 import { scoreDeal } from "../core/deal-health.js";
 import { computeCustomerHealth } from "../core/relationship-health.js";
+import type { InteractionEntry } from "../schemas/interaction.js";
 import { readGraph, getStakeholders } from "../core/graph.js";
 import { callLlm } from "../core/llm.js";
 import { listPlaybooks, matchPlaybooks, type PlaybookMatch } from "../core/playbooks.js";
@@ -336,7 +337,10 @@ Payload schema per type:
 
 export function parseLlmResponse(response: string): LlmDealAnalysis | null {
   try {
-    const cleaned = response.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+    const cleaned = response
+      .replace(/^```(?:json)?\n?/m, "")
+      .replace(/\n?```$/m, "")
+      .trim();
     const parsed = JSON.parse(cleaned) as Partial<LlmDealAnalysis>;
     if (!parsed.assessment || !parsed.riskLevel || !Array.isArray(parsed.plan)) {
       return null;
@@ -480,9 +484,7 @@ export function selectActions(
   return analysis.actions.map((a) => {
     const dealValue = obs.deal.value ?? 0;
     const autoExecutable =
-      config.autonomyLevel === "act" &&
-      a.confidence >= 0.7 &&
-      dealValue < config.valueThreshold;
+      config.autonomyLevel === "act" && a.confidence >= 0.7 && dealValue < config.valueThreshold;
 
     return {
       actionId: makeActionId(),
@@ -514,9 +516,7 @@ export async function executeAction(
       const today = new Date().toISOString().slice(0, 10);
       await appendInteraction(dataDir, slug, {
         date: today,
-        type:
-          (action.payload["type"] as import("../schemas/interaction.js").InteractionEntry["type"]) ??
-          "Note",
+        type: (action.payload["type"] as InteractionEntry["type"]) ?? "Note",
         with: String(action.payload["with"] ?? "agent"),
         summary: String(action.payload["summary"] ?? ""),
         nextSteps: [],
@@ -626,7 +626,10 @@ export async function runDealAgent(
     for (const action of allActions) {
       if (!action.requiresHumanApproval) {
         const outcome = await executeAction(action, dataDir).catch(() => "skipped" as const);
-        actionsExecuted.push({ ...action, status: outcome === "executed" ? "executed" : "skipped" });
+        actionsExecuted.push({
+          ...action,
+          status: outcome === "executed" ? "executed" : "skipped",
+        });
       } else {
         queue.pendingActions.push(action);
         actionsQueued.push(action);
@@ -646,11 +649,7 @@ export async function runDealAgent(
     actionsConsidered: allActions,
     actionTaken: actionsExecuted[0] ?? null,
     outcome:
-      actionsExecuted.length > 0
-        ? "executed"
-        : actionsQueued.length > 0
-          ? "queued"
-          : "observed",
+      actionsExecuted.length > 0 ? "executed" : actionsQueued.length > 0 ? "queued" : "observed",
   };
 
   return {

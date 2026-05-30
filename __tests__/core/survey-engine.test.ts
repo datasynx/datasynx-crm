@@ -107,8 +107,13 @@ describe("calcNpsScore", () => {
   it("calculates NPS correctly: all promoters → 100", async () => {
     const { calcNpsScore } = await import("../../src/core/survey-engine.js");
     const responses = [9, 10, 10, 9].map((score) => ({
-      surveyId: "s", slug: "a", contactEmail: "a@b.com", score,
-      respondedAt: "2026-01-01T00:00:00.000Z", token: "t", sentAt: "2026-01-01T00:00:00.000Z",
+      surveyId: "s",
+      slug: "a",
+      contactEmail: "a@b.com",
+      score,
+      respondedAt: "2026-01-01T00:00:00.000Z",
+      token: "t",
+      sentAt: "2026-01-01T00:00:00.000Z",
     }));
     expect(calcNpsScore(responses)).toBe(100);
   });
@@ -116,8 +121,13 @@ describe("calcNpsScore", () => {
   it("calculates NPS correctly: all detractors → -100", async () => {
     const { calcNpsScore } = await import("../../src/core/survey-engine.js");
     const responses = [0, 1, 6, 5].map((score) => ({
-      surveyId: "s", slug: "a", contactEmail: "a@b.com", score,
-      respondedAt: "2026-01-01T00:00:00.000Z", token: "t", sentAt: "2026-01-01T00:00:00.000Z",
+      surveyId: "s",
+      slug: "a",
+      contactEmail: "a@b.com",
+      score,
+      respondedAt: "2026-01-01T00:00:00.000Z",
+      token: "t",
+      sentAt: "2026-01-01T00:00:00.000Z",
     }));
     expect(calcNpsScore(responses)).toBe(-100);
   });
@@ -125,8 +135,13 @@ describe("calcNpsScore", () => {
   it("calculates mixed NPS: 2 promoters 1 detractor out of 4 → 25", async () => {
     const { calcNpsScore } = await import("../../src/core/survey-engine.js");
     const responses = [10, 9, 5, 8].map((score) => ({
-      surveyId: "s", slug: "a", contactEmail: "a@b.com", score,
-      respondedAt: "2026-01-01T00:00:00.000Z", token: "t", sentAt: "2026-01-01T00:00:00.000Z",
+      surveyId: "s",
+      slug: "a",
+      contactEmail: "a@b.com",
+      score,
+      respondedAt: "2026-01-01T00:00:00.000Z",
+      token: "t",
+      sentAt: "2026-01-01T00:00:00.000Z",
     }));
     // promoters=2, detractors=1, total=4 → (2-1)/4*100 = 25
     expect(calcNpsScore(responses)).toBe(25);
@@ -138,7 +153,8 @@ describe("calcNpsScore", () => {
 describe("savePendingSurvey / recordSurveyResponse", () => {
   it("saves pending and records response by token", async () => {
     vol.fromJSON({});
-    const { savePendingSurvey, recordSurveyResponse, loadSurveyResponses } = await import("../../src/core/survey-engine.js");
+    const { savePendingSurvey, recordSurveyResponse, loadSurveyResponses } =
+      await import("../../src/core/survey-engine.js");
     await savePendingSurvey(DATA_DIR, "nps-q1", "acme", "alice@acme.com", "tok123abc456def7");
     const resp = await recordSurveyResponse(DATA_DIR, "tok123abc456def7", 9, "Great product!");
     expect(resp).not.toBeNull();
@@ -160,7 +176,8 @@ describe("savePendingSurvey / recordSurveyResponse", () => {
 
   it("loadSurveyResponses filters by slug", async () => {
     vol.fromJSON({});
-    const { savePendingSurvey, recordSurveyResponse, loadSurveyResponses } = await import("../../src/core/survey-engine.js");
+    const { savePendingSurvey, recordSurveyResponse, loadSurveyResponses } =
+      await import("../../src/core/survey-engine.js");
     await savePendingSurvey(DATA_DIR, "nps-q1", "acme", "a@acme.com", "tok1");
     await savePendingSurvey(DATA_DIR, "nps-q1", "beta", "b@beta.com", "tok2");
     await recordSurveyResponse(DATA_DIR, "tok1", 10);

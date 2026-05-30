@@ -9,7 +9,9 @@ beforeEach(() => {
 
 const DATA_DIR = "/data";
 
-function makeDeal(overrides: object = {}): import("../../src/core/revenue-simulation.js").DealSnapshot {
+function makeDeal(
+  overrides: object = {}
+): import("../../src/core/revenue-simulation.js").DealSnapshot {
   return {
     slug: "acme-corp",
     name: "Enterprise License",
@@ -220,7 +222,13 @@ describe("decomposeGoalRuleBased", () => {
   it("caps sub-goals at 5 even with more deals", async () => {
     const { decomposeGoalRuleBased } = await import("../../src/core/goal-engine.js");
     const deals = Array.from({ length: 10 }, (_, i) =>
-      makeDeal({ slug: `cust-${i}`, name: `Deal ${i}`, value: 50000, probability: 60, healthScore: 50 })
+      makeDeal({
+        slug: `cust-${i}`,
+        name: `Deal ${i}`,
+        value: 50000,
+        probability: 60,
+        healthScore: 50,
+      })
     );
     const decomp = decomposeGoalRuleBased(deals, 5000000, 0, "2026-05-27");
     expect(decomp.subGoals.length).toBeLessThanOrEqual(5);
@@ -239,9 +247,14 @@ describe("decomposeGoalRuleBased", () => {
 
   it("uses playbookLookup hook when provided", async () => {
     const { decomposeGoalRuleBased } = await import("../../src/core/goal-engine.js");
-    const deals = [makeDeal({ slug: "acme", name: "Deal", value: 80000, probability: 60, healthScore: 50 })];
+    const deals = [
+      makeDeal({ slug: "acme", name: "Deal", value: 80000, probability: 60, healthScore: 50 }),
+    ];
     const decomp = decomposeGoalRuleBased(
-      deals, 500000, 0, "2026-05-27",
+      deals,
+      500000,
+      0,
+      "2026-05-27",
       (_slug, _deal) => "enterprise-renewal"
     );
     expect(decomp.subGoals[0]!.playbookName).toBe("enterprise-renewal");
@@ -265,7 +278,14 @@ describe("parseLlmDecomposition", () => {
     const response = JSON.stringify({
       analysis: "Gap: €213k",
       subGoals: [
-        { priority: 1, action: "Accelerate deal", slug: "acme", why: "High value", nextStep: "Call buyer", targetDelta: 75000 }
+        {
+          priority: 1,
+          action: "Accelerate deal",
+          slug: "acme",
+          why: "High value",
+          nextStep: "Call buyer",
+          targetDelta: 75000,
+        },
       ],
       probabilisticOutcome: "~€512k",
     });
@@ -301,7 +321,15 @@ describe("parseLlmDecomposition", () => {
 
 describe("pursueGoal", () => {
   const mockBuildFn = async () => ({
-    deals: [makeDeal({ slug: "acme", name: "Enterprise", value: 80000, probability: 60, healthScore: 50 })],
+    deals: [
+      makeDeal({
+        slug: "acme",
+        name: "Enterprise",
+        value: 80000,
+        probability: 60,
+        healthScore: 50,
+      }),
+    ],
     externalSignals: [] as [],
     iterations: 100,
     horizon: "quarter" as const,
@@ -361,8 +389,16 @@ describe("pursueGoal", () => {
   it("appends to existing goals without overwriting", async () => {
     vol.fromJSON({});
     const { pursueGoal, readGoals } = await import("../../src/core/goal-engine.js");
-    await pursueGoal(DATA_DIR, { description: "Close €200k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn });
-    await pursueGoal(DATA_DIR, { description: "Close €300k", deadline: "2026-12-31" }, { buildInputFn: mockBuildFn });
+    await pursueGoal(
+      DATA_DIR,
+      { description: "Close €200k", deadline: "2026-09-30" },
+      { buildInputFn: mockBuildFn }
+    );
+    await pursueGoal(
+      DATA_DIR,
+      { description: "Close €300k", deadline: "2026-12-31" },
+      { buildInputFn: mockBuildFn }
+    );
     expect(readGoals(DATA_DIR)).toHaveLength(2);
   });
 
@@ -370,7 +406,11 @@ describe("pursueGoal", () => {
     vol.fromJSON({});
     const { pursueGoal } = await import("../../src/core/goal-engine.js");
     await expect(
-      pursueGoal(DATA_DIR, { description: "Close €100k", deadline: "not-a-date" }, { buildInputFn: mockBuildFn })
+      pursueGoal(
+        DATA_DIR,
+        { description: "Close €100k", deadline: "not-a-date" },
+        { buildInputFn: mockBuildFn }
+      )
     ).rejects.toThrow("deadline: invalid date");
   });
 
@@ -378,7 +418,11 @@ describe("pursueGoal", () => {
     vol.fromJSON({});
     const { pursueGoal } = await import("../../src/core/goal-engine.js");
     await expect(
-      pursueGoal(DATA_DIR, { description: "Close €100k", deadline: "2026-13-01" }, { buildInputFn: mockBuildFn })
+      pursueGoal(
+        DATA_DIR,
+        { description: "Close €100k", deadline: "2026-13-01" },
+        { buildInputFn: mockBuildFn }
+      )
     ).rejects.toThrow("deadline: invalid date");
   });
 
@@ -386,9 +430,21 @@ describe("pursueGoal", () => {
     vol.fromJSON({});
     const { pursueGoal, readGoals } = await import("../../src/core/goal-engine.js");
     await Promise.all([
-      pursueGoal(DATA_DIR, { description: "Goal A €100k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn }),
-      pursueGoal(DATA_DIR, { description: "Goal B €200k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn }),
-      pursueGoal(DATA_DIR, { description: "Goal C €300k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn }),
+      pursueGoal(
+        DATA_DIR,
+        { description: "Goal A €100k", deadline: "2026-09-30" },
+        { buildInputFn: mockBuildFn }
+      ),
+      pursueGoal(
+        DATA_DIR,
+        { description: "Goal B €200k", deadline: "2026-09-30" },
+        { buildInputFn: mockBuildFn }
+      ),
+      pursueGoal(
+        DATA_DIR,
+        { description: "Goal C €300k", deadline: "2026-09-30" },
+        { buildInputFn: mockBuildFn }
+      ),
     ]);
     expect(readGoals(DATA_DIR)).toHaveLength(3);
   });
@@ -405,12 +461,27 @@ describe("getActiveGoals", () => {
 
   it("returns only active goals", async () => {
     vol.fromJSON({});
-    const { writeGoals, getActiveGoals, makeGoalId } = await import("../../src/core/goal-engine.js");
+    const { writeGoals, getActiveGoals, makeGoalId } =
+      await import("../../src/core/goal-engine.js");
     const base = {
-      id: makeGoalId(), description: "x", type: "revenue" as const, target: 1,
-      metric: "revenue" as const, deadline: "2026-09-30",
-      decomposition: { analysis: "", currentPipeline: 0, gap: 0, subGoals: [], probabilisticOutcome: "", decomposedAt: "" },
-      progress: 0, createdAt: "", updatedAt: "", actor: "system",
+      id: makeGoalId(),
+      description: "x",
+      type: "revenue" as const,
+      target: 1,
+      metric: "revenue" as const,
+      deadline: "2026-09-30",
+      decomposition: {
+        analysis: "",
+        currentPipeline: 0,
+        gap: 0,
+        subGoals: [],
+        probabilisticOutcome: "",
+        decomposedAt: "",
+      },
+      progress: 0,
+      createdAt: "",
+      updatedAt: "",
+      actor: "system",
     };
     writeGoals(DATA_DIR, [
       { ...base, id: makeGoalId(), status: "active" as const },
@@ -425,8 +496,18 @@ describe("updateGoalProgress", () => {
   it("updates progress and returns updated goal", async () => {
     vol.fromJSON({});
     const { pursueGoal, updateGoalProgress } = await import("../../src/core/goal-engine.js");
-    const mockBuildFn = async () => ({ deals: [], externalSignals: [] as [], iterations: 100, horizon: "quarter" as const, today: "2026-05-27" });
-    const goal = await pursueGoal(DATA_DIR, { description: "Close €100k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn });
+    const mockBuildFn = async () => ({
+      deals: [],
+      externalSignals: [] as [],
+      iterations: 100,
+      horizon: "quarter" as const,
+      today: "2026-05-27",
+    });
+    const goal = await pursueGoal(
+      DATA_DIR,
+      { description: "Close €100k", deadline: "2026-09-30" },
+      { buildInputFn: mockBuildFn }
+    );
     const updated = await updateGoalProgress(DATA_DIR, goal.id, 45);
     expect(updated).not.toBeNull();
     expect(updated!.progress).toBe(45);
@@ -440,9 +521,20 @@ describe("updateGoalProgress", () => {
 
   it("concurrent progress updates are serialized without data loss", async () => {
     vol.fromJSON({});
-    const { pursueGoal, updateGoalProgress, readGoals } = await import("../../src/core/goal-engine.js");
-    const mockBuildFn = async () => ({ deals: [], externalSignals: [] as [], iterations: 1, horizon: "quarter" as const, today: "2026-05-27" });
-    const goal = await pursueGoal(DATA_DIR, { description: "Close €100k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn });
+    const { pursueGoal, updateGoalProgress, readGoals } =
+      await import("../../src/core/goal-engine.js");
+    const mockBuildFn = async () => ({
+      deals: [],
+      externalSignals: [] as [],
+      iterations: 1,
+      horizon: "quarter" as const,
+      today: "2026-05-27",
+    });
+    const goal = await pursueGoal(
+      DATA_DIR,
+      { description: "Close €100k", deadline: "2026-09-30" },
+      { buildInputFn: mockBuildFn }
+    );
     await Promise.all([
       updateGoalProgress(DATA_DIR, goal.id, 25),
       updateGoalProgress(DATA_DIR, goal.id, 50),
@@ -458,8 +550,18 @@ describe("cancelGoal", () => {
   it("sets status to cancelled", async () => {
     vol.fromJSON({});
     const { pursueGoal, cancelGoal, readGoals } = await import("../../src/core/goal-engine.js");
-    const mockBuildFn = async () => ({ deals: [], externalSignals: [] as [], iterations: 100, horizon: "quarter" as const, today: "2026-05-27" });
-    const goal = await pursueGoal(DATA_DIR, { description: "Close €100k", deadline: "2026-09-30" }, { buildInputFn: mockBuildFn });
+    const mockBuildFn = async () => ({
+      deals: [],
+      externalSignals: [] as [],
+      iterations: 100,
+      horizon: "quarter" as const,
+      today: "2026-05-27",
+    });
+    const goal = await pursueGoal(
+      DATA_DIR,
+      { description: "Close €100k", deadline: "2026-09-30" },
+      { buildInputFn: mockBuildFn }
+    );
     await cancelGoal(DATA_DIR, goal.id);
     expect(readGoals(DATA_DIR)[0]!.status).toBe("cancelled");
   });
@@ -489,11 +591,21 @@ describe("syncGoalProgressFromPipeline", () => {
       [`${DATA_DIR}/customers/acme-corp/pipeline.md`]: PIPELINE_MD,
       [`${DATA_DIR}/.agentic/.keep`]: "",
     });
-    const { pursueGoal, syncGoalProgressFromPipeline, readGoals } = await import("../../src/core/goal-engine.js");
+    const { pursueGoal, syncGoalProgressFromPipeline, readGoals } =
+      await import("../../src/core/goal-engine.js");
     const goal = await pursueGoal(
       DATA_DIR,
       { description: "Close €100k revenue by end of Q2", deadline: "2026-06-30" },
-      { buildInputFn: async () => ({ deals: [], externalSignals: [], iterations: 100, horizon: "quarter", today: "2026-05-28" }), today: "2026-05-28" }
+      {
+        buildInputFn: async () => ({
+          deals: [],
+          externalSignals: [],
+          iterations: 100,
+          horizon: "quarter",
+          today: "2026-05-28",
+        }),
+        today: "2026-05-28",
+      }
     );
     await syncGoalProgressFromPipeline(DATA_DIR, "2026-05-28");
     const goals = readGoals(DATA_DIR);
@@ -507,11 +619,21 @@ describe("syncGoalProgressFromPipeline", () => {
       [`${DATA_DIR}/customers/acme-corp/pipeline.md`]: PIPELINE_MD,
       [`${DATA_DIR}/.agentic/.keep`]: "",
     });
-    const { pursueGoal, cancelGoal, syncGoalProgressFromPipeline, readGoals } = await import("../../src/core/goal-engine.js");
+    const { pursueGoal, cancelGoal, syncGoalProgressFromPipeline, readGoals } =
+      await import("../../src/core/goal-engine.js");
     const goal = await pursueGoal(
       DATA_DIR,
       { description: "Close €50k revenue by end of Q2", deadline: "2026-06-30" },
-      { buildInputFn: async () => ({ deals: [], externalSignals: [], iterations: 100, horizon: "quarter", today: "2026-05-28" }), today: "2026-05-28" }
+      {
+        buildInputFn: async () => ({
+          deals: [],
+          externalSignals: [],
+          iterations: 100,
+          horizon: "quarter",
+          today: "2026-05-28",
+        }),
+        today: "2026-05-28",
+      }
     );
     await cancelGoal(DATA_DIR, goal.id);
     await syncGoalProgressFromPipeline(DATA_DIR, "2026-05-28");
@@ -540,11 +662,21 @@ describe("syncGoalProgressFromPipeline", () => {
       [`${DATA_DIR}/customers/acme-corp/pipeline.md`]: bigWinPipeline,
       [`${DATA_DIR}/.agentic/.keep`]: "",
     });
-    const { pursueGoal, syncGoalProgressFromPipeline, readGoals } = await import("../../src/core/goal-engine.js");
+    const { pursueGoal, syncGoalProgressFromPipeline, readGoals } =
+      await import("../../src/core/goal-engine.js");
     await pursueGoal(
       DATA_DIR,
       { description: "Close €50k revenue", deadline: "2026-06-30" },
-      { buildInputFn: async () => ({ deals: [], externalSignals: [], iterations: 100, horizon: "quarter", today: "2026-05-28" }), today: "2026-05-28" }
+      {
+        buildInputFn: async () => ({
+          deals: [],
+          externalSignals: [],
+          iterations: 100,
+          horizon: "quarter",
+          today: "2026-05-28",
+        }),
+        today: "2026-05-28",
+      }
     );
     await syncGoalProgressFromPipeline(DATA_DIR, "2026-05-28");
     const goals = readGoals(DATA_DIR);

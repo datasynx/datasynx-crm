@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { spawn } from "child_process";
-import { success, error, info, bold } from "../ui/colors.js";
+import { success, info } from "../ui/colors.js";
 
 function getPidFile(dataDir: string): string {
   return path.join(dataDir, ".agentic", "server.pid");

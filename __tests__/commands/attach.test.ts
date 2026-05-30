@@ -61,7 +61,10 @@ describe("runAttach", () => {
     await runAttach("acme-corp", "/tmp/contract.pdf", "/crm");
 
     // Original file should not be overwritten
-    const content = vol.readFileSync("/crm/customers/acme-corp/attachments/contract.pdf", "utf-8") as string;
+    const content = vol.readFileSync(
+      "/crm/customers/acme-corp/attachments/contract.pdf",
+      "utf-8"
+    ) as string;
     expect(content).toBe("original");
     logSpy.mockRestore();
   });
@@ -121,7 +124,8 @@ describe("attachCommand — Commander structure", () => {
 describe("export_customer — attachments in export", () => {
   it("includes attachments array in JSON export", async () => {
     vol.fromJSON({
-      "/data/customers/acme-corp/main_facts.md": "---\nname: Acme Corp\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-05-01\ntags: []\ncurrency: EUR\n---\n",
+      "/data/customers/acme-corp/main_facts.md":
+        "---\nname: Acme Corp\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-05-01\ntags: []\ncurrency: EUR\n---\n",
       "/data/customers/acme-corp/attachments/contract.pdf": "pdf",
       "/data/customers/acme-corp/attachments/proposal.docx": "docx",
     });
@@ -138,7 +142,8 @@ describe("export_customer — attachments in export", () => {
 
   it("includes Attachments section in markdown export", async () => {
     vol.fromJSON({
-      "/data/customers/acme-corp/main_facts.md": "---\nname: Acme Corp\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-05-01\ntags: []\ncurrency: EUR\n---\n",
+      "/data/customers/acme-corp/main_facts.md":
+        "---\nname: Acme Corp\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-05-01\ntags: []\ncurrency: EUR\n---\n",
       "/data/customers/acme-corp/attachments/contract.pdf": "pdf",
     });
 
@@ -152,7 +157,8 @@ describe("export_customer — attachments in export", () => {
 
   it("shows empty attachments when none exist", async () => {
     vol.fromJSON({
-      "/data/customers/acme-corp/main_facts.md": "---\nname: Acme Corp\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-05-01\ntags: []\ncurrency: EUR\n---\n",
+      "/data/customers/acme-corp/main_facts.md":
+        "---\nname: Acme Corp\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-05-01\ntags: []\ncurrency: EUR\n---\n",
     });
 
     const { handleExportCustomer } = await import("../../src/mcp/tools/export-customer.js");

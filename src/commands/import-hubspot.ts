@@ -67,34 +67,64 @@ const TYPE_MAP: Record<string, InteractionEntry["type"]> = {
 
 // Known HubSpot columns → dxcrm main_facts fields
 const COMPANY_FIELD_MAP: Record<string, string> = {
-  "hs_annual_revenue": "annual_revenue",
-  "num_associated_contacts": "contact_count",
-  "industry": "industry",
-  "city": "city",
-  "country": "country",
-  "hs_lead_status": "lead_status",
-  "lifecyclestage": "lifecycle_stage",
-  "numberofemployees": "employee_count",
-  "phone": "phone",
-  "address": "address",
-  "zip": "zip",
-  "state": "state",
+  hs_annual_revenue: "annual_revenue",
+  num_associated_contacts: "contact_count",
+  industry: "industry",
+  city: "city",
+  country: "country",
+  hs_lead_status: "lead_status",
+  lifecyclestage: "lifecycle_stage",
+  numberofemployees: "employee_count",
+  phone: "phone",
+  address: "address",
+  zip: "zip",
+  state: "state",
 };
 
 const KNOWN_COMPANY_COLUMNS = new Set([
-  "name", "Name", "domain", "Domain", "website", "Website",
-  "phone", "Phone", "address", "Address", "city", "City",
-  "country", "Country", "state", "State", "zip", "Zip",
-  "industry", "Industry", "numberofemployees", "Number of Employees",
-  "hs_annual_revenue", "Annual Revenue", "lifecyclestage", "Lifecycle Stage",
-  "hubspot_owner_email", "HubSpot Owner Email", "create_date", "createdate",
-  "hs_lastmodifieddate", "hs_object_id", "Record ID",
+  "name",
+  "Name",
+  "domain",
+  "Domain",
+  "website",
+  "Website",
+  "phone",
+  "Phone",
+  "address",
+  "Address",
+  "city",
+  "City",
+  "country",
+  "Country",
+  "state",
+  "State",
+  "zip",
+  "Zip",
+  "industry",
+  "Industry",
+  "numberofemployees",
+  "Number of Employees",
+  "hs_annual_revenue",
+  "Annual Revenue",
+  "lifecyclestage",
+  "Lifecycle Stage",
+  "hubspot_owner_email",
+  "HubSpot Owner Email",
+  "create_date",
+  "createdate",
+  "hs_lastmodifieddate",
+  "hs_object_id",
+  "Record ID",
 ]);
 
 // ─── Utilities ────────────────────────────────────────────────────────────────
 
 function slugify(name: string): string {
-  return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
 }
 
 function hashStr(s: string): string {
@@ -141,16 +171,33 @@ function ensureCustomer(
     "tags: []",
     "currency: EUR",
     "---",
-  ].filter(Boolean).join("\n");
+  ]
+    .filter(Boolean)
+    .join("\n");
   fs.writeFileSync(mainFactsPath, `${lines}\n\n# Customer: ${name}\n`, "utf-8");
-  fs.writeFileSync(path.join(customerDir, "interactions.md"), `# Interactions — ${name}\n\n`, "utf-8");
+  fs.writeFileSync(
+    path.join(customerDir, "interactions.md"),
+    `# Interactions — ${name}\n\n`,
+    "utf-8"
+  );
   fs.writeFileSync(path.join(customerDir, "pipeline.md"), `# Pipeline — ${name}\n\n`, "utf-8");
   fs.writeFileSync(
     path.join(customerDir, "sources.json"),
-    JSON.stringify({
-      gmail: { query: domain ? `from:${domain} OR to:${domain}` : email ? `from:${email} OR to:${email}` : "", enabled: true },
-      transcripts: { paths: [], extensions: [".txt", ".vtt"], enabled: false },
-    }, null, 2),
+    JSON.stringify(
+      {
+        gmail: {
+          query: domain
+            ? `from:${domain} OR to:${domain}`
+            : email
+              ? `from:${email} OR to:${email}`
+              : "",
+          enabled: true,
+        },
+        transcripts: { paths: [], extensions: [".txt", ".vtt"], enabled: false },
+      },
+      null,
+      2
+    ),
     "utf-8"
   );
   return { slug, created: true };
@@ -180,22 +227,21 @@ function updateMainFactsField(dataDir: string, slug: string, field: string, valu
 
 // ─── Custom Properties ────────────────────────────────────────────────────────
 
-function saveCustomProperties(
-  dataDir: string,
-  slug: string,
-  props: Record<string, string>
-): void {
+function saveCustomProperties(dataDir: string, slug: string, props: Record<string, string>): void {
   if (Object.keys(props).length === 0) return;
   const p = path.join(dataDir, "customers", slug, "custom_properties.json");
   let existing: Record<string, unknown> = {};
   if (fs.existsSync(p)) {
-    try { existing = JSON.parse(fs.readFileSync(p, "utf-8") as string) as Record<string, unknown>; }
-    catch { existing = {}; }
+    try {
+      existing = JSON.parse(fs.readFileSync(p, "utf-8") as string) as Record<string, unknown>;
+    } catch {
+      existing = {};
+    }
   }
   const merged = {
     source: "hubspot-import",
     importedAt: new Date().toISOString(),
-    properties: { ...(existing["properties"] as Record<string, string> ?? {}), ...props },
+    properties: { ...((existing["properties"] as Record<string, string>) ?? {}), ...props },
   };
   fs.writeFileSync(p, JSON.stringify(merged, null, 2), "utf-8");
 }
@@ -208,8 +254,8 @@ interface ImportProgress {
   startedAt: string;
   phases: {
     companies: { status: "done" | "in-progress" | "pending"; processed: number };
-    contacts:  { status: "done" | "in-progress" | "pending"; processed: number };
-    deals:     { status: "done" | "in-progress" | "pending"; processed: number };
+    contacts: { status: "done" | "in-progress" | "pending"; processed: number };
+    deals: { status: "done" | "in-progress" | "pending"; processed: number };
     engagements: { status: "done" | "in-progress" | "pending"; processed: number };
   };
 }
@@ -221,8 +267,11 @@ function progressPath(dataDir: string): string {
 function readProgress(dataDir: string): ImportProgress | null {
   const p = progressPath(dataDir);
   if (!fs.existsSync(p)) return null;
-  try { return JSON.parse(fs.readFileSync(p, "utf-8") as string) as ImportProgress; }
-  catch { return null; }
+  try {
+    return JSON.parse(fs.readFileSync(p, "utf-8") as string) as ImportProgress;
+  } catch {
+    return null;
+  }
 }
 
 function writeProgress(dataDir: string, progress: ImportProgress): void {
@@ -296,7 +345,7 @@ export async function analyzeHubSpotExport(exportDir: string): Promise<HubSpotAn
   // Engagements
   const engagementsPath = path.join(exportDir, "engagements.csv");
   if (fs.existsSync(engagementsPath)) {
-    for await (const row of streamCSV(engagementsPath)) {
+    for await (const _row of streamCSV(engagementsPath)) {
       analysis.engagementsFound++;
     }
   }
@@ -305,8 +354,11 @@ export async function analyzeHubSpotExport(exportDir: string): Promise<HubSpotAn
   analysis.ownersDetected = Array.from(owners);
   analysis.unknownStages = Array.from(unknownStages);
 
-  const totalRows = analysis.companiesFound + analysis.contactsFound +
-    analysis.dealsFound + analysis.engagementsFound;
+  const totalRows =
+    analysis.companiesFound +
+    analysis.contactsFound +
+    analysis.dealsFound +
+    analysis.engagementsFound;
   analysis.estimatedMinutes = Math.ceil(totalRows / 2000); // ~2000 rows/min
 
   return analysis;
@@ -347,16 +399,16 @@ export async function runHubSpotCsvImport(
       source: exportDir,
       startedAt: new Date().toISOString(),
       phases: {
-        companies:   { status: "pending", processed: 0 },
-        contacts:    { status: "pending", processed: 0 },
-        deals:       { status: "pending", processed: 0 },
+        companies: { status: "pending", processed: 0 },
+        contacts: { status: "pending", processed: 0 },
+        deals: { status: "pending", processed: 0 },
         engagements: { status: "pending", processed: 0 },
       },
     };
   }
 
   const companySlugMap = new Map<string, string>(); // name.lower → slug
-  const emailSlugMap = new Map<string, string>();   // email.lower → slug
+  const emailSlugMap = new Map<string, string>(); // email.lower → slug
 
   // ── Phase 1: Companies ──────────────────────────────────────────────────────
   const companiesPath = path.join(exportDir, "companies.csv");
@@ -368,7 +420,13 @@ export async function runHubSpotCsvImport(
       const name = (row["name"] ?? row["Name"] ?? "").trim();
       if (!name) continue;
 
-      const domain = (row["domain"] ?? row["Domain"] ?? row["website"] ?? row["Website"] ?? "").trim();
+      const domain = (
+        row["domain"] ??
+        row["Domain"] ??
+        row["website"] ??
+        row["Website"] ??
+        ""
+      ).trim();
       const hubspotId = (row["hs_object_id"] ?? row["Record ID"] ?? "").trim();
 
       try {
@@ -438,7 +496,13 @@ export async function runHubSpotCsvImport(
       const firstName = (row["firstname"] ?? row["First Name"] ?? "").trim();
       const lastName = (row["lastname"] ?? row["Last Name"] ?? "").trim();
       const email = (row["email"] ?? row["Email"] ?? "").trim();
-      const companyName = (row["company"] ?? row["Company"] ?? row["associated_company"] ?? row["Associated Company"] ?? "").trim();
+      const companyName = (
+        row["company"] ??
+        row["Company"] ??
+        row["associated_company"] ??
+        row["Associated Company"] ??
+        ""
+      ).trim();
       const phone = (row["phone"] ?? row["Phone"] ?? row["mobilephone"] ?? "").trim();
       const title = (row["jobtitle"] ?? row["Job Title"] ?? "").trim();
       const department = (row["department"] ?? row["Department"] ?? "").trim();
@@ -449,7 +513,13 @@ export async function runHubSpotCsvImport(
       if (!slug && companyName) {
         const domain = (row["website"] ?? "").trim();
         try {
-          const { slug: newSlug, created } = ensureCustomer(dataDir, companyName, domain, email, dryRun);
+          const { slug: newSlug, created } = ensureCustomer(
+            dataDir,
+            companyName,
+            domain,
+            email,
+            dryRun
+          );
           slug = newSlug;
           companySlugMap.set(companyName.toLowerCase(), newSlug);
           if (created) result.companiesProcessed++;
@@ -476,13 +546,19 @@ export async function runHubSpotCsvImport(
             isPrimary: isFirst,
             createdAt: new Date().toISOString(),
           };
-          try { upsertContact(dataDir, slug, contactEntry); } catch { /* skip invalid */ }
+          try {
+            upsertContact(dataDir, slug, contactEntry);
+          } catch {
+            /* skip invalid */
+          }
         }
 
         // Update main_facts primary contact (first contact only)
         const existing = readMainFactsRaw(dataDir, slug);
-        if (email && !existing.includes("email:")) updateMainFactsField(dataDir, slug, "email", email);
-        if (phone && !existing.includes("phone:")) updateMainFactsField(dataDir, slug, "phone", phone);
+        if (email && !existing.includes("email:"))
+          updateMainFactsField(dataDir, slug, "email", email);
+        if (phone && !existing.includes("phone:"))
+          updateMainFactsField(dataDir, slug, "phone", phone);
         if (contactName && !existing.includes("primary_contact:")) {
           updateMainFactsField(dataDir, slug, "primary_contact", contactName);
         }
@@ -516,16 +592,27 @@ export async function runHubSpotCsvImport(
         const dealName = (row["dealname"] ?? row["Deal Name"] ?? row["name"] ?? "").trim();
         if (!dealName) continue;
 
-        const companyName = (row["associated_company"] ?? row["Associated Company"] ?? row["company"] ?? "").trim();
+        const companyName = (
+          row["associated_company"] ??
+          row["Associated Company"] ??
+          row["company"] ??
+          ""
+        ).trim();
         const amountStr = (row["amount"] ?? row["Amount"] ?? "0").trim().replace(/[^0-9.]/g, "");
         const stageRaw = (row["dealstage"] ?? row["Deal Stage"] ?? "").trim().toLowerCase();
-        const closeDateRaw = (row["closedate"] ?? row["Close Date"] ?? row["close_date"] ?? "").trim();
+        const closeDateRaw = (
+          row["closedate"] ??
+          row["Close Date"] ??
+          row["close_date"] ??
+          ""
+        ).trim();
         const currency = (row["deal_currency_code"] ?? row["Currency"] ?? "EUR").trim();
         const dealId = (row["hs_deal_id"] ?? row["hs_object_id"] ?? row["Record ID"] ?? "").trim();
         const ownerEmail = (row["hubspot_owner_email"] ?? row["HubSpot Owner Email"] ?? "").trim();
         const description = (row["description"] ?? row["Description"] ?? "").trim();
 
-        const slug = companySlugMap.get(companyName.toLowerCase()) ?? slugify(companyName || "unknown");
+        const slug =
+          companySlugMap.get(companyName.toLowerCase()) ?? slugify(companyName || "unknown");
         const stage = STAGE_MAP[stageRaw] ?? "qualified";
         const amount = parseFloat(amountStr) || 0;
         const closeDate = coerceDate(closeDateRaw);
@@ -576,15 +663,52 @@ export async function runHubSpotCsvImport(
       writeProgress(dataDir, progress);
 
       for await (const row of streamCSV(engagementsPath)) {
-        const engType = (row["engagement_type"] ?? row["Engagement Type"] ?? row["type"] ?? row["Type"] ?? "NOTE").trim().toUpperCase();
-        const timestamp = (row["hs_timestamp"] ?? row["Timestamp"] ?? row["date"] ?? row["createdate"] ?? "").trim();
-        const body = (row["hs_body_preview"] ?? row["Body"] ?? row["notes"] ?? row["Notes"] ?? row["hs_note_body"] ?? "").trim();
+        const engType = (
+          row["engagement_type"] ??
+          row["Engagement Type"] ??
+          row["type"] ??
+          row["Type"] ??
+          "NOTE"
+        )
+          .trim()
+          .toUpperCase();
+        const timestamp = (
+          row["hs_timestamp"] ??
+          row["Timestamp"] ??
+          row["date"] ??
+          row["createdate"] ??
+          ""
+        ).trim();
+        const body = (
+          row["hs_body_preview"] ??
+          row["Body"] ??
+          row["notes"] ??
+          row["Notes"] ??
+          row["hs_note_body"] ??
+          ""
+        ).trim();
         const subject = (row["subject"] ?? row["Subject"] ?? "").trim();
-        const contactEmail = (row["associated_contact_email"] ?? row["Contact Email"] ?? row["from_email"] ?? "").trim().toLowerCase();
-        const engId = (row["id"] ?? row["engagement_id"] ?? row["hs_object_id"] ?? hashStr(timestamp + body)).trim();
+        const contactEmail = (
+          row["associated_contact_email"] ??
+          row["Contact Email"] ??
+          row["from_email"] ??
+          ""
+        )
+          .trim()
+          .toLowerCase();
+        const engId = (
+          row["id"] ??
+          row["engagement_id"] ??
+          row["hs_object_id"] ??
+          hashStr(timestamp + body)
+        ).trim();
         const callDuration = (row["call_duration"] ?? row["hs_call_duration"] ?? "").trim();
         const callOutcome = (row["call_outcome"] ?? row["hs_call_disposition"] ?? "").trim();
-        const callRecording = (row["call_recording_url"] ?? row["hs_call_recording_url"] ?? "").trim();
+        const callRecording = (
+          row["call_recording_url"] ??
+          row["hs_call_recording_url"] ??
+          ""
+        ).trim();
 
         const slug =
           emailSlugMap.get(contactEmail) ??

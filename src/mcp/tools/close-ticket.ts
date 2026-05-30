@@ -15,7 +15,14 @@ export async function handleCloseTicket(
 
   if (!ticket) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ error: `Ticket '${input.ticketId}' not found for '${input.slug}'` }) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            error: `Ticket '${input.ticketId}' not found for '${input.slug}'`,
+          }),
+        },
+      ],
     };
   }
 

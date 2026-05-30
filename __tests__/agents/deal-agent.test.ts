@@ -130,7 +130,12 @@ function validLlmResponse(): string {
     actions: [
       {
         type: "log_interaction",
-        payload: { slug: SLUG, type: "Note", summary: "Agent reminder: send proposal.", with: "Max Müller" },
+        payload: {
+          slug: SLUG,
+          type: "Note",
+          summary: "Agent reminder: send proposal.",
+          with: "Max Müller",
+        },
         confidence: 0.85,
         reasoning: "Champion identified, close date approaching",
       },
@@ -352,7 +357,9 @@ describe("buildLlmPrompt", () => {
 // ─── buildRuleBasedAnalysis ────────────────────────────────────────────────────
 
 describe("buildRuleBasedAnalysis", () => {
-  async function makeObs(overrides: object = {}): Promise<import("../../src/agents/deal-agent.js").DealObservation> {
+  async function makeObs(
+    overrides: object = {}
+  ): Promise<import("../../src/agents/deal-agent.js").DealObservation> {
     vi.resetModules();
     const { scoreDeal } = await import("../../src/core/deal-health.js");
     const deal = { name: "Q3 Renewal", stage: "negotiation" as const, value: 50000 };
@@ -375,7 +382,8 @@ describe("buildRuleBasedAnalysis", () => {
   }
 
   it("returns 'critical' riskLevel for grade-F deal", async () => {
-    const { buildRuleBasedAnalysis, scoreDeal: _sd } = await import("../../src/agents/deal-agent.js");
+    const { buildRuleBasedAnalysis, scoreDeal: _sd } =
+      await import("../../src/agents/deal-agent.js");
     const { scoreDeal } = await import("../../src/core/deal-health.js");
     const deal = { name: "Q3 Renewal", stage: "negotiation" as const };
     const badSignals = { daysSinceLastActivity: 70, daysInCurrentStage: 100, daysToClose: -5 };
@@ -543,8 +551,18 @@ describe("selectActions", () => {
       riskLevel: "low" as const,
       plan: [],
       actions: [
-        { type: "alert" as const, payload: { slug: SLUG, message: "a", urgency: "high" }, confidence: 0.8, reasoning: "r1" },
-        { type: "alert" as const, payload: { slug: SLUG, message: "b", urgency: "high" }, confidence: 0.8, reasoning: "r2" },
+        {
+          type: "alert" as const,
+          payload: { slug: SLUG, message: "a", urgency: "high" },
+          confidence: 0.8,
+          reasoning: "r1",
+        },
+        {
+          type: "alert" as const,
+          payload: { slug: SLUG, message: "b", urgency: "high" },
+          confidence: 0.8,
+          reasoning: "r2",
+        },
       ],
     };
     const obs = await makeObs(1_000);
@@ -613,8 +631,7 @@ describe("observeDeal", () => {
 
   it("daysToClose undefined when no close_date", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/pipeline.md`]:
-        `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------|
+      [`${DATA_DIR}/customers/${SLUG}/pipeline.md`]: `# Pipeline\n\n| Name | Stage | Value | Currency | Probability | Close Date | Notes | Updated |\n|------|-------|-------|----------|-------------|------------|-------|---------|
 | Q3 Renewal | negotiation | 50000 |  | 75 |  | No close date | 2026-05-20 |`,
       [`${DATA_DIR}/customers/${SLUG}/health.json`]: makeHealthJson(),
     });
@@ -626,8 +643,7 @@ describe("observeDeal", () => {
 
   it("atRiskContacts populated from relationship health", async () => {
     // Provide interactions.md with cfo@acme.com last contact 26 days before TODAY → NO_CONTACT_14D
-    const oldInteractions =
-      `## 2026-05-01 · Call\n**With:** cfo@acme.com\n**Summary:** Old check-in.\n**Next Steps:**\n- [ ] —\n**Source:** manual\n**Synced:** 2026-05-01T10:00:00.000Z\n---\n`;
+    const oldInteractions = `## 2026-05-01 · Call\n**With:** cfo@acme.com\n**Summary:** Old check-in.\n**Next Steps:**\n- [ ] —\n**Source:** manual\n**Synced:** 2026-05-01T10:00:00.000Z\n---\n`;
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/pipeline.md`]: makePipelineMd(),
       [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: oldInteractions,
@@ -945,8 +961,14 @@ describe("runDealAgent — LLM fallback", () => {
     });
     vi.resetModules();
     const { runDealAgent } = await import("../../src/agents/deal-agent.js");
-    const failingLlm = async () => { throw new Error("API Error"); };
-    const result = await runDealAgent(makeConfig({ autonomyLevel: "observe" }), DATA_DIR, failingLlm);
+    const failingLlm = async () => {
+      throw new Error("API Error");
+    };
+    const result = await runDealAgent(
+      makeConfig({ autonomyLevel: "observe" }),
+      DATA_DIR,
+      failingLlm
+    );
     expect(result.riskLevel).toBeDefined();
   });
 
@@ -957,8 +979,14 @@ describe("runDealAgent — LLM fallback", () => {
     });
     vi.resetModules();
     const { runDealAgent } = await import("../../src/agents/deal-agent.js");
-    const failingLlm = async () => { throw new Error("Network timeout"); };
-    const result = await runDealAgent(makeConfig({ autonomyLevel: "observe" }), DATA_DIR, failingLlm);
+    const failingLlm = async () => {
+      throw new Error("Network timeout");
+    };
+    const result = await runDealAgent(
+      makeConfig({ autonomyLevel: "observe" }),
+      DATA_DIR,
+      failingLlm
+    );
     expect(result.assessment).toBeDefined();
     expect(result.plan.length).toBeGreaterThanOrEqual(1);
   });
@@ -970,8 +998,14 @@ describe("runDealAgent — LLM fallback", () => {
     });
     vi.resetModules();
     const { runDealAgent } = await import("../../src/agents/deal-agent.js");
-    const failingLlm = async () => { throw new Error("API Error"); };
-    const result = await runDealAgent(makeConfig({ autonomyLevel: "observe" }), DATA_DIR, failingLlm);
+    const failingLlm = async () => {
+      throw new Error("API Error");
+    };
+    const result = await runDealAgent(
+      makeConfig({ autonomyLevel: "observe" }),
+      DATA_DIR,
+      failingLlm
+    );
     expect(["low", "medium", "high", "critical"]).toContain(result.riskLevel);
   });
 });

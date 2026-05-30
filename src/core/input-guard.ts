@@ -4,13 +4,9 @@ export interface StringGuardOptions {
   trim?: boolean;
 }
 
-export function guardString(
-  val: unknown,
-  field: string,
-  opts: StringGuardOptions = {}
-): string {
+export function guardString(val: unknown, field: string, opts: StringGuardOptions = {}): string {
   if (typeof val !== "string") throw new Error(`${field}: expected string, got ${typeof val}`);
-  const trimmed = (opts.trim !== false) ? val.trim() : val;
+  const trimmed = opts.trim !== false ? val.trim() : val;
   if (opts.maxLen !== undefined && trimmed.length > opts.maxLen) {
     throw new Error(`${field}: exceeds max length ${opts.maxLen}`);
   }
@@ -25,13 +21,11 @@ export interface NumberGuardOptions {
   max?: number;
 }
 
-export function guardNumber(
-  val: unknown,
-  field: string,
-  opts: NumberGuardOptions = {}
-): number {
+export function guardNumber(val: unknown, field: string, opts: NumberGuardOptions = {}): number {
   if (typeof val !== "number" || !isFinite(val)) {
-    throw new Error(`${field}: expected number, got ${typeof val === "number" ? "NaN/Infinity" : typeof val}`);
+    throw new Error(
+      `${field}: expected number, got ${typeof val === "number" ? "NaN/Infinity" : typeof val}`
+    );
   }
   if (opts.min !== undefined && val < opts.min) {
     throw new Error(`${field}: must be >= ${opts.min}`);
@@ -60,7 +54,9 @@ export function guardIsoDate(val: unknown, field: string): string {
       throw new Error(`${field}: invalid date`);
     }
     // Cross-check with Date parsing
-    const reparse = new Date(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    const reparse = new Date(
+      `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    );
     if (isNaN(reparse.getTime()) || reparse.getMonth() + 1 !== month) {
       throw new Error(`${field}: invalid date`);
     }

@@ -25,12 +25,7 @@ function getDesktopConfigPath(): string {
         "claude_desktop_config.json"
       );
     default: // linux
-      return path.join(
-        os.homedir(),
-        ".config",
-        "claude-desktop",
-        "claude_desktop_config.json"
-      );
+      return path.join(os.homedir(), ".config", "claude-desktop", "claude_desktop_config.json");
   }
 }
 

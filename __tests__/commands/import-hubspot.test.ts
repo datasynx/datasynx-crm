@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("fs", async () => { const { fs } = await import("memfs"); return { default: fs, ...fs }; });
-vi.mock("@lancedb/lancedb", () => ({ connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }) }));
+vi.mock("fs", async () => {
+  const { fs } = await import("memfs");
+  return { default: fs, ...fs };
+});
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }),
+}));
 
 const DATA_DIR = "/data";
 
@@ -37,7 +42,10 @@ function seedExportDir(overrides: Record<string, string> = {}) {
 }
 
 describe("runHubSpotCsvImport", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("creates companies from companies.csv", async () => {
     seedExportDir();
@@ -123,7 +131,10 @@ describe("runHubSpotCsvImport", () => {
 // ─── Enterprise features ──────────────────────────────────────────────────────
 
 describe("analyzeHubSpotExport", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("returns accurate counts from all 4 CSVs", async () => {
     seedExportDir();
@@ -137,8 +148,7 @@ describe("analyzeHubSpotExport", () => {
 
   it("detects unknown deal stages", async () => {
     seedExportDir({
-      [`${DATA_DIR}/exports/deals.csv`]:
-        `dealname,dealstage,associated_company\nTest Deal,totally_unknown_stage,Acme Corp\n`,
+      [`${DATA_DIR}/exports/deals.csv`]: `dealname,dealstage,associated_company\nTest Deal,totally_unknown_stage,Acme Corp\n`,
     });
     const { analyzeHubSpotExport } = await import("../../src/commands/import-hubspot.js");
     const analysis = await analyzeHubSpotExport(`${DATA_DIR}/exports`);
@@ -147,8 +157,7 @@ describe("analyzeHubSpotExport", () => {
 
   it("detects custom properties from non-standard company columns", async () => {
     seedExportDir({
-      [`${DATA_DIR}/exports/companies.csv`]:
-        `name,domain,crm_segment,customer_tier\nAcme Corp,acme.com,enterprise,gold\n`,
+      [`${DATA_DIR}/exports/companies.csv`]: `name,domain,crm_segment,customer_tier\nAcme Corp,acme.com,enterprise,gold\n`,
     });
     const { analyzeHubSpotExport } = await import("../../src/commands/import-hubspot.js");
     const analysis = await analyzeHubSpotExport(`${DATA_DIR}/exports`);
@@ -175,8 +184,7 @@ describe("analyzeHubSpotExport", () => {
   it("counts unmapped contacts (contact company not in companies.csv)", async () => {
     vol.fromJSON({
       [`${DATA_DIR}/exports/companies.csv`]: COMPANIES_CSV,
-      [`${DATA_DIR}/exports/contacts.csv`]:
-        `firstname,lastname,email,company\nOrphan,User,orphan@unknown.io,Unknown Corp\n`,
+      [`${DATA_DIR}/exports/contacts.csv`]: `firstname,lastname,email,company\nOrphan,User,orphan@unknown.io,Unknown Corp\n`,
     });
     const { analyzeHubSpotExport } = await import("../../src/commands/import-hubspot.js");
     const analysis = await analyzeHubSpotExport(`${DATA_DIR}/exports`);
@@ -185,12 +193,14 @@ describe("analyzeHubSpotExport", () => {
 });
 
 describe("multi-contact import — contacts.json", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("writes all contacts linked to a company into contacts.json", async () => {
     seedExportDir({
-      [`${DATA_DIR}/exports/contacts.csv`]:
-        `firstname,lastname,email,company\nAlice,Smith,alice@acme.com,Acme Corp\nCarol,Doe,carol@acme.com,Acme Corp\n`,
+      [`${DATA_DIR}/exports/contacts.csv`]: `firstname,lastname,email,company\nAlice,Smith,alice@acme.com,Acme Corp\nCarol,Doe,carol@acme.com,Acme Corp\n`,
     });
     const { runHubSpotCsvImport } = await import("../../src/commands/import-hubspot.js");
     await runHubSpotCsvImport(`${DATA_DIR}/exports`, DATA_DIR, {});
@@ -214,12 +224,14 @@ describe("multi-contact import — contacts.json", () => {
 });
 
 describe("custom properties import", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("saves non-standard columns to custom_properties.json", async () => {
     seedExportDir({
-      [`${DATA_DIR}/exports/companies.csv`]:
-        `name,domain,crm_segment,customer_tier\nAcme Corp,acme.com,enterprise,gold\n`,
+      [`${DATA_DIR}/exports/companies.csv`]: `name,domain,crm_segment,customer_tier\nAcme Corp,acme.com,enterprise,gold\n`,
     });
     const { runHubSpotCsvImport } = await import("../../src/commands/import-hubspot.js");
     const result = await runHubSpotCsvImport(`${DATA_DIR}/exports`, DATA_DIR, {});
@@ -234,12 +246,14 @@ describe("custom properties import", () => {
 });
 
 describe("owner map import", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("resolves owner email to rep name via ownerMap", async () => {
     seedExportDir({
-      [`${DATA_DIR}/exports/companies.csv`]:
-        `name,domain,hubspot_owner_email\nAcme Corp,acme.com,alice@hs.com\n`,
+      [`${DATA_DIR}/exports/companies.csv`]: `name,domain,hubspot_owner_email\nAcme Corp,acme.com,alice@hs.com\n`,
     });
     const { runHubSpotCsvImport } = await import("../../src/commands/import-hubspot.js");
     const result = await runHubSpotCsvImport(`${DATA_DIR}/exports`, DATA_DIR, {
@@ -252,8 +266,7 @@ describe("owner map import", () => {
 
   it("does not increment ownersResolved when owner not in map", async () => {
     seedExportDir({
-      [`${DATA_DIR}/exports/companies.csv`]:
-        `name,domain,hubspot_owner_email\nAcme Corp,acme.com,unknown@hs.com\n`,
+      [`${DATA_DIR}/exports/companies.csv`]: `name,domain,hubspot_owner_email\nAcme Corp,acme.com,unknown@hs.com\n`,
     });
     const { runHubSpotCsvImport } = await import("../../src/commands/import-hubspot.js");
     const result = await runHubSpotCsvImport(`${DATA_DIR}/exports`, DATA_DIR, {

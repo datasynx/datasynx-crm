@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("fs", async () => { const { fs } = await import("memfs"); return { default: fs, ...fs }; });
-vi.mock("@lancedb/lancedb", () => ({ connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }) }));
+vi.mock("fs", async () => {
+  const { fs } = await import("memfs");
+  return { default: fs, ...fs };
+});
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }),
+}));
 
 const DATA_DIR = "/data";
 
@@ -28,7 +33,10 @@ footerText: "Alle Preise zzgl. MwSt."
 `;
 
 describe("generateQuote", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("generates quote with correct quoteNumber Q-YYYY-001", async () => {
     vol.fromJSON({
@@ -137,7 +145,8 @@ describe("generateQuote", () => {
 
   it("updateQuoteStatus changes status and sets viewedAt", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/main_facts.md`]: MAIN_FACTS });
-    const { generateQuote, updateQuoteStatus, readQuote } = await import("../../src/core/quote-generator.js");
+    const { generateQuote, updateQuoteStatus, readQuote } =
+      await import("../../src/core/quote-generator.js");
     const quote = await generateQuote(DATA_DIR, {
       slug: "acme",
       dealName: "Test",
@@ -152,8 +161,16 @@ describe("generateQuote", () => {
   it("listQuotes filters by slug", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/main_facts.md`]: MAIN_FACTS });
     const { generateQuote, listQuotes } = await import("../../src/core/quote-generator.js");
-    await generateQuote(DATA_DIR, { slug: "acme", dealName: "D1", lineItems: [{ description: "X", quantity: 1, unitPrice: 100 }] });
-    await generateQuote(DATA_DIR, { slug: "beta", dealName: "D2", lineItems: [{ description: "Y", quantity: 1, unitPrice: 200 }] });
+    await generateQuote(DATA_DIR, {
+      slug: "acme",
+      dealName: "D1",
+      lineItems: [{ description: "X", quantity: 1, unitPrice: 100 }],
+    });
+    await generateQuote(DATA_DIR, {
+      slug: "beta",
+      dealName: "D2",
+      lineItems: [{ description: "Y", quantity: 1, unitPrice: 200 }],
+    });
     expect(listQuotes(DATA_DIR, "acme")).toHaveLength(1);
     expect(listQuotes(DATA_DIR)).toHaveLength(2);
   });

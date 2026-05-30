@@ -31,9 +31,7 @@ const sampleGoal = {
   decomposition: {
     currentPipeline: 150000,
     gap: 150000,
-    subGoals: [
-      { priority: 1, action: "Close Acme Corp deal", nextStep: "Send contract" },
-    ],
+    subGoals: [{ priority: 1, action: "Close Acme Corp deal", nextStep: "Send contract" }],
   },
 };
 
@@ -107,7 +105,9 @@ describe("runGoalUpdate", () => {
   });
 
   it("exits with error on invalid progress value", async () => {
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => { throw new Error("exit"); });
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { runGoalUpdate } = await import("../../src/commands/goal.js");
     await expect(runGoalUpdate("goal-001", { progress: "abc" })).rejects.toThrow("exit");
@@ -117,7 +117,9 @@ describe("runGoalUpdate", () => {
 
   it("exits with error when goal not found", async () => {
     mockUpdateProgress.mockResolvedValue(null);
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => { throw new Error("exit"); });
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { runGoalUpdate } = await import("../../src/commands/goal.js");
     await expect(runGoalUpdate("nonexistent", { progress: "50" })).rejects.toThrow("exit");
@@ -140,7 +142,9 @@ describe("runGoalCancel", () => {
 
   it("exits with error when goal not found", async () => {
     mockCancel.mockResolvedValue(false);
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => { throw new Error("exit"); });
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { runGoalCancel } = await import("../../src/commands/goal.js");
     await expect(runGoalCancel("missing")).rejects.toThrow("exit");

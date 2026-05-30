@@ -105,7 +105,9 @@ describe("handleListBackups", () => {
 
     const { handleListBackups } = await import("../../../src/mcp/tools/list-backups.js");
     const result = await handleListBackups({ limit: 10 }, DATA_DIR);
-    const parsed = JSON.parse(result.content[0].text) as { backups: Array<{ customerCount: number }> };
+    const parsed = JSON.parse(result.content[0].text) as {
+      backups: Array<{ customerCount: number }>;
+    };
     expect(parsed.backups[0].customerCount).toBe(7);
   });
 });

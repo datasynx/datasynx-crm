@@ -20,7 +20,11 @@ describe("searchKnowledge", () => {
   });
 
   it("returns results when table exists and search succeeds", async () => {
-    const mockRow = { text: "Pricing discussed at €5000/mo", _distance: 0.2, source_ref: "gmail://thread/abc" };
+    const mockRow = {
+      text: "Pricing discussed at €5000/mo",
+      _distance: 0.2,
+      source_ref: "gmail://thread/abc",
+    };
     const lancedb = await import("@lancedb/lancedb");
     vi.mocked(lancedb.connect).mockResolvedValueOnce({
       tableNames: vi.fn().mockResolvedValue(["docs_acme_corp"]),

@@ -16,32 +16,51 @@ export async function handlePursueGoal(
 
     const goal = await pursueGoal(
       dataDir,
-      { description: input.goal, deadline: input.deadline, ...(input.context ? { context: input.context } : {}) },
-      { actor: getActor(), ...(options.buildInputFn ? { buildInputFn: options.buildInputFn } : {}), ...(options.llmFn ? { llmFn: options.llmFn } : {}) }
+      {
+        description: input.goal,
+        deadline: input.deadline,
+        ...(input.context ? { context: input.context } : {}),
+      },
+      {
+        actor: getActor(),
+        ...(options.buildInputFn ? { buildInputFn: options.buildInputFn } : {}),
+        ...(options.llmFn ? { llmFn: options.llmFn } : {}),
+      }
     );
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          goalId: goal.id,
-          description: goal.description,
-          target: goal.target,
-          deadline: goal.deadline,
-          type: goal.type,
-          decomposition: {
-            analysis: goal.decomposition.analysis,
-            currentPipeline: goal.decomposition.currentPipeline,
-            gap: goal.decomposition.gap,
-            subGoals: goal.decomposition.subGoals,
-            probabilisticOutcome: goal.decomposition.probabilisticOutcome,
-          },
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              goalId: goal.id,
+              description: goal.description,
+              target: goal.target,
+              deadline: goal.deadline,
+              type: goal.type,
+              decomposition: {
+                analysis: goal.decomposition.analysis,
+                currentPipeline: goal.decomposition.currentPipeline,
+                gap: goal.decomposition.gap,
+                subGoals: goal.decomposition.subGoals,
+                probabilisticOutcome: goal.decomposition.probabilisticOutcome,
+              },
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }

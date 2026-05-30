@@ -6,11 +6,7 @@ export interface IncomingWebhookRequest {
   body: unknown;
 }
 
-export function verifyHmacSha256(
-  secret: string,
-  payload: Buffer,
-  signature: string
-): boolean {
+export function verifyHmacSha256(secret: string, payload: Buffer, signature: string): boolean {
   if (!signature.startsWith("sha256=")) return false;
   const expected = "sha256=" + crypto.createHmac("sha256", secret).update(payload).digest("hex");
   try {
@@ -64,7 +60,9 @@ export class WebhookQueue {
       try {
         await item.handler.handle(item.payload);
       } catch (err) {
-        process.stderr.write(`[webhook] ${item.handler.provider} error: ${(err as Error).message}\n`);
+        process.stderr.write(
+          `[webhook] ${item.handler.provider} error: ${(err as Error).message}\n`
+        );
       }
     }
     this.processing = false;

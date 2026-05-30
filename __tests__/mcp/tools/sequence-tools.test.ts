@@ -22,11 +22,20 @@ function makeSequence(id: string, stepCount = 3) {
   return {
     id,
     name: `Sequence ${id}`,
-    steps: Array.from({ length: stepCount }, (_, i) => ({ day: i, subject: `Step ${i}`, body: "" })),
+    steps: Array.from({ length: stepCount }, (_, i) => ({
+      day: i,
+      subject: `Step ${i}`,
+      body: "",
+    })),
   };
 }
 
-function makeEnrollment(id: string, slug: string, sequenceId: string, status: "active" | "paused" | "completed" = "active") {
+function makeEnrollment(
+  id: string,
+  slug: string,
+  sequenceId: string,
+  status: "active" | "paused" | "completed" = "active"
+) {
   return {
     id,
     slug,
@@ -82,7 +91,8 @@ describe("handleListSequenceEnrollments", () => {
       makeEnrollment("e1", "acme", "onboarding"),
       makeEnrollment("e2", "beta", "nurture"),
     ]);
-    const { handleListSequenceEnrollments } = await import("../../../src/mcp/tools/list-sequence-enrollments.js");
+    const { handleListSequenceEnrollments } =
+      await import("../../../src/mcp/tools/list-sequence-enrollments.js");
     const result = await handleListSequenceEnrollments({}, DATA_DIR);
     const parsed = JSON.parse(result.content[0].text) as { enrollments: unknown[] };
     expect(parsed.enrollments.length).toBe(2);
@@ -93,7 +103,8 @@ describe("handleListSequenceEnrollments", () => {
       makeEnrollment("e1", "acme", "onboarding"),
       makeEnrollment("e2", "beta", "nurture"),
     ]);
-    const { handleListSequenceEnrollments } = await import("../../../src/mcp/tools/list-sequence-enrollments.js");
+    const { handleListSequenceEnrollments } =
+      await import("../../../src/mcp/tools/list-sequence-enrollments.js");
     const result = await handleListSequenceEnrollments({ slug: "acme" }, DATA_DIR);
     const parsed = JSON.parse(result.content[0].text) as { enrollments: Array<{ slug: string }> };
     expect(parsed.enrollments.length).toBe(1);
@@ -106,7 +117,8 @@ describe("handleListSequenceEnrollments", () => {
       makeEnrollment("e2", "beta", "nurture", "paused"),
       makeEnrollment("e3", "gamma", "onboarding", "active"),
     ]);
-    const { handleListSequenceEnrollments } = await import("../../../src/mcp/tools/list-sequence-enrollments.js");
+    const { handleListSequenceEnrollments } =
+      await import("../../../src/mcp/tools/list-sequence-enrollments.js");
     const result = await handleListSequenceEnrollments({ status: "active" }, DATA_DIR);
     const parsed = JSON.parse(result.content[0].text) as { enrollments: unknown[] };
     expect(parsed.enrollments.length).toBe(2);
@@ -118,7 +130,8 @@ describe("handleListSequenceEnrollments", () => {
 describe("handleUnenrollFromSequence", () => {
   it("returns success when enrollment updated", async () => {
     mockUpdateEnrollment.mockResolvedValue({ id: "e1", status: "paused" });
-    const { handleUnenrollFromSequence } = await import("../../../src/mcp/tools/unenroll-from-sequence.js");
+    const { handleUnenrollFromSequence } =
+      await import("../../../src/mcp/tools/unenroll-from-sequence.js");
     const result = await handleUnenrollFromSequence({ enrollmentId: "e1" }, DATA_DIR);
     const parsed = JSON.parse(result.content[0].text) as { success: boolean };
     expect(parsed.success).toBe(true);
@@ -126,7 +139,8 @@ describe("handleUnenrollFromSequence", () => {
 
   it("returns error when enrollment not found", async () => {
     mockUpdateEnrollment.mockResolvedValue(null);
-    const { handleUnenrollFromSequence } = await import("../../../src/mcp/tools/unenroll-from-sequence.js");
+    const { handleUnenrollFromSequence } =
+      await import("../../../src/mcp/tools/unenroll-from-sequence.js");
     const result = await handleUnenrollFromSequence({ enrollmentId: "missing" }, DATA_DIR);
     const parsed = JSON.parse(result.content[0].text) as { success: boolean; error: string };
     expect(parsed.success).toBe(false);
@@ -135,7 +149,8 @@ describe("handleUnenrollFromSequence", () => {
 
   it("calls updateEnrollment with status paused", async () => {
     mockUpdateEnrollment.mockResolvedValue({ id: "e1", status: "paused" });
-    const { handleUnenrollFromSequence } = await import("../../../src/mcp/tools/unenroll-from-sequence.js");
+    const { handleUnenrollFromSequence } =
+      await import("../../../src/mcp/tools/unenroll-from-sequence.js");
     await handleUnenrollFromSequence({ enrollmentId: "e1" }, DATA_DIR);
     expect(mockUpdateEnrollment).toHaveBeenCalledWith(DATA_DIR, "e1", { status: "paused" });
   });

@@ -30,7 +30,8 @@ describe("readSubscriptions / writeSubscriptions", () => {
 
   it("round-trips subscriptions correctly", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { readSubscriptions, writeSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { readSubscriptions, writeSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const sub = {
       id: "psub_1_abc123",
       provider: "gmail" as const,
@@ -112,8 +113,12 @@ describe("register", () => {
   it("appends to existing subscriptions", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
     const { register, readSubscriptions } = await import("../../src/sync/push-manager.js");
-    await register("/data", "gmail", "acme-corp", { webhookUrl: "https://example.com/webhooks/gmail" });
-    await register("/data", "slack", "widget-co", { webhookUrl: "https://example.com/webhooks/slack" });
+    await register("/data", "gmail", "acme-corp", {
+      webhookUrl: "https://example.com/webhooks/gmail",
+    });
+    await register("/data", "slack", "widget-co", {
+      webhookUrl: "https://example.com/webhooks/slack",
+    });
     const subs = await readSubscriptions("/data");
     expect(subs).toHaveLength(2);
   });
@@ -157,7 +162,9 @@ describe("renewExpiringSubscriptions", () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
     const { register, renewExpiringSubscriptions } = await import("../../src/sync/push-manager.js");
     // Register with far-future expiry (gmail = 7 days), threshold = 24h → won't match
-    await register("/data", "gmail", "acme-corp", { webhookUrl: "https://example.com/webhooks/gmail" });
+    await register("/data", "gmail", "acme-corp", {
+      webhookUrl: "https://example.com/webhooks/gmail",
+    });
     const renewFn = vi.fn();
     const result = await renewExpiringSubscriptions("/data", renewFn, 24);
     expect(result.renewed).toHaveLength(0);
@@ -167,21 +174,24 @@ describe("renewExpiringSubscriptions", () => {
 
   it("identifies subscriptions expiring within threshold hours", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { writeSubscriptions, renewExpiringSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { writeSubscriptions, renewExpiringSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const expiringSoon = new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString(); // 10h from now
-    await writeSubscriptions("/data", [{
-      id: "psub_test_1",
-      provider: "gmail",
-      slug: "acme-corp",
-      webhookUrl: "https://example.com/webhooks/gmail",
-      expiresAt: expiringSoon,
-      renewedAt: null,
-      createdAt: new Date().toISOString(),
-      providerData: {},
-      status: "active",
-      lastEventAt: null,
-      eventsProcessed: 0,
-    }]);
+    await writeSubscriptions("/data", [
+      {
+        id: "psub_test_1",
+        provider: "gmail",
+        slug: "acme-corp",
+        webhookUrl: "https://example.com/webhooks/gmail",
+        expiresAt: expiringSoon,
+        renewedAt: null,
+        createdAt: new Date().toISOString(),
+        providerData: {},
+        status: "active",
+        lastEventAt: null,
+        eventsProcessed: 0,
+      },
+    ]);
     const renewFn = vi.fn().mockResolvedValue({
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
@@ -193,23 +203,28 @@ describe("renewExpiringSubscriptions", () => {
 
   it("updates expiresAt and renewedAt after renewal", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { writeSubscriptions, renewExpiringSubscriptions, readSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { writeSubscriptions, renewExpiringSubscriptions, readSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const expiringSoon = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
     const newExpiry = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
-    await writeSubscriptions("/data", [{
-      id: "psub_test_2",
-      provider: "gmail",
-      slug: "widget-co",
-      webhookUrl: "https://example.com/webhooks/gmail",
-      expiresAt: expiringSoon,
-      renewedAt: null,
-      createdAt: new Date().toISOString(),
-      providerData: {},
-      status: "active",
-      lastEventAt: null,
-      eventsProcessed: 0,
-    }]);
-    const renewFn = vi.fn().mockResolvedValue({ expiresAt: newExpiry, providerData: { gmailHistoryId: "99999" } });
+    await writeSubscriptions("/data", [
+      {
+        id: "psub_test_2",
+        provider: "gmail",
+        slug: "widget-co",
+        webhookUrl: "https://example.com/webhooks/gmail",
+        expiresAt: expiringSoon,
+        renewedAt: null,
+        createdAt: new Date().toISOString(),
+        providerData: {},
+        status: "active",
+        lastEventAt: null,
+        eventsProcessed: 0,
+      },
+    ]);
+    const renewFn = vi
+      .fn()
+      .mockResolvedValue({ expiresAt: newExpiry, providerData: { gmailHistoryId: "99999" } });
     await renewExpiringSubscriptions("/data", renewFn, 24);
     const subs = await readSubscriptions("/data");
     expect(subs[0]!.expiresAt).toBe(newExpiry);
@@ -219,21 +234,24 @@ describe("renewExpiringSubscriptions", () => {
 
   it("marks subscription as error if renewFn throws", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { writeSubscriptions, renewExpiringSubscriptions, readSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { writeSubscriptions, renewExpiringSubscriptions, readSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const expiringSoon = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
-    await writeSubscriptions("/data", [{
-      id: "psub_test_3",
-      provider: "gmail",
-      slug: "broken-co",
-      webhookUrl: "https://example.com/webhooks/gmail",
-      expiresAt: expiringSoon,
-      renewedAt: null,
-      createdAt: new Date().toISOString(),
-      providerData: {},
-      status: "active",
-      lastEventAt: null,
-      eventsProcessed: 0,
-    }]);
+    await writeSubscriptions("/data", [
+      {
+        id: "psub_test_3",
+        provider: "gmail",
+        slug: "broken-co",
+        webhookUrl: "https://example.com/webhooks/gmail",
+        expiresAt: expiringSoon,
+        renewedAt: null,
+        createdAt: new Date().toISOString(),
+        providerData: {},
+        status: "active",
+        lastEventAt: null,
+        eventsProcessed: 0,
+      },
+    ]);
     const renewFn = vi.fn().mockRejectedValue(new Error("API timeout"));
     const result = await renewExpiringSubscriptions("/data", renewFn, 24);
     expect(result.errors).toHaveLength(1);
@@ -244,21 +262,24 @@ describe("renewExpiringSubscriptions", () => {
 
   it("skips already-revoked subscriptions", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { writeSubscriptions, renewExpiringSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { writeSubscriptions, renewExpiringSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const expiringSoon = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
-    await writeSubscriptions("/data", [{
-      id: "psub_revoked_1",
-      provider: "gmail",
-      slug: "acme-corp",
-      webhookUrl: "https://example.com/webhooks/gmail",
-      expiresAt: expiringSoon,
-      renewedAt: null,
-      createdAt: new Date().toISOString(),
-      providerData: {},
-      status: "revoked",
-      lastEventAt: null,
-      eventsProcessed: 0,
-    }]);
+    await writeSubscriptions("/data", [
+      {
+        id: "psub_revoked_1",
+        provider: "gmail",
+        slug: "acme-corp",
+        webhookUrl: "https://example.com/webhooks/gmail",
+        expiresAt: expiringSoon,
+        renewedAt: null,
+        createdAt: new Date().toISOString(),
+        providerData: {},
+        status: "revoked",
+        lastEventAt: null,
+        eventsProcessed: 0,
+      },
+    ]);
     const renewFn = vi.fn();
     const result = await renewExpiringSubscriptions("/data", renewFn, 24);
     expect(result.renewed).toHaveLength(0);
@@ -268,7 +289,9 @@ describe("renewExpiringSubscriptions", () => {
   it("skips slack subscriptions (no expiry)", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
     const { register, renewExpiringSubscriptions } = await import("../../src/sync/push-manager.js");
-    await register("/data", "slack", "acme-corp", { webhookUrl: "https://example.com/webhooks/slack" });
+    await register("/data", "slack", "acme-corp", {
+      webhookUrl: "https://example.com/webhooks/slack",
+    });
     const renewFn = vi.fn();
     const result = await renewExpiringSubscriptions("/data", renewFn, 24);
     expect(result.renewed).toHaveLength(0);
@@ -277,21 +300,24 @@ describe("renewExpiringSubscriptions", () => {
 
   it("marks permanently_failed after 3 consecutive renewal errors", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { writeSubscriptions, renewExpiringSubscriptions, readSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { writeSubscriptions, renewExpiringSubscriptions, readSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const expiringSoon = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
-    await writeSubscriptions("/data", [{
-      id: "psub_pf_1",
-      provider: "gmail",
-      slug: "fragile-co",
-      webhookUrl: "https://example.com/webhooks/gmail",
-      expiresAt: expiringSoon,
-      renewedAt: null,
-      createdAt: new Date().toISOString(),
-      providerData: {},
-      status: "active",
-      lastEventAt: null,
-      eventsProcessed: 0,
-    }]);
+    await writeSubscriptions("/data", [
+      {
+        id: "psub_pf_1",
+        provider: "gmail",
+        slug: "fragile-co",
+        webhookUrl: "https://example.com/webhooks/gmail",
+        expiresAt: expiringSoon,
+        renewedAt: null,
+        createdAt: new Date().toISOString(),
+        providerData: {},
+        status: "active",
+        lastEventAt: null,
+        eventsProcessed: 0,
+      },
+    ]);
     const renewFn = vi.fn().mockRejectedValue(new Error("API error"));
     // 3 renewal attempts → permanently_failed on the 3rd
     await renewExpiringSubscriptions("/data", renewFn, 24);
@@ -303,21 +329,24 @@ describe("renewExpiringSubscriptions", () => {
 
   it("skips permanently_failed subscriptions in subsequent renewals", async () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
-    const { writeSubscriptions, renewExpiringSubscriptions } = await import("../../src/sync/push-manager.js");
+    const { writeSubscriptions, renewExpiringSubscriptions } =
+      await import("../../src/sync/push-manager.js");
     const expiringSoon = new Date(Date.now() + 1 * 60 * 60 * 1000).toISOString();
-    await writeSubscriptions("/data", [{
-      id: "psub_pf_2",
-      provider: "gmail",
-      slug: "fragile-co",
-      webhookUrl: "https://example.com/webhooks/gmail",
-      expiresAt: expiringSoon,
-      renewedAt: null,
-      createdAt: new Date().toISOString(),
-      providerData: {},
-      status: "permanently_failed",
-      lastEventAt: null,
-      eventsProcessed: 0,
-    }]);
+    await writeSubscriptions("/data", [
+      {
+        id: "psub_pf_2",
+        provider: "gmail",
+        slug: "fragile-co",
+        webhookUrl: "https://example.com/webhooks/gmail",
+        expiresAt: expiringSoon,
+        renewedAt: null,
+        createdAt: new Date().toISOString(),
+        providerData: {},
+        status: "permanently_failed",
+        lastEventAt: null,
+        eventsProcessed: 0,
+      },
+    ]);
     const renewFn = vi.fn();
     const result = await renewExpiringSubscriptions("/data", renewFn, 24);
     expect(renewFn).not.toHaveBeenCalled();

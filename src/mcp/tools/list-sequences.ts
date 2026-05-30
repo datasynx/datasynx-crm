@@ -19,10 +19,12 @@ export async function handleListSequences(
   }));
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({ sequences: result }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({ sequences: result }, null, 2),
+      },
+    ],
   };
 }
 

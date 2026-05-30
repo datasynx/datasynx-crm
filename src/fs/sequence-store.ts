@@ -2,7 +2,12 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import { withJsonFile } from "../core/file-lock.js";
-import { SequenceSchema, SequenceEnrollmentSchema, type Sequence, type SequenceEnrollment } from "../schemas/sequence.js";
+import {
+  SequenceSchema,
+  SequenceEnrollmentSchema,
+  type Sequence,
+  type SequenceEnrollment,
+} from "../schemas/sequence.js";
 
 export function sequencesDir(dataDir: string): string {
   return path.join(dataDir, ".agentic", "sequences");
@@ -58,7 +63,10 @@ export function readEnrollments(dataDir: string): SequenceEnrollment[] {
   }
 }
 
-export async function writeEnrollment(dataDir: string, enrollment: SequenceEnrollment): Promise<void> {
+export async function writeEnrollment(
+  dataDir: string,
+  enrollment: SequenceEnrollment
+): Promise<void> {
   await withJsonFile<SequenceEnrollment[]>(enrollmentsPath(dataDir), (current) => {
     const existing = Array.isArray(current) ? current : [];
     return [...existing, enrollment];

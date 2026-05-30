@@ -62,4 +62,6 @@ rbacCommand
 rbacCommand
   .command("check <actor> <tool>")
   .description("Check if an actor can use a specific tool")
-  .action((actor: string, tool: string) => runRbacCheck(actor, tool, process.env["DXCRM_DATA_DIR"]));
+  .action((actor: string, tool: string) =>
+    runRbacCheck(actor, tool, process.env["DXCRM_DATA_DIR"])
+  );

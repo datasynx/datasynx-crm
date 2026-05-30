@@ -1,4 +1,9 @@
-import { readSubscriptions, writeSubscriptions, type PushSubscription, type RenewFn } from "./push-manager.js";
+import {
+  readSubscriptions,
+  writeSubscriptions,
+  type PushSubscription,
+  type RenewFn,
+} from "./push-manager.js";
 import { updateSlugSyncState, readSyncState } from "../fs/sync-state.js";
 import { appendInteraction } from "../fs/interactions-writer.js";
 import type { HistoryMessage, WatchRegistration } from "./gmail-push-watch.js";
@@ -35,17 +40,31 @@ function findSubscriptionByEmail(
   subs: PushSubscription[],
   emailAddress: string
 ): PushSubscription | null {
-  return subs.find(
-    (s) => s.provider === "gmail" && s.status === "active" &&
-      (s.providerData.gmailEmailAddress === emailAddress || s.slug === emailAddress)
-  ) ?? null;
+  return (
+    subs.find(
+      (s) =>
+        s.provider === "gmail" &&
+        s.status === "active" &&
+        (s.providerData.gmailEmailAddress === emailAddress || s.slug === emailAddress)
+    ) ?? null
+  );
 }
 
-export type FetchHistoryFn = (accessToken: string, startHistoryId: string) => Promise<HistoryMessage[]>;
+export type FetchHistoryFn = (
+  accessToken: string,
+  startHistoryId: string
+) => Promise<HistoryMessage[]>;
 export type FetchMessageFn = (
   accessToken: string,
   messageId: string
-) => Promise<{ id: string; threadId: string; subject: string; from: string; date: string; body: string }>;
+) => Promise<{
+  id: string;
+  threadId: string;
+  subject: string;
+  from: string;
+  date: string;
+  body: string;
+}>;
 export type AppendInteractionFn = typeof appendInteraction;
 
 export interface HandleGmailPushOptions {
@@ -69,7 +88,8 @@ export async function handleGmailPushEvent(
 
   const slug = sub.slug;
   const syncState = readSyncState(dataDir);
-  const lastHistoryId = syncState[slug]?.lastGmailPushHistoryId ?? sub.providerData.gmailHistoryId ?? "0";
+  const lastHistoryId =
+    syncState[slug]?.lastGmailPushHistoryId ?? sub.providerData.gmailHistoryId ?? "0";
 
   // Skip if already processed
   if (BigInt(payload.historyId) <= BigInt(lastHistoryId)) {
@@ -121,7 +141,7 @@ export async function handleGmailPushEvent(
   if (subIdx !== -1) {
     subs[subIdx] = {
       ...subs[subIdx]!,
-      eventsProcessed: (subs[subIdx]!.eventsProcessed) + 1,
+      eventsProcessed: subs[subIdx]!.eventsProcessed + 1,
       lastEventAt: new Date().toISOString(),
     };
     await writeSubscriptions(dataDir, subs);
@@ -130,7 +150,10 @@ export async function handleGmailPushEvent(
   return { processed, slug };
 }
 
-export type RegisterGmailWatchFn = (accessToken: string, topicName: string) => Promise<WatchRegistration>;
+export type RegisterGmailWatchFn = (
+  accessToken: string,
+  topicName: string
+) => Promise<WatchRegistration>;
 
 export function buildGmailRenewFn(
   accessToken: string,
@@ -138,12 +161,12 @@ export function buildGmailRenewFn(
   registerFn?: RegisterGmailWatchFn
 ): RenewFn {
   return async (_sub: PushSubscription) => {
-    const doRegister: RegisterGmailWatchFn = registerFn ?? (
-      async (token: string, topic: string) => {
+    const doRegister: RegisterGmailWatchFn =
+      registerFn ??
+      (async (token: string, topic: string) => {
         const { registerGmailWatch } = await import("./gmail-push-watch.js");
         return registerGmailWatch(token, topic);
-      }
-    );
+      });
 
     const registration = await doRegister(accessToken, topicName);
     return {

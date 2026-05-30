@@ -74,10 +74,7 @@ export class HermesAdapter implements FrameworkAdapter {
     if (!fs.existsSync(HERMES_CONFIG)) return;
     const content = fs.readFileSync(HERMES_CONFIG, "utf-8");
     // Remove the datasynx_opencrm block from mcp_servers
-    const cleaned = content.replace(
-      /\n  datasynx[_-]opencrm:[\s\S]*?(?=\n  \w|\n[a-z]|$)/,
-      ""
-    );
+    const cleaned = content.replace(/\n  datasynx[_-]opencrm:[\s\S]*?(?=\n  \w|\n[a-z]|$)/, "");
     fs.writeFileSync(HERMES_CONFIG, cleaned);
     // Remove skill file
     const skillPath = path.join(HERMES_SKILLS, "datasynx-crm.md");
@@ -87,9 +84,7 @@ export class HermesAdapter implements FrameworkAdapter {
   private writeMcpConfig(config: InstallConfig): void {
     // Hermes config.yaml: YAML format, mcp_servers section
     // Server name: datasynx_opencrm (UNDERSCORE — avoids tool name prefix issues)
-    let content = fs.existsSync(HERMES_CONFIG)
-      ? fs.readFileSync(HERMES_CONFIG, "utf-8")
-      : "";
+    let content = fs.existsSync(HERMES_CONFIG) ? fs.readFileSync(HERMES_CONFIG, "utf-8") : "";
 
     if (content.includes("datasynx")) return; // Idempotent
 

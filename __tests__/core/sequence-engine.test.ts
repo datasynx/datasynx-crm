@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("fs", async () => { const { fs } = await import("memfs"); return { default: fs, ...fs }; });
-vi.mock("@lancedb/lancedb", () => ({ connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }) }));
+vi.mock("fs", async () => {
+  const { fs } = await import("memfs");
+  return { default: fs, ...fs };
+});
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }),
+}));
 
 const DATA_DIR = "/data";
 
@@ -78,7 +83,10 @@ describe("addDays", () => {
 });
 
 describe("processSequenceStep", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("returns no_step_due when step not yet due", async () => {
     vol.fromJSON({
@@ -98,7 +106,11 @@ describe("processSequenceStep", () => {
   it("returns no_step_due when sequence not found", async () => {
     vol.fromJSON({});
     const { processSequenceStep } = await import("../../src/core/sequence-engine.js");
-    const result = await processSequenceStep(DATA_DIR, { ...baseEnrollment(), sequenceId: "ghost" }, "2026-05-29");
+    const result = await processSequenceStep(
+      DATA_DIR,
+      { ...baseEnrollment(), sequenceId: "ghost" },
+      "2026-05-29"
+    );
     expect(result).toBe("no_step_due");
   });
 
@@ -126,7 +138,10 @@ describe("processSequenceStep", () => {
 });
 
 describe("runSequenceCycle", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("processes 0 enrollments successfully", async () => {
     vol.fromJSON({});

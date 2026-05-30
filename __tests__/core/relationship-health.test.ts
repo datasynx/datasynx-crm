@@ -252,11 +252,16 @@ describe("calcAvgCadence", () => {
 
 describe("gradeFromScore", () => {
   it.each([
-    [100, "A"], [80, "A"],
-    [79, "B"],  [60, "B"],
-    [59, "C"],  [40, "C"],
-    [39, "D"],  [20, "D"],
-    [19, "F"],  [0, "F"],
+    [100, "A"],
+    [80, "A"],
+    [79, "B"],
+    [60, "B"],
+    [59, "C"],
+    [40, "C"],
+    [39, "D"],
+    [20, "D"],
+    [19, "F"],
+    [0, "F"],
   ])("score %i → grade %s", async (score, expected) => {
     const { gradeFromScore } = await import("../../src/core/relationship-health.js");
     expect(gradeFromScore(score)).toBe(expected);
@@ -412,7 +417,8 @@ describe("computeContactHealth", () => {
   });
 
   it("grade matches score thresholds", async () => {
-    const { computeContactHealth, gradeFromScore } = await import("../../src/core/relationship-health.js");
+    const { computeContactHealth, gradeFromScore } =
+      await import("../../src/core/relationship-health.js");
     const group = {
       contactId: "person:max@acme.com",
       name: "Max",
@@ -584,9 +590,32 @@ describe("computeCustomerHealth", () => {
 
   it("uses graph.json IS_CHAMPION edges for CHAMPION_SILENT flag", async () => {
     const graph = {
-      schemaVersion: "1", slug: SLUG, updatedAt: TODAY,
-      nodes: [{ id: "person:max@acme.com", type: "person", label: "Max", properties: { email: "max@acme.com" }, createdAt: TODAY, updatedAt: TODAY }],
-      edges: [{ id: "IS_CHAMPION:person:max@acme.com__deal:d1", from: "person:max@acme.com", to: "deal:d1", type: "IS_CHAMPION", weight: 0.8, sentiment: 0, lastContact: TODAY, contactCount: 1, properties: {} }],
+      schemaVersion: "1",
+      slug: SLUG,
+      updatedAt: TODAY,
+      nodes: [
+        {
+          id: "person:max@acme.com",
+          type: "person",
+          label: "Max",
+          properties: { email: "max@acme.com" },
+          createdAt: TODAY,
+          updatedAt: TODAY,
+        },
+      ],
+      edges: [
+        {
+          id: "IS_CHAMPION:person:max@acme.com__deal:d1",
+          from: "person:max@acme.com",
+          to: "deal:d1",
+          type: "IS_CHAMPION",
+          weight: 0.8,
+          sentiment: 0,
+          lastContact: TODAY,
+          contactCount: 1,
+          properties: {},
+        },
+      ],
     };
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/graph.json`]: JSON.stringify(graph),

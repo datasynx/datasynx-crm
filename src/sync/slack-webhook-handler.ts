@@ -67,10 +67,14 @@ function findSubscriptionByTeam(
   subs: PushSubscription[],
   teamId: string | undefined
 ): PushSubscription | null {
-  return subs.find(
-    (s) => s.provider === "slack" && s.status === "active" &&
-      (!teamId || s.providerData.slackTeamId === teamId)
-  ) ?? null;
+  return (
+    subs.find(
+      (s) =>
+        s.provider === "slack" &&
+        s.status === "active" &&
+        (!teamId || s.providerData.slackTeamId === teamId)
+    ) ?? null
+  );
 }
 
 export async function handleSlackPushEvent(
@@ -104,7 +108,9 @@ export async function handleSlackPushEvent(
     }
   }
 
-  const ts = event.ts ? new Date(Number(event.ts) * 1000).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+  const ts = event.ts
+    ? new Date(Number(event.ts) * 1000).toISOString().slice(0, 10)
+    : new Date().toISOString().slice(0, 10);
   const sourceRef = `slack://channel/${event.channel ?? "dm"}/ts/${event.ts ?? Date.now()}`;
 
   try {

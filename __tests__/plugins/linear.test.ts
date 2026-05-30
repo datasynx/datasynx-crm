@@ -103,11 +103,7 @@ describe("handleGetLinearIssues", () => {
 
     fetchMock.mockResolvedValue(jsonRes(ISSUES_RESPONSE));
     const { handleGetLinearIssues } = await import("../../src/plugins/linear.js");
-    const result = await handleGetLinearIssues(
-      { slug: "acme-corp" },
-      "/data",
-      LINEAR_TOKEN
-    );
+    const result = await handleGetLinearIssues({ slug: "acme-corp" }, "/data", LINEAR_TOKEN);
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       success: boolean;
     };

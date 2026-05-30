@@ -36,24 +36,35 @@ export async function handleCreatePlaybook(
     await writePlaybook(dataDir, input.slug, playbook);
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          success: true,
-          playbook: {
-            name,
-            trigger: input.trigger,
-            successRate: playbook.frontmatter.successRate,
-            usedCount: 0,
-            lastUpdated: today,
-            path: filePath,
-          },
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              success: true,
+              playbook: {
+                name,
+                trigger: input.trigger,
+                successRate: playbook.frontmatter.successRate,
+                usedCount: 0,
+                lastUpdated: today,
+                path: filePath,
+              },
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -87,9 +98,15 @@ Returns: { success: true, playbook: { name, trigger, successRate, path } }`,
       }),
     },
     async ({ slug, name, trigger, content, successRate }) =>
-      handleCreatePlaybook({
-        slug, name, trigger, content,
-        ...(successRate !== undefined ? { successRate } : {}),
-      }, DATA_DIR)
+      handleCreatePlaybook(
+        {
+          slug,
+          name,
+          trigger,
+          content,
+          ...(successRate !== undefined ? { successRate } : {}),
+        },
+        DATA_DIR
+      )
   );
 }

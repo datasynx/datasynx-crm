@@ -29,9 +29,7 @@ function printStagesTable(stages: PipelineStage[]): void {
   console.log("");
 }
 
-export const stagesCommand = new Command("stages").description(
-  "Manage custom pipeline stages"
-);
+export const stagesCommand = new Command("stages").description("Manage custom pipeline stages");
 
 stagesCommand
   .command("list")
@@ -49,19 +47,25 @@ stagesCommand
   .option("--probability <n>", "Default win probability 0-100")
   .option("--color <hex>", "Hex color code (e.g. #3B82F6)")
   .option("--final", "Mark as final stage (won/lost)")
-  .action((id: string, label: string, opts: { order: string; probability?: string; color?: string; final?: boolean }) => {
-    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-    const stage: PipelineStage = {
-      id,
-      label,
-      order: parseInt(opts.order, 10),
-      ...(opts.probability !== undefined ? { probability: parseInt(opts.probability, 10) } : {}),
-      ...(opts.color ? { color: opts.color } : {}),
-      ...(opts.final ? { isFinal: true } : {}),
-    };
-    setPipelineStage(dataDir, stage);
-    console.log(success(`✓ Stage '${id}' saved`));
-  });
+  .action(
+    (
+      id: string,
+      label: string,
+      opts: { order: string; probability?: string; color?: string; final?: boolean }
+    ) => {
+      const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+      const stage: PipelineStage = {
+        id,
+        label,
+        order: parseInt(opts.order, 10),
+        ...(opts.probability !== undefined ? { probability: parseInt(opts.probability, 10) } : {}),
+        ...(opts.color ? { color: opts.color } : {}),
+        ...(opts.final ? { isFinal: true } : {}),
+      };
+      setPipelineStage(dataDir, stage);
+      console.log(success(`✓ Stage '${id}' saved`));
+    }
+  );
 
 stagesCommand
   .command("delete <id>")

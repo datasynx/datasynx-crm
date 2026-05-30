@@ -40,10 +40,7 @@ export async function runAttach(
   return { attached: dest };
 }
 
-export async function runListAttachments(
-  slug: string,
-  dataDir?: string
-): Promise<string[]> {
+export async function runListAttachments(slug: string, dataDir?: string): Promise<string[]> {
   const dir = dataDir ?? process.cwd();
   const attachmentsDir = path.join(dir, "customers", slug, "attachments");
 

@@ -101,7 +101,14 @@ export async function fetchNewMessagesFromHistory(
 export async function fetchFullMessage(
   accessToken: string,
   messageId: string
-): Promise<{ id: string; threadId: string; subject: string; from: string; date: string; body: string }> {
+): Promise<{
+  id: string;
+  threadId: string;
+  subject: string;
+  from: string;
+  date: string;
+  body: string;
+}> {
   const url = `https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}?format=full`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${accessToken}` },

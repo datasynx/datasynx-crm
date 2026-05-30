@@ -112,10 +112,7 @@ describe("registerGmailWatch", () => {
   });
 
   it("throws on non-ok response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 403 })
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403 }));
     await expect(registerGmailWatch("bad-token", "topic")).rejects.toThrow(
       "Gmail watch registration failed: 403"
     );
@@ -172,10 +169,7 @@ describe("fetchNewMessagesFromHistory", () => {
   });
 
   it("throws on non-ok response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 401 })
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 401 }));
     await expect(fetchNewMessagesFromHistory("bad", "1")).rejects.toThrow(
       "Gmail history fetch failed: 401"
     );
@@ -283,10 +277,7 @@ describe("fetchFullMessage", () => {
   });
 
   it("throws on non-ok response", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn().mockResolvedValue({ ok: false, status: 404 })
-    );
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 404 }));
     await expect(fetchFullMessage("t", "missing")).rejects.toThrow(
       "Gmail message fetch failed: 404"
     );

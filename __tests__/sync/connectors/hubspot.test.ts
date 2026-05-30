@@ -19,11 +19,23 @@ const CONTACTS_PAGE_1 = {
   results: [
     {
       id: "1",
-      properties: { firstname: "Alice", lastname: "Smith", email: "alice@acme.com", phone: "123", company: "Acme" },
+      properties: {
+        firstname: "Alice",
+        lastname: "Smith",
+        email: "alice@acme.com",
+        phone: "123",
+        company: "Acme",
+      },
     },
     {
       id: "2",
-      properties: { firstname: "Bob", lastname: "Jones", email: "bob@beta.de", phone: "456", company: "Beta" },
+      properties: {
+        firstname: "Bob",
+        lastname: "Jones",
+        email: "bob@beta.de",
+        phone: "456",
+        company: "Beta",
+      },
     },
   ],
   paging: { next: { after: "cursor-abc" } },
@@ -33,7 +45,13 @@ const CONTACTS_PAGE_2 = {
   results: [
     {
       id: "3",
-      properties: { firstname: "Carol", lastname: "White", email: "carol@gamma.io", phone: "", company: "Gamma" },
+      properties: {
+        firstname: "Carol",
+        lastname: "White",
+        email: "carol@gamma.io",
+        phone: "",
+        company: "Gamma",
+      },
     },
   ],
   // no paging → last page
@@ -57,7 +75,11 @@ const ASSOC_CALLS = {
 
 const CALL_DETAIL = {
   id: "201",
-  properties: { hs_call_body: "Call transcript", hs_call_duration: "300", hs_timestamp: "2026-05-11T14:00:00Z" },
+  properties: {
+    hs_call_body: "Call transcript",
+    hs_call_duration: "300",
+    hs_timestamp: "2026-05-11T14:00:00Z",
+  },
 };
 
 const ASSOC_EMAILS = {
@@ -66,7 +88,11 @@ const ASSOC_EMAILS = {
 
 const EMAIL_DETAIL = {
   id: "301",
-  properties: { hs_email_subject: "Proposal", hs_email_text: "Please review", hs_timestamp: "2026-05-12T09:00:00Z" },
+  properties: {
+    hs_email_subject: "Proposal",
+    hs_email_text: "Please review",
+    hs_timestamp: "2026-05-12T09:00:00Z",
+  },
 };
 
 const ASSOC_MEETINGS = {
@@ -144,7 +170,13 @@ describe("HubSpotConnector.fetchActivities", () => {
   it("calls associations endpoint then detail endpoint for notes", async () => {
     // Page 1 contacts, then page 2 empty, then assoc notes, calls (empty), emails (empty), meetings (empty)
     fetchMock
-      .mockResolvedValueOnce(jsonRes({ results: [{ id: "1", properties: { firstname: "Alice", lastname: "", email: "a@b.com" } }] }))
+      .mockResolvedValueOnce(
+        jsonRes({
+          results: [
+            { id: "1", properties: { firstname: "Alice", lastname: "", email: "a@b.com" } },
+          ],
+        })
+      )
       // notes assoc
       .mockResolvedValueOnce(jsonRes(ASSOC_NOTES))
       // note detail
@@ -172,7 +204,9 @@ describe("HubSpotConnector.fetchActivities", () => {
 
   it("maps all 4 activity types correctly (notes/calls/emails/meetings)", async () => {
     fetchMock
-      .mockResolvedValueOnce(jsonRes({ results: [{ id: "1", properties: { firstname: "Alice", lastname: "" } }] }))
+      .mockResolvedValueOnce(
+        jsonRes({ results: [{ id: "1", properties: { firstname: "Alice", lastname: "" } }] })
+      )
       // notes assoc
       .mockResolvedValueOnce(jsonRes(ASSOC_NOTES))
       .mockResolvedValueOnce(jsonRes(NOTE_DETAIL))
@@ -214,7 +248,9 @@ describe("HubSpotConnector.fetchActivities", () => {
     // We mock the first contacts call to return 429, second to succeed.
     fetchMock
       .mockResolvedValueOnce({ ok: false, status: 429, json: () => Promise.resolve({}) })
-      .mockResolvedValueOnce(jsonRes({ results: [{ id: "1", properties: { firstname: "Test", lastname: "" } }] }))
+      .mockResolvedValueOnce(
+        jsonRes({ results: [{ id: "1", properties: { firstname: "Test", lastname: "" } }] })
+      )
       // no activities
       .mockResolvedValueOnce(jsonRes(ASSOC_EMPTY))
       .mockResolvedValueOnce(jsonRes(ASSOC_EMPTY))

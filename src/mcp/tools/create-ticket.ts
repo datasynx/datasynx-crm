@@ -7,7 +7,13 @@ import type { Ticket } from "../../schemas/ticket.js";
 const DATA_DIR = process.cwd();
 
 export async function handleCreateTicket(
-  input: { slug: string; title: string; description?: string; priority?: Ticket["priority"]; assignee?: string },
+  input: {
+    slug: string;
+    title: string;
+    description?: string;
+    priority?: Ticket["priority"];
+    assignee?: string;
+  },
   dataDir: string = DATA_DIR
 ): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   const today = new Date().toISOString().slice(0, 10);
@@ -45,7 +51,10 @@ Returns: { ticket } with id T-NNN, status=open, slaDue`,
         slug: z.string().describe("Customer slug"),
         title: z.string().min(1).describe("Ticket title"),
         description: z.string().optional().describe("Detailed description"),
-        priority: z.enum(["urgent", "high", "normal", "low"]).optional().describe("Priority (default: normal)"),
+        priority: z
+          .enum(["urgent", "high", "normal", "low"])
+          .optional()
+          .describe("Priority (default: normal)"),
         assignee: z.string().optional().describe("Assignee name or email"),
       }),
     },

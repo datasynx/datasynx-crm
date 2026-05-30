@@ -87,11 +87,17 @@ describe("syncMicrosoft", () => {
 
   it("skips already-imported messages", async () => {
     const { readInteractions } = await import("../../src/fs/interactions-writer.js");
-    vi.mocked(readInteractions).mockResolvedValue("microsoft://message/msg-001\nmicrosoft://message/msg-002");
+    vi.mocked(readInteractions).mockResolvedValue(
+      "microsoft://message/msg-001\nmicrosoft://message/msg-002"
+    );
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { syncMicrosoft } = await import("../../src/sync/microsoft-sync.js");
 
-    const result = await syncMicrosoft({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok_test" });
+    const result = await syncMicrosoft({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok_test",
+    });
 
     expect(result.skipped).toBe(2);
     expect(result.synced).toBe(0);
@@ -99,10 +105,17 @@ describe("syncMicrosoft", () => {
   });
 
   it("handles Graph API error gracefully", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 401, statusText: "Unauthorized" }));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: false, status: 401, statusText: "Unauthorized" })
+    );
     const { syncMicrosoft } = await import("../../src/sync/microsoft-sync.js");
 
-    const result = await syncMicrosoft({ slug: "acme-corp", dataDir: "/crm", accessToken: "bad_token" });
+    const result = await syncMicrosoft({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "bad_token",
+    });
 
     expect(result.synced).toBe(0);
     expect(result.errors.length).toBeGreaterThan(0);
@@ -113,7 +126,11 @@ describe("syncMicrosoft", () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("ECONNREFUSED")));
     const { syncMicrosoft } = await import("../../src/sync/microsoft-sync.js");
 
-    const result = await syncMicrosoft({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok_test" });
+    const result = await syncMicrosoft({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok_test",
+    });
 
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toMatch(/ECONNREFUSED/);
@@ -121,12 +138,17 @@ describe("syncMicrosoft", () => {
 
   it("reports synced count greater than zero after successful sync", async () => {
     vol.fromJSON({ "/crm/customers/acme-corp/interactions.md": "# Interactions\n\n" });
-    const { readInteractions, appendInteraction } = await import("../../src/fs/interactions-writer.js");
+    const { readInteractions, appendInteraction } =
+      await import("../../src/fs/interactions-writer.js");
     vi.mocked(readInteractions).mockResolvedValue("");
     vi.mocked(appendInteraction).mockResolvedValue(undefined);
     const { syncMicrosoft } = await import("../../src/sync/microsoft-sync.js");
 
-    const result = await syncMicrosoft({ slug: "acme-corp", dataDir: "/crm", accessToken: "tok_test" });
+    const result = await syncMicrosoft({
+      slug: "acme-corp",
+      dataDir: "/crm",
+      accessToken: "tok_test",
+    });
 
     expect(result.synced).toBeGreaterThan(0);
     expect(result.errors).toHaveLength(0);

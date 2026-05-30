@@ -56,7 +56,9 @@ export async function syncGoogleMeetTranscript(opts: MeetSyncOptions): Promise<{
       const res = await fetch(url, {
         headers: { Authorization: `Bearer ${opts.accessToken}` },
       });
-      if (!res.ok) { break; }
+      if (!res.ok) {
+        break;
+      }
       const data = (await res.json()) as TranscriptEntriesResponse;
       allEntries = allEntries.concat(data.transcriptEntries ?? []);
       pageToken = data.nextPageToken;

@@ -70,10 +70,7 @@ describe("createCustomer", () => {
     vol.fromJSON({ "/crm/customers/.keep": "" });
     await createCustomer({ name: "Acme Corp", dataDir: "/crm" });
     const { fs: memFs } = await import("memfs");
-    const content = memFs.readFileSync(
-      "/crm/customers/acme-corp/main_facts.md",
-      "utf-8"
-    ) as string;
+    const content = memFs.readFileSync("/crm/customers/acme-corp/main_facts.md", "utf-8") as string;
     expect(content).toContain("prospect");
   });
 });

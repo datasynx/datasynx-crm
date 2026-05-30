@@ -25,11 +25,9 @@ describe("handleGetMarketIntelligence", () => {
       { content: "content about pricing", score: 0.85, source: "ref" },
     ]);
 
-    const { handleGetMarketIntelligence } = await import("../../../src/mcp/tools/get-market-intelligence.js");
-    const result = await handleGetMarketIntelligence(
-      { query: "pricing strategy" },
-      DATA_DIR
-    );
+    const { handleGetMarketIntelligence } =
+      await import("../../../src/mcp/tools/get-market-intelligence.js");
+    const result = await handleGetMarketIntelligence({ query: "pricing strategy" }, DATA_DIR);
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       query: string;
       results: unknown[];
@@ -51,7 +49,8 @@ describe("handleGetMarketIntelligence", () => {
     const { searchKnowledge } = await import("../../../src/core/lancedb.js");
     vi.mocked(searchKnowledge).mockResolvedValue([]);
 
-    const { handleGetMarketIntelligence } = await import("../../../src/mcp/tools/get-market-intelligence.js");
+    const { handleGetMarketIntelligence } =
+      await import("../../../src/mcp/tools/get-market-intelligence.js");
     await handleGetMarketIntelligence(
       { query: "feature requests", excludeCurrentCustomer: true, slug: "acme" },
       DATA_DIR

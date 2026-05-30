@@ -10,8 +10,14 @@ export const TicketSchema = z.object({
   priority: TicketPrioritySchema.default("normal"),
   assignee: z.string().optional(),
   created: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-  slaDue: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  resolved: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  slaDue: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  resolved: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
   description: z.string().optional(),
 });
 

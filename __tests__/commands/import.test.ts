@@ -15,7 +15,12 @@ let runImport: (
   sourcePath: string,
   opts: { from: string; dryRun?: boolean },
   dataDir?: string
-) => Promise<{ customersCreated: number; interactionsImported: number; skipped: number; errors: string[] }>;
+) => Promise<{
+  customersCreated: number;
+  interactionsImported: number;
+  skipped: number;
+  errors: string[];
+}>;
 
 beforeEach(async () => {
   vol.reset();
@@ -120,7 +125,9 @@ describe("runImport — CSV", () => {
       throw new Error("process.exit called");
     }) as never);
 
-    await expect(runImport("/crm/missing.csv", { from: "csv" }, "/crm")).rejects.toThrow("process.exit called");
+    await expect(runImport("/crm/missing.csv", { from: "csv" }, "/crm")).rejects.toThrow(
+      "process.exit called"
+    );
 
     errorSpy.mockRestore();
     exitSpy.mockRestore();

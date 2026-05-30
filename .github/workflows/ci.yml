@@ -1,0 +1,136 @@
+name: CI / Release
+
+on:
+  push:
+    branches: [main, beta, alpha]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Stage 1: Quality Gates ────────────────────────────────────────────────
+  quality:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+
+  # ── Stage 2: Tests (Node Matrix) ─────────────────────────────────────────
+  test:
+    name: Test (Node ${{ matrix.node }})
+    needs: quality
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run test:coverage
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        if: matrix.node == '20'
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+
+  # ── Stage 3: Security ─────────────────────────────────────────────────────
+  security:
+    name: Audit & Licenses
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Dependency Audit
+        run: npm audit --audit-level=high
+      - name: License Check
+        run: npx license-checker --onlyAllow "MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC;0BSD;Python-2.0;Unlicense;CC0-1.0;CC-BY-3.0;CC-BY-4.0"
+
+  # ── Stage 4: Build & Validate ─────────────────────────────────────────────
+  build-validate:
+    name: Build & Validate Package
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Validate Exports (publint)
+        run: npx publint
+      - name: Validate Type Declarations (attw)
+        run: npx attw --pack . --ignore-rules no-resolution
+      - name: Consumer ESM Test
+        run: node __tests__/e2e/consumer-esm.mjs
+      - name: Consumer CJS Test
+        run: node __tests__/e2e/consumer-cjs.cjs
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  # ── Stage 5: Release (main only) ─────────────────────────────────────────
+  release:
+    name: Semantic Release
+    needs: [build-validate, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      id-token: write   # Required for npm provenance attestation
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.RELEASE_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm ci
+      - name: Restore Build
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Generate SBOM
+        run: npm sbom --sbom-format cyclonedx > sbom-cyclonedx.json
+      - name: Upload SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom-cyclonedx.json
+      - name: Semantic Release
+        run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

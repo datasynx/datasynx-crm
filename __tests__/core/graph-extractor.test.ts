@@ -124,27 +124,45 @@ describe("makeCompanyId", () => {
 describe("extractNodes", () => {
   it("returns 1 node when no domain or companyName", async () => {
     const { extractNodes } = await import("../../src/core/graph-extractor.js");
-    const nodes = extractNodes({ slug: SLUG, withStr: "Max Müller", interactionDate: "2026-05-27" });
+    const nodes = extractNodes({
+      slug: SLUG,
+      withStr: "Max Müller",
+      interactionDate: "2026-05-27",
+    });
     expect(nodes).toHaveLength(1);
     expect(nodes[0]!.type).toBe("person");
   });
 
   it("returns 2 nodes (person + company) when domain is provided", async () => {
     const { extractNodes } = await import("../../src/core/graph-extractor.js");
-    const nodes = extractNodes({ slug: SLUG, withStr: "Max Müller", interactionDate: "2026-05-27", domain: "acme.com" });
+    const nodes = extractNodes({
+      slug: SLUG,
+      withStr: "Max Müller",
+      interactionDate: "2026-05-27",
+      domain: "acme.com",
+    });
     expect(nodes).toHaveLength(2);
     expect(nodes.some((n) => n.type === "company")).toBe(true);
   });
 
   it("returns 2 nodes when only companyName is provided", async () => {
     const { extractNodes } = await import("../../src/core/graph-extractor.js");
-    const nodes = extractNodes({ slug: SLUG, withStr: "Max", interactionDate: "2026-05-27", companyName: "Acme Corp" });
+    const nodes = extractNodes({
+      slug: SLUG,
+      withStr: "Max",
+      interactionDate: "2026-05-27",
+      companyName: "Acme Corp",
+    });
     expect(nodes).toHaveLength(2);
   });
 
   it("person node has correct id, label, email property", async () => {
     const { extractNodes } = await import("../../src/core/graph-extractor.js");
-    const nodes = extractNodes({ slug: SLUG, withStr: "Max Müller <max@acme.com>", interactionDate: "2026-05-27" });
+    const nodes = extractNodes({
+      slug: SLUG,
+      withStr: "Max Müller <max@acme.com>",
+      interactionDate: "2026-05-27",
+    });
     const person = nodes[0]!;
     expect(person.id).toBe("person:max@acme.com");
     expect(person.label).toBe("Max Müller");
@@ -153,7 +171,12 @@ describe("extractNodes", () => {
 
   it("company node has type company and domain property", async () => {
     const { extractNodes } = await import("../../src/core/graph-extractor.js");
-    const nodes = extractNodes({ slug: SLUG, withStr: "Max", interactionDate: "2026-05-27", domain: "acme.com" });
+    const nodes = extractNodes({
+      slug: SLUG,
+      withStr: "Max",
+      interactionDate: "2026-05-27",
+      domain: "acme.com",
+    });
     const company = nodes.find((n) => n.type === "company");
     expect(company).toBeDefined();
     expect(company!.id).toBe("company:acme.com");
@@ -191,7 +214,10 @@ describe("updateGraphFromInteraction", () => {
   it("creates graph.json when it does not exist", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
     const { updateGraphFromInteraction } = await import("../../src/core/graph-extractor.js");
-    await updateGraphFromInteraction(DATA_DIR, SLUG, { withStr: "Max Müller", interactionDate: "2026-05-27" });
+    await updateGraphFromInteraction(DATA_DIR, SLUG, {
+      withStr: "Max Müller",
+      interactionDate: "2026-05-27",
+    });
     const { readGraph } = await import("../../src/core/graph.js");
     const g = readGraph(DATA_DIR, SLUG);
     expect(g.nodes.length).toBeGreaterThan(0);
@@ -200,7 +226,10 @@ describe("updateGraphFromInteraction", () => {
   it("adds person node from with field", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
     const { updateGraphFromInteraction } = await import("../../src/core/graph-extractor.js");
-    await updateGraphFromInteraction(DATA_DIR, SLUG, { withStr: "Max <max@acme.com>", interactionDate: "2026-05-27" });
+    await updateGraphFromInteraction(DATA_DIR, SLUG, {
+      withStr: "Max <max@acme.com>",
+      interactionDate: "2026-05-27",
+    });
     const { readGraph } = await import("../../src/core/graph.js");
     const g = readGraph(DATA_DIR, SLUG);
     expect(g.nodes.some((n) => n.id === "person:max@acme.com")).toBe(true);
@@ -212,7 +241,10 @@ describe("updateGraphFromInteraction", () => {
       [`${DATA_DIR}/customers/${SLUG}/main_facts.md`]: mainFacts,
     });
     const { updateGraphFromInteraction } = await import("../../src/core/graph-extractor.js");
-    await updateGraphFromInteraction(DATA_DIR, SLUG, { withStr: "Max", interactionDate: "2026-05-27" });
+    await updateGraphFromInteraction(DATA_DIR, SLUG, {
+      withStr: "Max",
+      interactionDate: "2026-05-27",
+    });
     const { readGraph } = await import("../../src/core/graph.js");
     const g = readGraph(DATA_DIR, SLUG);
     expect(g.nodes.some((n) => n.type === "company")).toBe(true);
@@ -224,7 +256,10 @@ describe("updateGraphFromInteraction", () => {
       [`${DATA_DIR}/customers/${SLUG}/main_facts.md`]: mainFacts,
     });
     const { updateGraphFromInteraction } = await import("../../src/core/graph-extractor.js");
-    await updateGraphFromInteraction(DATA_DIR, SLUG, { withStr: "max@acme.com", interactionDate: "2026-05-27" });
+    await updateGraphFromInteraction(DATA_DIR, SLUG, {
+      withStr: "max@acme.com",
+      interactionDate: "2026-05-27",
+    });
     const { readGraph } = await import("../../src/core/graph.js");
     const g = readGraph(DATA_DIR, SLUG);
     expect(g.edges.some((e) => e.type === "WORKS_AT")).toBe(true);
@@ -233,10 +268,14 @@ describe("updateGraphFromInteraction", () => {
   it("increments contactCount on repeated call with same person", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
     const { updateGraphFromInteraction } = await import("../../src/core/graph-extractor.js");
-    await updateGraphFromInteraction(DATA_DIR, SLUG, { withStr: "max@acme.com", interactionDate: "2026-05-27" });
+    await updateGraphFromInteraction(DATA_DIR, SLUG, {
+      withStr: "max@acme.com",
+      interactionDate: "2026-05-27",
+    });
     // Reset modules to get fresh imports but keep vol state
     vi.resetModules();
-    const { updateGraphFromInteraction: update2 } = await import("../../src/core/graph-extractor.js");
+    const { updateGraphFromInteraction: update2 } =
+      await import("../../src/core/graph-extractor.js");
     await update2(DATA_DIR, SLUG, { withStr: "max@acme.com", interactionDate: "2026-05-28" });
     vi.resetModules();
     const { readGraph } = await import("../../src/core/graph.js");
@@ -264,7 +303,10 @@ describe("updateGraphFromInteraction", () => {
   it("skips update when withStr is empty", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/`]: null });
     const { updateGraphFromInteraction } = await import("../../src/core/graph-extractor.js");
-    await updateGraphFromInteraction(DATA_DIR, SLUG, { withStr: "  ", interactionDate: "2026-05-27" });
+    await updateGraphFromInteraction(DATA_DIR, SLUG, {
+      withStr: "  ",
+      interactionDate: "2026-05-27",
+    });
     const { readGraph } = await import("../../src/core/graph.js");
     const g = readGraph(DATA_DIR, SLUG);
     expect(g.nodes).toHaveLength(0);

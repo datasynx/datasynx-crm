@@ -48,9 +48,7 @@ export function buildStakeholderMap(
   const buyerIds = new Set(stakeholders.economicBuyers.map((n) => n.id));
   const blockerIds = new Set(stakeholders.blockers.map((n) => n.id));
 
-  const healthByContactId = new Map(
-    (health?.contacts ?? []).map((c) => [c.contactId, c])
-  );
+  const healthByContactId = new Map((health?.contacts ?? []).map((c) => [c.contactId, c]));
 
   const personNodes = graph.nodes.filter((n) => n.type === "person");
 
@@ -64,9 +62,7 @@ export function buildStakeholderMap(
 
     const edges = graph.edges.filter((e) => e.from === node.id);
     const contactStrength =
-      edges.length > 0
-        ? Math.round(Math.max(...edges.map((e) => e.weight)) * 100) / 100
-        : 0.5;
+      edges.length > 0 ? Math.round(Math.max(...edges.map((e) => e.weight)) * 100) / 100 : 0.5;
 
     const profile: StakeholderProfile = {
       name: node.label,
@@ -113,16 +109,12 @@ export function buildRiskAssessment(
 
   const coldPeople = people.filter((p) => p.riskFlags.includes("NO_CONTACT_30D"));
   if (coldPeople.length > 0) {
-    risks.push(
-      `Cold contacts (30d+ silence): ${coldPeople.map((p) => p.name).join(", ")}.`
-    );
+    risks.push(`Cold contacts (30d+ silence): ${coldPeople.map((p) => p.name).join(", ")}.`);
   }
 
   const lowHealth = people.filter((p) => p.healthScore < 40);
   if (lowHealth.length > 0) {
-    risks.push(
-      `Low health score (<40): ${lowHealth.map((p) => p.name).join(", ")}.`
-    );
+    risks.push(`Low health score (<40): ${lowHealth.map((p) => p.name).join(", ")}.`);
   }
 
   const negativeSignals = signals.filter((s) => s.impact === "negative");
@@ -135,10 +127,7 @@ export function buildRiskAssessment(
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-function deriveRecommendation(
-  people: StakeholderProfile[],
-  missingRoles: MissingRole[]
-): string {
+function deriveRecommendation(people: StakeholderProfile[], missingRoles: MissingRole[]): string {
   const critical = missingRoles.find((r) => r.urgency === "critical");
   if (critical) return critical.suggestion;
 

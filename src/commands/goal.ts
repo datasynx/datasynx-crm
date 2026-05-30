@@ -2,7 +2,10 @@ import { Command } from "commander";
 import { pursueGoal, getActiveGoals, updateGoalProgress, cancelGoal } from "../core/goal-engine.js";
 import { success, error, info, bold } from "../ui/colors.js";
 
-export async function runGoalSet(description: string, options: { deadline: string }): Promise<void> {
+export async function runGoalSet(
+  description: string,
+  options: { deadline: string }
+): Promise<void> {
   const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   const goal = await pursueGoal(dir, { description, deadline: options.deadline });
   console.log(success(`✓ Goal created: ${bold(goal.id)}`));
@@ -29,12 +32,17 @@ export async function runGoalStatus(): Promise<void> {
   }
   console.log(bold(`\n Active Goals (${goals.length})\n`));
   for (const g of goals) {
-    const bar = "█".repeat(Math.round(g.progress / 10)) + "░".repeat(10 - Math.round(g.progress / 10));
+    const bar =
+      "█".repeat(Math.round(g.progress / 10)) + "░".repeat(10 - Math.round(g.progress / 10));
     const deadlineMs = new Date(g.deadline).getTime() - Date.now();
     const daysLeft = Math.max(0, Math.ceil(deadlineMs / 86_400_000));
     console.log(bold(`  ${g.id}`));
     console.log(info(`  ${g.description}`));
-    console.log(info(`  [${bar}] ${g.progress}%  |  €${g.target.toLocaleString()} by ${g.deadline} (${daysLeft}d left)`));
+    console.log(
+      info(
+        `  [${bar}] ${g.progress}%  |  €${g.target.toLocaleString()} by ${g.deadline} (${daysLeft}d left)`
+      )
+    );
     console.log("");
   }
 }

@@ -108,7 +108,9 @@ describe("registerRunDealAgent — MCP registration", () => {
     const { registerRunDealAgent } = await import("../../../src/mcp/tools/run-deal-agent.js");
     const registeredTools: string[] = [];
     const fakeServer = {
-      registerTool: (name: string) => { registeredTools.push(name); },
+      registerTool: (name: string) => {
+        registeredTools.push(name);
+      },
     };
     registerRunDealAgent(fakeServer as never);
     expect(registeredTools).toContain("run_deal_agent");

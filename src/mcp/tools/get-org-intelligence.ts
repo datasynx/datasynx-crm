@@ -16,7 +16,12 @@ export async function handleGetOrgIntelligence(
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -34,7 +39,6 @@ Returns: { slug, updatedAt, people: [{ name, email, role, healthScore, daysSince
         dealName: z.string().optional().describe("Optional deal name to scope the analysis"),
       }),
     },
-    async ({ slug, dealName }) =>
-      handleGetOrgIntelligence(dealName ? { slug, dealName } : { slug })
+    async ({ slug, dealName }) => handleGetOrgIntelligence(dealName ? { slug, dealName } : { slug })
   );
 }

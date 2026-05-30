@@ -109,7 +109,9 @@ describe("registerSimulateRevenue — MCP registration", () => {
     const { registerSimulateRevenue } = await import("../../../src/mcp/tools/simulate-revenue.js");
     const registeredTools: string[] = [];
     const fakeServer = {
-      registerTool: (name: string) => { registeredTools.push(name); },
+      registerTool: (name: string) => {
+        registeredTools.push(name);
+      },
     };
     registerSimulateRevenue(fakeServer as never);
     expect(registeredTools).toContain("simulate_revenue");

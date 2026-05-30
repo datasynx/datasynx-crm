@@ -12,24 +12,30 @@ const SLUG = "acme-corp";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-function makePlaybookMd(overrides: Partial<{
-  trigger: string;
-  successRate: number;
-  usedCount: number;
-  lastUpdated: string;
-  body: string;
-}> = {}): string {
+function makePlaybookMd(
+  overrides: Partial<{
+    trigger: string;
+    successRate: number;
+    usedCount: number;
+    lastUpdated: string;
+    body: string;
+  }> = {}
+): string {
   const fm = {
     trigger: overrides.trigger ?? "deal_stage_negotiation AND value > 50000",
     successRate: overrides.successRate ?? 0.73,
     usedCount: overrides.usedCount ?? 14,
     lastUpdated: overrides.lastUpdated ?? "2026-05-20",
   };
-  const body = overrides.body ?? "# Enterprise Renewal\n\n## Situation\nDeal stalled.\n\n## Steps\n1. Call buyer.";
+  const body =
+    overrides.body ??
+    "# Enterprise Renewal\n\n## Situation\nDeal stalled.\n\n## Steps\n1. Call buyer.";
   return `---\ntrigger: ${fm.trigger}\nsuccessRate: ${fm.successRate}\nusedCount: ${fm.usedCount}\nlastUpdated: ${fm.lastUpdated}\n---\n\n${body}`;
 }
 
-function makeDealSnap(overrides: object = {}): import("../../src/core/revenue-simulation.js").DealSnapshot {
+function makeDealSnap(
+  overrides: object = {}
+): import("../../src/core/revenue-simulation.js").DealSnapshot {
   return {
     slug: SLUG,
     name: "Enterprise License",
@@ -137,27 +143,45 @@ describe("parseTrigger", () => {
 describe("evaluateCondition", () => {
   it("stage: matches when deal.stage equals condition.stage", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "stage", stage: "negotiation" }, makeDealSnap({ stage: "negotiation" }), 0)).toBe(true);
+    expect(
+      evaluateCondition(
+        { type: "stage", stage: "negotiation" },
+        makeDealSnap({ stage: "negotiation" }),
+        0
+      )
+    ).toBe(true);
   });
 
   it("stage: returns false on mismatch", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "stage", stage: "proposal" }, makeDealSnap({ stage: "negotiation" }), 0)).toBe(false);
+    expect(
+      evaluateCondition(
+        { type: "stage", stage: "proposal" },
+        makeDealSnap({ stage: "negotiation" }),
+        0
+      )
+    ).toBe(false);
   });
 
   it("value_gt: true when deal.value > condition.value", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "value_gt", value: 50000 }, makeDealSnap({ value: 75000 }), 0)).toBe(true);
+    expect(
+      evaluateCondition({ type: "value_gt", value: 50000 }, makeDealSnap({ value: 75000 }), 0)
+    ).toBe(true);
   });
 
   it("value_gt: false when deal.value <= condition.value", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "value_gt", value: 75000 }, makeDealSnap({ value: 75000 }), 0)).toBe(false);
+    expect(
+      evaluateCondition({ type: "value_gt", value: 75000 }, makeDealSnap({ value: 75000 }), 0)
+    ).toBe(false);
   });
 
   it("value_lt: true when deal.value < condition.value", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "value_lt", value: 100000 }, makeDealSnap({ value: 75000 }), 0)).toBe(true);
+    expect(
+      evaluateCondition({ type: "value_lt", value: 100000 }, makeDealSnap({ value: 75000 }), 0)
+    ).toBe(true);
   });
 
   it("days_stalled_gt: uses daysSinceContact as proxy", async () => {
@@ -169,31 +193,49 @@ describe("evaluateCondition", () => {
   it("days_stalled_lt: returns true when daysSinceContact < value", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
     expect(evaluateCondition({ type: "days_stalled_lt", value: 14 }, makeDealSnap(), 3)).toBe(true);
-    expect(evaluateCondition({ type: "days_stalled_lt", value: 14 }, makeDealSnap(), 20)).toBe(false);
+    expect(evaluateCondition({ type: "days_stalled_lt", value: 14 }, makeDealSnap(), 20)).toBe(
+      false
+    );
   });
 
   it("health_lt: matches low health", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "health_lt", value: 60 }, makeDealSnap({ healthScore: 45 }), 0)).toBe(true);
-    expect(evaluateCondition({ type: "health_lt", value: 60 }, makeDealSnap({ healthScore: 75 }), 0)).toBe(false);
+    expect(
+      evaluateCondition({ type: "health_lt", value: 60 }, makeDealSnap({ healthScore: 45 }), 0)
+    ).toBe(true);
+    expect(
+      evaluateCondition({ type: "health_lt", value: 60 }, makeDealSnap({ healthScore: 75 }), 0)
+    ).toBe(false);
   });
 
   it("health_gt: matches high health", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "health_gt", value: 70 }, makeDealSnap({ healthScore: 85 }), 0)).toBe(true);
-    expect(evaluateCondition({ type: "health_gt", value: 70 }, makeDealSnap({ healthScore: 60 }), 0)).toBe(false);
+    expect(
+      evaluateCondition({ type: "health_gt", value: 70 }, makeDealSnap({ healthScore: 85 }), 0)
+    ).toBe(true);
+    expect(
+      evaluateCondition({ type: "health_gt", value: 70 }, makeDealSnap({ healthScore: 60 }), 0)
+    ).toBe(false);
   });
 
   it("no_champion: matches when !deal.championPresent", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "no_champion" }, makeDealSnap({ championPresent: false }), 0)).toBe(true);
-    expect(evaluateCondition({ type: "no_champion" }, makeDealSnap({ championPresent: true }), 0)).toBe(false);
+    expect(
+      evaluateCondition({ type: "no_champion" }, makeDealSnap({ championPresent: false }), 0)
+    ).toBe(true);
+    expect(
+      evaluateCondition({ type: "no_champion" }, makeDealSnap({ championPresent: true }), 0)
+    ).toBe(false);
   });
 
   it("has_champion: matches when deal.championPresent", async () => {
     const { evaluateCondition } = await import("../../src/core/playbooks.js");
-    expect(evaluateCondition({ type: "has_champion" }, makeDealSnap({ championPresent: true }), 0)).toBe(true);
-    expect(evaluateCondition({ type: "has_champion" }, makeDealSnap({ championPresent: false }), 0)).toBe(false);
+    expect(
+      evaluateCondition({ type: "has_champion" }, makeDealSnap({ championPresent: true }), 0)
+    ).toBe(true);
+    expect(
+      evaluateCondition({ type: "has_champion" }, makeDealSnap({ championPresent: false }), 0)
+    ).toBe(false);
   });
 });
 
@@ -204,7 +246,9 @@ describe("evaluateTrigger", () => {
       { type: "stage" as const, stage: "negotiation" },
       { type: "value_gt" as const, value: 50000 },
     ];
-    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0)).toBe(true);
+    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0)).toBe(
+      true
+    );
   });
 
   it("returns false when one condition fails", async () => {
@@ -213,7 +257,9 @@ describe("evaluateTrigger", () => {
       { type: "stage" as const, stage: "proposal" },
       { type: "value_gt" as const, value: 50000 },
     ];
-    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0)).toBe(false);
+    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0)).toBe(
+      false
+    );
   });
 
   it("returns true for empty conditions array", async () => {
@@ -258,7 +304,9 @@ describe("listPlaybooks", () => {
 
   it("includes markdown content without YAML block", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/test.md`]: makePlaybookMd({ body: "# My Playbook\n\nSome steps." }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/test.md`]: makePlaybookMd({
+        body: "# My Playbook\n\nSome steps.",
+      }),
     });
     const { listPlaybooks } = await import("../../src/core/playbooks.js");
     const pb = listPlaybooks(DATA_DIR, SLUG)[0]!;
@@ -294,7 +342,12 @@ describe("writePlaybook", () => {
     const playbook = {
       slug: SLUG,
       name: "my-playbook",
-      frontmatter: { trigger: "deal_stage_negotiation", successRate: 0.6, usedCount: 3, lastUpdated: today },
+      frontmatter: {
+        trigger: "deal_stage_negotiation",
+        successRate: 0.6,
+        usedCount: 3,
+        lastUpdated: today,
+      },
       content: "# My Playbook\n\n## Steps\n1. Do thing.",
       path: `${DATA_DIR}/customers/${SLUG}/playbooks/my-playbook.md`,
     };
@@ -311,7 +364,12 @@ describe("writePlaybook", () => {
     const playbook = {
       slug: SLUG,
       name: "test",
-      frontmatter: { trigger: "no_champion", successRate: 0.5, usedCount: 0, lastUpdated: "2026-05-27" },
+      frontmatter: {
+        trigger: "no_champion",
+        successRate: 0.5,
+        usedCount: 0,
+        lastUpdated: "2026-05-27",
+      },
       content: "# Test",
       path: `${DATA_DIR}/customers/${SLUG}/playbooks/test.md`,
     };
@@ -323,11 +381,32 @@ describe("writePlaybook", () => {
   it("concurrent writes to different playbooks all persist", async () => {
     vol.fromJSON({});
     const { writePlaybook, listPlaybooks } = await import("../../src/core/playbooks.js");
-    const base = { slug: SLUG, frontmatter: { trigger: "no_champion", successRate: 0.5, usedCount: 0, lastUpdated: "2026-05-27" }, content: "# Test" };
+    const base = {
+      slug: SLUG,
+      frontmatter: {
+        trigger: "no_champion",
+        successRate: 0.5,
+        usedCount: 0,
+        lastUpdated: "2026-05-27",
+      },
+      content: "# Test",
+    };
     await Promise.all([
-      writePlaybook(DATA_DIR, SLUG, { ...base, name: "pb-1", path: `${DATA_DIR}/customers/${SLUG}/playbooks/pb-1.md` }),
-      writePlaybook(DATA_DIR, SLUG, { ...base, name: "pb-2", path: `${DATA_DIR}/customers/${SLUG}/playbooks/pb-2.md` }),
-      writePlaybook(DATA_DIR, SLUG, { ...base, name: "pb-3", path: `${DATA_DIR}/customers/${SLUG}/playbooks/pb-3.md` }),
+      writePlaybook(DATA_DIR, SLUG, {
+        ...base,
+        name: "pb-1",
+        path: `${DATA_DIR}/customers/${SLUG}/playbooks/pb-1.md`,
+      }),
+      writePlaybook(DATA_DIR, SLUG, {
+        ...base,
+        name: "pb-2",
+        path: `${DATA_DIR}/customers/${SLUG}/playbooks/pb-2.md`,
+      }),
+      writePlaybook(DATA_DIR, SLUG, {
+        ...base,
+        name: "pb-3",
+        path: `${DATA_DIR}/customers/${SLUG}/playbooks/pb-3.md`,
+      }),
     ]);
     expect(listPlaybooks(DATA_DIR, SLUG)).toHaveLength(3);
   });
@@ -343,7 +422,9 @@ describe("matchPlaybooks", () => {
 
   it("returns match for exact trigger", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/p1.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation AND value > 50000" }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/p1.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation AND value > 50000",
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
@@ -354,7 +435,9 @@ describe("matchPlaybooks", () => {
 
   it("excludes partial matches (score < 1.0)", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/p1.md`]: makePlaybookMd({ trigger: "deal_stage_proposal AND value > 50000" }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/p1.md`]: makePlaybookMd({
+        trigger: "deal_stage_proposal AND value > 50000",
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
@@ -365,8 +448,14 @@ describe("matchPlaybooks", () => {
 
   it("sorts by successRate desc", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/low.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation", successRate: 0.4 }),
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/high.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation", successRate: 0.9 }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/low.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation",
+        successRate: 0.4,
+      }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/high.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation",
+        successRate: 0.9,
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
@@ -376,8 +465,16 @@ describe("matchPlaybooks", () => {
 
   it("sorts by usedCount when successRate tied", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/few.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation", successRate: 0.7, usedCount: 2 }),
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/many.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation", successRate: 0.7, usedCount: 20 }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/few.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation",
+        successRate: 0.7,
+        usedCount: 2,
+      }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/many.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation",
+        successRate: 0.7,
+        usedCount: 20,
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
@@ -405,11 +502,22 @@ describe("getBestPlaybook", () => {
 
   it("returns highest-scoring match", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/p1.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation", successRate: 0.8 }),
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/p2.md`]: makePlaybookMd({ trigger: "deal_stage_negotiation AND health < 60", successRate: 0.9 }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/p1.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation",
+        successRate: 0.8,
+      }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/p2.md`]: makePlaybookMd({
+        trigger: "deal_stage_negotiation AND health < 60",
+        successRate: 0.9,
+      }),
     });
     const { getBestPlaybook } = await import("../../src/core/playbooks.js");
-    const best = getBestPlaybook(DATA_DIR, SLUG, makeDealSnap({ stage: "negotiation", healthScore: 45 }), 0);
+    const best = getBestPlaybook(
+      DATA_DIR,
+      SLUG,
+      makeDealSnap({ stage: "negotiation", healthScore: 45 }),
+      0
+    );
     expect(best).not.toBeNull();
     expect(best!.playbook.frontmatter.successRate).toBe(0.9);
   });
@@ -420,7 +528,12 @@ describe("getBestPlaybook", () => {
 describe("buildDistillPrompt", () => {
   it("includes slug, dealName, outcome, and interactions", async () => {
     const { buildDistillPrompt } = await import("../../src/core/playbooks.js");
-    const prompt = buildDistillPrompt("acme-corp", "Enterprise License", "won", "some interactions content");
+    const prompt = buildDistillPrompt(
+      "acme-corp",
+      "Enterprise License",
+      "won",
+      "some interactions content"
+    );
     expect(prompt).toContain("acme-corp");
     expect(prompt).toContain("Enterprise License");
     expect(prompt).toContain("won");
@@ -473,7 +586,12 @@ describe("parseLlmDistillation", () => {
 
   it("uses outcomeFallback when successRate absent from JSON", async () => {
     const { parseLlmDistillation } = await import("../../src/core/playbooks.js");
-    const response = JSON.stringify({ name: "x", trigger: "no_champion", content: "# X", reasoning: "r" });
+    const response = JSON.stringify({
+      name: "x",
+      trigger: "no_champion",
+      content: "# X",
+      reasoning: "r",
+    });
     const result = parseLlmDistillation(response, 0.0);
     expect(result!.successRate).toBe(0.0);
   });
@@ -553,18 +671,22 @@ describe("evaluateTrigger with OR operator", () => {
     const { evaluateTrigger } = await import("../../src/core/playbooks.js");
     const conds = [
       { type: "stage" as const, stage: "proposal" }, // false
-      { type: "value_gt" as const, value: 50000 },   // true (deal.value=75000)
+      { type: "value_gt" as const, value: 50000 }, // true (deal.value=75000)
     ];
-    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0, "OR")).toBe(true);
+    expect(
+      evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0, "OR")
+    ).toBe(true);
   });
 
   it("OR: returns false when no condition matches", async () => {
     const { evaluateTrigger } = await import("../../src/core/playbooks.js");
     const conds = [
-      { type: "stage" as const, stage: "proposal" },  // false
-      { type: "value_gt" as const, value: 100000 },   // false (deal.value=75000)
+      { type: "stage" as const, stage: "proposal" }, // false
+      { type: "value_gt" as const, value: 100000 }, // false (deal.value=75000)
     ];
-    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0, "OR")).toBe(false);
+    expect(
+      evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0, "OR")
+    ).toBe(false);
   });
 
   it("AND still requires all conditions to match (default operator unchanged)", async () => {
@@ -573,37 +695,55 @@ describe("evaluateTrigger with OR operator", () => {
       { type: "stage" as const, stage: "negotiation" },
       { type: "value_gt" as const, value: 50000 },
     ];
-    expect(evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0, "AND")).toBe(true);
-    expect(evaluateTrigger(conds, makeDealSnap({ stage: "proposal", value: 75000 }), 0, "AND")).toBe(false);
+    expect(
+      evaluateTrigger(conds, makeDealSnap({ stage: "negotiation", value: 75000 }), 0, "AND")
+    ).toBe(true);
+    expect(
+      evaluateTrigger(conds, makeDealSnap({ stage: "proposal", value: 75000 }), 0, "AND")
+    ).toBe(false);
   });
 });
 
 describe("matchPlaybooks OR trigger", () => {
   it("matches playbook with OR trigger when one condition is true", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/or-pb.md`]: makePlaybookMd({ trigger: "deal_stage_proposal OR no_champion" }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/or-pb.md`]: makePlaybookMd({
+        trigger: "deal_stage_proposal OR no_champion",
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
     // stage=negotiation (not proposal) but championPresent=false → no_champion matches
-    const matches = matchPlaybooks(pbs, makeDealSnap({ stage: "negotiation", championPresent: false }), 0);
+    const matches = matchPlaybooks(
+      pbs,
+      makeDealSnap({ stage: "negotiation", championPresent: false }),
+      0
+    );
     expect(matches).toHaveLength(1);
   });
 
   it("does not match OR playbook when no condition is true", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/or-pb.md`]: makePlaybookMd({ trigger: "deal_stage_proposal OR has_champion" }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/or-pb.md`]: makePlaybookMd({
+        trigger: "deal_stage_proposal OR has_champion",
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
     // stage=negotiation (not proposal) AND no champion → no match
-    const matches = matchPlaybooks(pbs, makeDealSnap({ stage: "negotiation", championPresent: false }), 0);
+    const matches = matchPlaybooks(
+      pbs,
+      makeDealSnap({ stage: "negotiation", championPresent: false }),
+      0
+    );
     expect(matches).toHaveLength(0);
   });
 
   it("AND playbook still excluded when only partial match", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/playbooks/and-pb.md`]: makePlaybookMd({ trigger: "deal_stage_proposal AND value > 50000" }),
+      [`${DATA_DIR}/customers/${SLUG}/playbooks/and-pb.md`]: makePlaybookMd({
+        trigger: "deal_stage_proposal AND value > 50000",
+      }),
     });
     const { listPlaybooks, matchPlaybooks } = await import("../../src/core/playbooks.js");
     const pbs = listPlaybooks(DATA_DIR, SLUG);
@@ -616,28 +756,34 @@ describe("matchPlaybooks OR trigger", () => {
 // ─── distillPlaybook (integration, memfs) ─────────────────────────────────────
 
 describe("distillPlaybook", () => {
-  const validLlmResponse = () => JSON.stringify({
-    name: "negotiation-price",
-    trigger: "deal_stage_negotiation AND value > 50000",
-    content: "# Price Objection\n\n## Steps\n1. Focus on ROI.",
-    successRate: 1.0,
-    reasoning: "Deal won by ROI framing",
-  });
+  const validLlmResponse = () =>
+    JSON.stringify({
+      name: "negotiation-price",
+      trigger: "deal_stage_negotiation AND value > 50000",
+      content: "# Price Objection\n\n## Steps\n1. Focus on ROI.",
+      successRate: 1.0,
+      reasoning: "Deal won by ROI framing",
+    });
 
   it("returns errorKind=no_interactions when interactions.md missing", async () => {
     vol.fromJSON({});
     const { distillPlaybook } = await import("../../src/core/playbooks.js");
-    const result = await distillPlaybook(DATA_DIR, SLUG, "Test Deal", "won", async () => validLlmResponse());
+    const result = await distillPlaybook(DATA_DIR, SLUG, "Test Deal", "won", async () =>
+      validLlmResponse()
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.errorKind).toBe("no_interactions");
   });
 
   it("writes playbook file on successful LLM response", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: "## 2026-05-01 · Call\n**Summary:** Good call.",
+      [`${DATA_DIR}/customers/${SLUG}/interactions.md`]:
+        "## 2026-05-01 · Call\n**Summary:** Good call.",
     });
     const { distillPlaybook, listPlaybooks } = await import("../../src/core/playbooks.js");
-    const result = await distillPlaybook(DATA_DIR, SLUG, "Test Deal", "won", async () => validLlmResponse());
+    const result = await distillPlaybook(DATA_DIR, SLUG, "Test Deal", "won", async () =>
+      validLlmResponse()
+    );
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.playbook.name).toBe("negotiation-price");
     const all = listPlaybooks(DATA_DIR, SLUG);
@@ -649,7 +795,13 @@ describe("distillPlaybook", () => {
       [`${DATA_DIR}/customers/${SLUG}/interactions.md`]: "## 2026-05-01 · Call\n**Summary:** Ok.",
     });
     const { distillPlaybook } = await import("../../src/core/playbooks.js");
-    const result = await distillPlaybook(DATA_DIR, SLUG, "Deal", "lost", async () => "Not valid JSON");
+    const result = await distillPlaybook(
+      DATA_DIR,
+      SLUG,
+      "Deal",
+      "lost",
+      async () => "Not valid JSON"
+    );
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.errorKind).toBe("parse_failed");
   });
@@ -666,7 +818,13 @@ describe("distillPlaybook", () => {
       successRate: 1.0,
       reasoning: "r",
     });
-    const result = await distillPlaybook(DATA_DIR, SLUG, "Deal", "won", async () => weirdNameResponse);
+    const result = await distillPlaybook(
+      DATA_DIR,
+      SLUG,
+      "Deal",
+      "won",
+      async () => weirdNameResponse
+    );
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.playbook.name).toMatch(/^[a-z0-9-]+$/);
   });

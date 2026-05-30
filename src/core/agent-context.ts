@@ -88,7 +88,14 @@ export const AGENT_CONTEXT: AgentContextSchema = {
         "Returns complete customer brief: profile (main_facts.md), last 10 interactions, pipeline deals. " +
         "Automatically trims to ~3000 tokens. <3 second response time.",
       when: "Before any customer conversation. After the user mentions a company name.",
-      params: [{ name: "slug", type: "string", required: true, description: "Customer slug, e.g. acme-corp" }],
+      params: [
+        {
+          name: "slug",
+          type: "string",
+          required: true,
+          description: "Customer slug, e.g. acme-corp",
+        },
+      ],
       returns: {
         context: "string — structured markdown with all sections",
         slug: "string",
@@ -110,11 +117,15 @@ export const AGENT_CONTEXT: AgentContextSchema = {
       description:
         "Hybrid vector + full-text semantic search across all emails and transcripts for a customer. " +
         "Uses LanceDB embeddings (nomic-embed-text-v1.5). Falls back to BM25 if vector store empty.",
-      when:
-        "When user asks historical questions: 'what did they say about X?', 'any pricing discussions?', 'find mentions of Y'.",
+      when: "When user asks historical questions: 'what did they say about X?', 'any pricing discussions?', 'find mentions of Y'.",
       params: [
         { name: "slug", type: "string", required: true, description: "Customer slug" },
-        { name: "query", type: "string", required: true, description: "Natural language search query" },
+        {
+          name: "query",
+          type: "string",
+          required: true,
+          description: "Natural language search query",
+        },
         {
           name: "limit",
           type: "number",
@@ -394,8 +405,7 @@ export const AGENT_CONTEXT: AgentContextSchema = {
         },
       ],
       returns: {
-        "format=json":
-          "{ slug, mainFacts, interactionsCount, pipeline, exportedAt }",
+        "format=json": "{ slug, mainFacts, interactionsCount, pipeline, exportedAt }",
         "format=markdown": "string — full customer report as markdown",
       },
       rbac: "any",
@@ -613,9 +623,7 @@ export const AGENT_CONTEXT_TEXT: string = (() => {
 
   const toolLines = tools
     .map((t) => {
-      const params = t.params
-        .map((p) => `${p.required ? "" : "?"}${p.name}: ${p.type}`)
-        .join(", ");
+      const params = t.params.map((p) => `${p.required ? "" : "?"}${p.name}: ${p.type}`).join(", ");
       const rbacNote = t.rbac === "any" ? "" : ` [requires ${t.rbac}]`;
       const auditNote = t.audited ? " [audited]" : "";
       return `- ${t.name}(${params})${rbacNote}${auditNote}\n  → ${t.description}`;

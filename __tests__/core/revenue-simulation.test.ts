@@ -12,7 +12,9 @@ const TODAY = "2026-05-27";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-function makeSnap(overrides: object = {}): import("../../src/core/revenue-simulation.js").DealSnapshot {
+function makeSnap(
+  overrides: object = {}
+): import("../../src/core/revenue-simulation.js").DealSnapshot {
   return {
     slug: "acme-corp",
     name: "Q3 Renewal",
@@ -163,30 +165,63 @@ describe("adjustProbability", () => {
 
   it("positive external signal increases probability", async () => {
     const { adjustProbability } = await import("../../src/core/revenue-simulation.js");
-    const snap = makeSnap({ probability: 50, healthScore: 60, championPresent: false, slug: "acme-corp" });
+    const snap = makeSnap({
+      probability: 50,
+      healthScore: 60,
+      championPresent: false,
+      slug: "acme-corp",
+    });
     const baseline = adjustProbability(snap, []);
     const withSignal = adjustProbability(snap, [
-      { slug: "acme-corp", type: "funding_round", impact: "positive", magnitude: 1.0, summary: "Series B" },
+      {
+        slug: "acme-corp",
+        type: "funding_round",
+        impact: "positive",
+        magnitude: 1.0,
+        summary: "Series B",
+      },
     ]);
     expect(withSignal).toBeGreaterThan(baseline);
   });
 
   it("negative external signal decreases probability", async () => {
     const { adjustProbability } = await import("../../src/core/revenue-simulation.js");
-    const snap = makeSnap({ probability: 50, healthScore: 60, championPresent: false, slug: "acme-corp" });
+    const snap = makeSnap({
+      probability: 50,
+      healthScore: 60,
+      championPresent: false,
+      slug: "acme-corp",
+    });
     const baseline = adjustProbability(snap, []);
     const withSignal = adjustProbability(snap, [
-      { slug: "acme-corp", type: "news_negative", impact: "negative", magnitude: 1.0, summary: "Layoffs" },
+      {
+        slug: "acme-corp",
+        type: "news_negative",
+        impact: "negative",
+        magnitude: 1.0,
+        summary: "Layoffs",
+      },
     ]);
     expect(withSignal).toBeLessThan(baseline);
   });
 
   it("signal for different slug is ignored", async () => {
     const { adjustProbability } = await import("../../src/core/revenue-simulation.js");
-    const snap = makeSnap({ probability: 50, healthScore: 60, championPresent: false, slug: "acme-corp" });
+    const snap = makeSnap({
+      probability: 50,
+      healthScore: 60,
+      championPresent: false,
+      slug: "acme-corp",
+    });
     const baseline = adjustProbability(snap, []);
     const withOtherSignal = adjustProbability(snap, [
-      { slug: "other-corp", type: "funding_round", impact: "positive", magnitude: 1.0, summary: "Other" },
+      {
+        slug: "other-corp",
+        type: "funding_round",
+        impact: "positive",
+        magnitude: 1.0,
+        summary: "Other",
+      },
     ]);
     expect(withOtherSignal).toBeCloseTo(baseline, 5);
   });
@@ -249,16 +284,40 @@ describe("buildSensitivityMap", () => {
 
   it("higher-value deal has higher sensitivity than lower-value (same probability)", async () => {
     const { buildSensitivityMap } = await import("../../src/core/revenue-simulation.js");
-    const small = makeSnap({ name: "Small", value: 10000, probability: 50, healthScore: 60, championPresent: false });
-    const large = makeSnap({ name: "Large", value: 100000, probability: 50, healthScore: 60, championPresent: false });
+    const small = makeSnap({
+      name: "Small",
+      value: 10000,
+      probability: 50,
+      healthScore: 60,
+      championPresent: false,
+    });
+    const large = makeSnap({
+      name: "Large",
+      value: 100000,
+      probability: 50,
+      healthScore: 60,
+      championPresent: false,
+    });
     const map = buildSensitivityMap([small, large], []);
     expect(map["Large"]!).toBeGreaterThan(map["Small"]!);
   });
 
   it("higher-probability deal has higher sensitivity (same value)", async () => {
     const { buildSensitivityMap } = await import("../../src/core/revenue-simulation.js");
-    const lowProb = makeSnap({ name: "Low", value: 50000, probability: 20, healthScore: 60, championPresent: false });
-    const highProb = makeSnap({ name: "High", value: 50000, probability: 80, healthScore: 60, championPresent: false });
+    const lowProb = makeSnap({
+      name: "Low",
+      value: 50000,
+      probability: 20,
+      healthScore: 60,
+      championPresent: false,
+    });
+    const highProb = makeSnap({
+      name: "High",
+      value: 50000,
+      probability: 80,
+      healthScore: 60,
+      championPresent: false,
+    });
     const map = buildSensitivityMap([lowProb, highProb], []);
     expect(map["High"]!).toBeGreaterThan(map["Low"]!);
   });
@@ -268,14 +327,16 @@ describe("buildSensitivityMap", () => {
 
 describe("buildTopRisks", () => {
   it("returns empty array when no at-risk deals", async () => {
-    const { buildTopRisks, buildSensitivityMap } = await import("../../src/core/revenue-simulation.js");
+    const { buildTopRisks, buildSensitivityMap } =
+      await import("../../src/core/revenue-simulation.js");
     const snap = makeSnap({ healthScore: 80, daysSinceContact: 3 });
     const map = buildSensitivityMap([snap], []);
     expect(buildTopRisks([snap], [], map)).toHaveLength(0);
   });
 
   it("returns risk for deal with healthScore < 60", async () => {
-    const { buildTopRisks, buildSensitivityMap } = await import("../../src/core/revenue-simulation.js");
+    const { buildTopRisks, buildSensitivityMap } =
+      await import("../../src/core/revenue-simulation.js");
     const snap = makeSnap({ healthScore: 30, daysSinceContact: 5 });
     const map = buildSensitivityMap([snap], []);
     const risks = buildTopRisks([snap], [], map);
@@ -283,7 +344,8 @@ describe("buildTopRisks", () => {
   });
 
   it("includes health score in risk description", async () => {
-    const { buildTopRisks, buildSensitivityMap } = await import("../../src/core/revenue-simulation.js");
+    const { buildTopRisks, buildSensitivityMap } =
+      await import("../../src/core/revenue-simulation.js");
     const snap = makeSnap({ healthScore: 35, daysSinceContact: 5 });
     const map = buildSensitivityMap([snap], []);
     const risks = buildTopRisks([snap], [], map);
@@ -291,7 +353,8 @@ describe("buildTopRisks", () => {
   });
 
   it("limits to 5 entries", async () => {
-    const { buildTopRisks, buildSensitivityMap } = await import("../../src/core/revenue-simulation.js");
+    const { buildTopRisks, buildSensitivityMap } =
+      await import("../../src/core/revenue-simulation.js");
     const snaps = Array.from({ length: 10 }, (_, i) =>
       makeSnap({ name: `Deal${i}`, healthScore: 20, daysSinceContact: 20 })
     );
@@ -397,8 +460,20 @@ describe("runSimulation — statistical properties", () => {
   it("p50 is within reasonable range of weighted sum for multiple deals", async () => {
     const { runSimulation } = await import("../../src/core/revenue-simulation.js");
     const deals = [
-      makeSnap({ name: "A", value: 100000, probability: 75, healthScore: 60, championPresent: false }),
-      makeSnap({ name: "B", value: 50000, probability: 50, healthScore: 60, championPresent: false }),
+      makeSnap({
+        name: "A",
+        value: 100000,
+        probability: 75,
+        healthScore: 60,
+        championPresent: false,
+      }),
+      makeSnap({
+        name: "B",
+        value: 50000,
+        probability: 50,
+        healthScore: 60,
+        championPresent: false,
+      }),
     ];
     // Expected weighted sum: 75000 + 25000 = 100000
     const result = runSimulation(makeInput(deals, 5000));
@@ -456,10 +531,7 @@ describe("runSimulation — statistical properties", () => {
 
   it("sensitivityMap contains entry for each deal", async () => {
     const { runSimulation } = await import("../../src/core/revenue-simulation.js");
-    const deals = [
-      makeSnap({ name: "Alpha" }),
-      makeSnap({ name: "Beta" }),
-    ];
+    const deals = [makeSnap({ name: "Alpha" }), makeSnap({ name: "Beta" })];
     const result = runSimulation(makeInput(deals, 100));
     expect(result.sensitivityMap["Alpha"]).toBeDefined();
     expect(result.sensitivityMap["Beta"]).toBeDefined();
@@ -480,7 +552,10 @@ describe("runSimulation — statistical properties", () => {
     const { runSimulation } = await import("../../src/core/revenue-simulation.js");
     const deals = [makeSnap({ name: "A", value: 50000, probability: 50 })];
     let callCount = 0;
-    runSimulation(makeInput(deals, 200_000), () => { callCount++; return 0.5; });
+    runSimulation(makeInput(deals, 200_000), () => {
+      callCount++;
+      return 0.5;
+    });
     // Each iteration: 1 prob-check + 1 variance-check = 2 calls per deal per iteration
     expect(callCount).toBeLessThanOrEqual(50_000 * 2 + 10);
   });
@@ -626,8 +701,15 @@ describe("buildConfidenceMessage", () => {
   it("contains P50 value", async () => {
     const { buildConfidenceMessage } = await import("../../src/core/revenue-simulation.js");
     const result = {
-      p10: 100000, p50: 287500, p90: 412000, expected: 289300, stdDev: 82000,
-      atRiskRevenue: 75000, byCloseMonth: {}, topRisks: [], sensitivityMap: {},
+      p10: 100000,
+      p50: 287500,
+      p90: 412000,
+      expected: 289300,
+      stdDev: 82000,
+      atRiskRevenue: 75000,
+      byCloseMonth: {},
+      topRisks: [],
+      sensitivityMap: {},
     };
     const msg = buildConfidenceMessage(result, 5);
     expect(msg).toContain("287.5k");
@@ -636,8 +718,15 @@ describe("buildConfidenceMessage", () => {
   it("mentions deal count", async () => {
     const { buildConfidenceMessage } = await import("../../src/core/revenue-simulation.js");
     const result = {
-      p10: 0, p50: 100000, p90: 200000, expected: 100000, stdDev: 50000,
-      atRiskRevenue: 0, byCloseMonth: {}, topRisks: [], sensitivityMap: {},
+      p10: 0,
+      p50: 100000,
+      p90: 200000,
+      expected: 100000,
+      stdDev: 50000,
+      atRiskRevenue: 0,
+      byCloseMonth: {},
+      topRisks: [],
+      sensitivityMap: {},
     };
     const msg = buildConfidenceMessage(result, 7);
     expect(msg).toContain("7");

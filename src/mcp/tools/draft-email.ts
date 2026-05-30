@@ -12,7 +12,14 @@ export async function handleDraftEmail(
 ): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   const tmpl = getTemplate(dataDir, input.templateId);
   if (!tmpl) {
-    return { content: [{ type: "text", text: JSON.stringify({ error: `Template '${input.templateId}' not found` }) }] };
+    return {
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ error: `Template '${input.templateId}' not found` }),
+        },
+      ],
+    };
   }
 
   const autoVars = await buildVariablesFromCustomer(dataDir, input.slug);
@@ -26,10 +33,23 @@ export async function handleDraftEmail(
   const to = facts?.email ?? "";
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({ subject, body, to, slug: input.slug, templateId: input.templateId, resolvedVariables: vars }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          {
+            subject,
+            body,
+            to,
+            slug: input.slug,
+            templateId: input.templateId,
+            resolvedVariables: vars,
+          },
+          null,
+          2
+        ),
+      },
+    ],
   };
 }
 
@@ -43,10 +63,16 @@ Returns: { subject, body, to, resolvedVariables } — does NOT send automaticall
       inputSchema: z.object({
         slug: z.string().describe("Customer slug"),
         templateId: z.string().describe("Template ID to use"),
-        overrides: z.record(z.string()).optional().describe("Override any template variable (e.g. {firstName: 'Alice'})"),
+        overrides: z
+          .record(z.string())
+          .optional()
+          .describe("Override any template variable (e.g. {firstName: 'Alice'})"),
       }),
     },
     ({ slug, templateId, overrides }) =>
-      handleDraftEmail({ slug, templateId, ...(overrides !== undefined ? { overrides } : {}) }, dataDir)
+      handleDraftEmail(
+        { slug, templateId, ...(overrides !== undefined ? { overrides } : {}) },
+        dataDir
+      )
   );
 }

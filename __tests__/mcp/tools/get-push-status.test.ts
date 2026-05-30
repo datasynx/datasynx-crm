@@ -29,7 +29,10 @@ describe("handleGetPushStatus", () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
     const { handleGetPushStatus } = await import("../../../src/mcp/tools/get-push-status.js");
     const result = await handleGetPushStatus({}, "/data");
-    const parsed = JSON.parse(result.content[0]!.text) as { subscriptions: unknown[]; summary: Record<string, number> };
+    const parsed = JSON.parse(result.content[0]!.text) as {
+      subscriptions: unknown[];
+      summary: Record<string, number>;
+    };
     expect(parsed.subscriptions).toHaveLength(0);
     expect(parsed.summary.total).toBe(0);
     expect(parsed.summary.active).toBe(0);
@@ -38,7 +41,10 @@ describe("handleGetPushStatus", () => {
   it("returns all active subscriptions with computed fields", async () => {
     vol.fromJSON({
       "/data/.agentic/push-subscriptions.json": JSON.stringify({
-        subscriptions: [makeSub(), makeSub({ id: "psub_2_xyz", provider: "slack", slug: "widget-co", expiresAt: null })],
+        subscriptions: [
+          makeSub(),
+          makeSub({ id: "psub_2_xyz", provider: "slack", slug: "widget-co", expiresAt: null }),
+        ],
         updatedAt: new Date().toISOString(),
       }),
     });
@@ -71,7 +77,9 @@ describe("handleGetPushStatus", () => {
 
     const { handleGetPushStatus } = await import("../../../src/mcp/tools/get-push-status.js");
     const result = await handleGetPushStatus({ slug: "acme-corp" }, "/data");
-    const parsed = JSON.parse(result.content[0]!.text) as { subscriptions: Array<{ slug: string }> };
+    const parsed = JSON.parse(result.content[0]!.text) as {
+      subscriptions: Array<{ slug: string }>;
+    };
     expect(parsed.subscriptions).toHaveLength(1);
     expect(parsed.subscriptions[0]!.slug).toBe("acme-corp");
   });
@@ -79,14 +87,19 @@ describe("handleGetPushStatus", () => {
   it("filters by provider when provided", async () => {
     vol.fromJSON({
       "/data/.agentic/push-subscriptions.json": JSON.stringify({
-        subscriptions: [makeSub(), makeSub({ id: "psub_slack", provider: "slack", expiresAt: null })],
+        subscriptions: [
+          makeSub(),
+          makeSub({ id: "psub_slack", provider: "slack", expiresAt: null }),
+        ],
         updatedAt: new Date().toISOString(),
       }),
     });
 
     const { handleGetPushStatus } = await import("../../../src/mcp/tools/get-push-status.js");
     const result = await handleGetPushStatus({ provider: "gmail" }, "/data");
-    const parsed = JSON.parse(result.content[0]!.text) as { subscriptions: Array<{ provider: string }> };
+    const parsed = JSON.parse(result.content[0]!.text) as {
+      subscriptions: Array<{ provider: string }>;
+    };
     expect(parsed.subscriptions).toHaveLength(1);
     expect(parsed.subscriptions[0]!.provider).toBe("gmail");
   });
@@ -113,10 +126,7 @@ describe("handleGetPushStatus", () => {
   it("counts expired subscriptions in summary", async () => {
     vol.fromJSON({
       "/data/.agentic/push-subscriptions.json": JSON.stringify({
-        subscriptions: [
-          makeSub(),
-          makeSub({ id: "psub_exp", status: "expired" }),
-        ],
+        subscriptions: [makeSub(), makeSub({ id: "psub_exp", status: "expired" })],
         updatedAt: new Date().toISOString(),
       }),
     });

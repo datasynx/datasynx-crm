@@ -75,7 +75,7 @@ export function adjustProbability(deal: DealSnapshot, signals: ExternalSignal[] 
   let prob = deal.probability / 100;
 
   // Health adjustment: health 60 = neutral, range -0.12 to +0.08
-  const healthAdj = (deal.healthScore - 60) / 100 * 0.2;
+  const healthAdj = ((deal.healthScore - 60) / 100) * 0.2;
   prob += healthAdj;
 
   // Champion bonus
@@ -85,7 +85,7 @@ export function adjustProbability(deal: DealSnapshot, signals: ExternalSignal[] 
   for (const signal of signals) {
     if (signal.slug === deal.slug) {
       if (signal.impact === "positive") prob += 0.05 * signal.magnitude;
-      if (signal.impact === "negative") prob -= 0.10 * signal.magnitude;
+      if (signal.impact === "negative") prob -= 0.1 * signal.magnitude;
     }
   }
 
@@ -146,7 +146,11 @@ export function runSimulation(
 
   if (deals.length === 0) {
     return {
-      p10: 0, p50: 0, p90: 0, expected: 0, stdDev: 0,
+      p10: 0,
+      p50: 0,
+      p90: 0,
+      expected: 0,
+      stdDev: 0,
       atRiskRevenue: 0,
       byCloseMonth: {},
       topRisks: [],
@@ -201,9 +205,7 @@ export function runSimulation(
 
   const sensitivityMap = buildSensitivityMap(deals, externalSignals);
   const topRisks = buildTopRisks(deals, externalSignals, sensitivityMap);
-  const atRiskRevenue = deals
-    .filter((d) => d.healthScore < 60)
-    .reduce((s, d) => s + d.value, 0);
+  const atRiskRevenue = deals.filter((d) => d.healthScore < 60).reduce((s, d) => s + d.value, 0);
 
   return {
     p10: Math.round(percentile(outcomes, 10)),
@@ -248,9 +250,9 @@ export async function buildSimulationInput(
     return { deals: [], externalSignals, iterations: 10_000, horizon, today };
   }
 
-  const slugs = fs.readdirSync(customersDir).filter((d) =>
-    fs.statSync(path.join(customersDir, d)).isDirectory()
-  );
+  const slugs = fs
+    .readdirSync(customersDir)
+    .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory());
 
   const stages = getPipelineStages(dataDir);
   const stageProb: Record<string, number> = {};

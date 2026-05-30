@@ -145,7 +145,13 @@ export async function updateGraphFromInteraction(
   const edges = extractEdges(personId, companyId, input.interactionDate);
 
   await writeGraph(dataDir, slug, (current) => {
-    const empty: CustomerGraph = { schemaVersion: "1", slug, nodes: [], edges: [], updatedAt: new Date().toISOString() };
+    const empty: CustomerGraph = {
+      schemaVersion: "1",
+      slug,
+      nodes: [],
+      edges: [],
+      updatedAt: new Date().toISOString(),
+    };
     let graph = current ?? empty;
     for (const node of nodes) graph = upsertNode(graph, node);
     for (const edge of edges) graph = upsertEdge(graph, edge);

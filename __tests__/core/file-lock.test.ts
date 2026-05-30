@@ -12,10 +12,9 @@ describe("withJsonFile", () => {
     vol.fromJSON({ "/data/.keep": "" });
     const { withJsonFile } = await import("../../src/core/file-lock.js");
 
-    const result = await withJsonFile<{ count: number }>(
-      "/data/state.json",
-      (current) => ({ count: (current?.count ?? 0) + 1 })
-    );
+    const result = await withJsonFile<{ count: number }>("/data/state.json", (current) => ({
+      count: (current?.count ?? 0) + 1,
+    }));
 
     expect(result.count).toBe(1);
     const raw = vol.readFileSync("/data/state.json", "utf-8") as string;
@@ -26,10 +25,9 @@ describe("withJsonFile", () => {
     vol.fromJSON({ "/data/state.json": JSON.stringify({ count: 5 }) });
     const { withJsonFile } = await import("../../src/core/file-lock.js");
 
-    const result = await withJsonFile<{ count: number }>(
-      "/data/state.json",
-      (current) => ({ count: (current?.count ?? 0) + 1 })
-    );
+    const result = await withJsonFile<{ count: number }>("/data/state.json", (current) => ({
+      count: (current?.count ?? 0) + 1,
+    }));
 
     expect(result.count).toBe(6);
   });
@@ -130,8 +128,14 @@ describe("withJsonFile", () => {
     const t0 = Date.now();
 
     await Promise.all([
-      withJsonFile<{ n: number }>("/data/a.json", async (c) => { await delay(20); return { n: (c?.n ?? 0) + 1 }; }),
-      withJsonFile<{ n: number }>("/data/b.json", async (c) => { await delay(20); return { n: (c?.n ?? 0) + 1 }; }),
+      withJsonFile<{ n: number }>("/data/a.json", async (c) => {
+        await delay(20);
+        return { n: (c?.n ?? 0) + 1 };
+      }),
+      withJsonFile<{ n: number }>("/data/b.json", async (c) => {
+        await delay(20);
+        return { n: (c?.n ?? 0) + 1 };
+      }),
     ]);
 
     // Should complete in ~20ms (parallel), not ~40ms (sequential)

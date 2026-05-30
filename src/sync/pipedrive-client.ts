@@ -21,11 +21,7 @@ interface PipedriveResponse<T> {
   additional_data?: { pagination?: { more_items_in_collection?: boolean } };
 }
 
-async function pipedriveGet<T>(
-  instanceUrl: string,
-  token: string,
-  path: string
-): Promise<T[]> {
+async function pipedriveGet<T>(instanceUrl: string, token: string, path: string): Promise<T[]> {
   const url = `${instanceUrl.replace(/\/$/, "")}/api/v1${path}?limit=500&api_token=${token}`;
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${token}` },

@@ -16,12 +16,10 @@ export async function handleGetMarketIntelligence(
   const customersDir = path.join(dataDir, "customers");
   let totalCustomersSearched = 0;
   if (fs.existsSync(customersDir)) {
-    const all = fs.readdirSync(customersDir).filter((d) =>
-      fs.statSync(path.join(customersDir, d)).isDirectory()
-    );
-    totalCustomersSearched = excludeSlug
-      ? all.filter((s) => s !== excludeSlug).length
-      : all.length;
+    const all = fs
+      .readdirSync(customersDir)
+      .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory());
+    totalCustomersSearched = excludeSlug ? all.filter((s) => s !== excludeSlug).length : all.length;
   }
 
   const results: CrossCustomerResult[] = await searchAcrossCustomers(
@@ -35,11 +33,7 @@ export async function handleGetMarketIntelligence(
     content: [
       {
         type: "text",
-        text: JSON.stringify(
-          { query: input.query, results, totalCustomersSearched },
-          null,
-          2
-        ),
+        text: JSON.stringify({ query: input.query, results, totalCustomersSearched }, null, 2),
       },
     ],
   };
@@ -58,7 +52,10 @@ export function registerGetMarketIntelligence(server: McpServer): void {
           .boolean()
           .optional()
           .describe("Exclude the current customer from results"),
-        slug: z.string().optional().describe("Current customer slug (used with excludeCurrentCustomer)"),
+        slug: z
+          .string()
+          .optional()
+          .describe("Current customer slug (used with excludeCurrentCustomer)"),
       }),
     },
     async ({ query, excludeCurrentCustomer, slug }) =>

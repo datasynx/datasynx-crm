@@ -11,24 +11,35 @@ export async function handleListPlaybooks(
   try {
     const playbooks = listPlaybooks(dataDir, input.slug);
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          playbooks: playbooks.map((pb) => ({
-            name: pb.name,
-            trigger: pb.frontmatter.trigger,
-            successRate: pb.frontmatter.successRate,
-            usedCount: pb.frontmatter.usedCount,
-            lastUpdated: pb.frontmatter.lastUpdated,
-          })),
-          count: playbooks.length,
-          slug: input.slug,
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              playbooks: playbooks.map((pb) => ({
+                name: pb.name,
+                trigger: pb.frontmatter.trigger,
+                successRate: pb.frontmatter.successRate,
+                usedCount: pb.frontmatter.usedCount,
+                lastUpdated: pb.frontmatter.lastUpdated,
+              })),
+              count: playbooks.length,
+              slug: input.slug,
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }

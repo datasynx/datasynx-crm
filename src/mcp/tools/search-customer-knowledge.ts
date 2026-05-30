@@ -19,7 +19,8 @@ export async function handleSearchCustomerKnowledge(
       results.length === 0
         ? {
             results: [],
-            message: `No results found for "${input.query}" in customer "${input.slug}". ` +
+            message:
+              `No results found for "${input.query}" in customer "${input.slug}". ` +
               "The customer may not have been synced yet. Run dxcrm sync to index emails and transcripts.",
           }
         : { results };

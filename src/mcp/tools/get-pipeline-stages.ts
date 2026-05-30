@@ -19,7 +19,8 @@ export function registerGetPipelineStages(server: McpServer): void {
     "get_pipeline_stages",
     {
       title: "Get Pipeline Stages",
-      description: "Returns all configured pipeline stages. Falls back to default stages (lead, qualified, proposal, negotiation, won, lost) if no custom stages are configured.",
+      description:
+        "Returns all configured pipeline stages. Falls back to default stages (lead, qualified, proposal, negotiation, won, lost) if no custom stages are configured.",
       inputSchema: z.object({}),
     },
     async () => handleGetPipelineStages({})

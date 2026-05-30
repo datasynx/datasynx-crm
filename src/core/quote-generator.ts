@@ -42,7 +42,8 @@ function nextQuoteNumber(dataDir: string): string {
     fs.mkdirSync(dir, { recursive: true });
     return `Q-${year}-001`;
   }
-  const existing = fs.readdirSync(dir)
+  const existing = fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith(".json") && f.startsWith(`Q-${year}-`))
     .map((f) => parseInt(f.replace(`Q-${year}-`, "").replace(".json", ""), 10))
     .filter((n) => !isNaN(n));
@@ -51,7 +52,11 @@ function nextQuoteNumber(dataDir: string): string {
 }
 
 function addDaysToDate(isoDate: string, days: number): string {
-  const [year, month, day] = isoDate.slice(0, 10).split("-").map(Number) as [number, number, number];
+  const [year, month, day] = isoDate.slice(0, 10).split("-").map(Number) as [
+    number,
+    number,
+    number,
+  ];
   const d = new Date(Date.UTC(year, month - 1, day));
   d.setUTCDate(d.getUTCDate() + days);
   return d.toISOString().slice(0, 10);
@@ -113,7 +118,8 @@ export function readQuote(dataDir: string, quoteNumber: string): Quote | null {
 export function listQuotes(dataDir: string, slug?: string): Quote[] {
   const dir = quotesDir(dataDir);
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
     .flatMap((f) => {
       try {
@@ -125,13 +131,21 @@ export function listQuotes(dataDir: string, slug?: string): Quote[] {
     });
 }
 
-export function updateQuoteStatus(dataDir: string, quoteNumber: string, status: Quote["status"]): void {
+export function updateQuoteStatus(
+  dataDir: string,
+  quoteNumber: string,
+  status: Quote["status"]
+): void {
   const q = readQuote(dataDir, quoteNumber);
   if (!q) return;
   const updated: Quote = { ...q, status };
   if (status === "viewed" && !q.viewedAt) updated.viewedAt = new Date().toISOString();
   if (status === "accepted" && !q.acceptedAt) updated.acceptedAt = new Date().toISOString();
-  fs.writeFileSync(path.join(quotesDir(dataDir), `${quoteNumber}.json`), JSON.stringify(updated, null, 2), "utf-8");
+  fs.writeFileSync(
+    path.join(quotesDir(dataDir), `${quoteNumber}.json`),
+    JSON.stringify(updated, null, 2),
+    "utf-8"
+  );
 }
 
 export async function generateQuote(dataDir: string, input: GenerateQuoteInput): Promise<Quote> {

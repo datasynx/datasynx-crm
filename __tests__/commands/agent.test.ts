@@ -23,7 +23,10 @@ describe("runAgentSpawn", () => {
     const configPath = "/crm/.agentic/agents/acme-corp.agent.json";
     expect(vol.existsSync(configPath)).toBe(true);
 
-    const config = JSON.parse(vol.readFileSync(configPath, "utf-8") as string) as Record<string, unknown>;
+    const config = JSON.parse(vol.readFileSync(configPath, "utf-8") as string) as Record<
+      string,
+      unknown
+    >;
     expect(config["slug"]).toBe("acme-corp");
     expect(config["channel"]).toBe("telegram");
     expect(config["lastWake"]).toBeNull();

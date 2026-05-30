@@ -1,9 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { SequenceStepSchema, SequenceSchema, SequenceEnrollmentSchema } from "../../src/schemas/sequence.js";
+import {
+  SequenceStepSchema,
+  SequenceSchema,
+  SequenceEnrollmentSchema,
+} from "../../src/schemas/sequence.js";
 
 describe("SequenceStepSchema", () => {
   it("parses a valid step", () => {
-    const result = SequenceStepSchema.safeParse({ day: 3, templateId: "intro", skipIfReplied: true });
+    const result = SequenceStepSchema.safeParse({
+      day: 3,
+      templateId: "intro",
+      skipIfReplied: true,
+    });
     expect(result.success).toBe(true);
   });
 

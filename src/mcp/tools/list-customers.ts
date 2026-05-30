@@ -61,15 +61,10 @@ export async function handleListCustomers(
 
       const name = typeof data["name"] === "string" ? data["name"] : entry;
       const stage =
-        typeof data["relationship_stage"] === "string"
-          ? data["relationship_stage"]
-          : "unknown";
-      const dealValue =
-        typeof data["deal_value"] === "number" ? data["deal_value"] : undefined;
+        typeof data["relationship_stage"] === "string" ? data["relationship_stage"] : "unknown";
+      const dealValue = typeof data["deal_value"] === "number" ? data["deal_value"] : undefined;
 
-      const lastInteraction = extractLastInteractionDate(
-        path.join(customerDir, "interactions.md")
-      );
+      const lastInteraction = extractLastInteractionDate(path.join(customerDir, "interactions.md"));
 
       const summary: CustomerSummary = {
         slug: entry,
@@ -124,7 +119,6 @@ Returns: Array of { slug, name, stage, lastInteraction?, dealValue? }`,
           .describe("Substring filter on customer name or slug (case-insensitive)"),
       }),
     },
-    async ({ filter }) =>
-      handleListCustomers({ ...(filter !== undefined ? { filter } : {}) })
+    async ({ filter }) => handleListCustomers({ ...(filter !== undefined ? { filter } : {}) })
   );
 }

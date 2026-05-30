@@ -40,18 +40,9 @@ export function renderPipelineTable(deals: PipelineDeal[]): string {
 
   for (const deal of deals) {
     const valueStr =
-      deal.value !== undefined
-        ? `${deal.value.toLocaleString()} ${deal.currency}`
-        : "—";
+      deal.value !== undefined ? `${deal.value.toLocaleString()} ${deal.currency}` : "—";
     const probStr = deal.probability !== undefined ? `${deal.probability}%` : "—";
-    table.push([
-      deal.name,
-      deal.stage,
-      valueStr,
-      probStr,
-      deal.close_date ?? "—",
-      deal.updated,
-    ]);
+    table.push([deal.name, deal.stage, valueStr, probStr, deal.close_date ?? "—", deal.updated]);
   }
 
   return table.toString();

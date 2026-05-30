@@ -67,11 +67,23 @@ describe("create_playbook tool", () => {
     vol.fromJSON({});
     const { handleCreatePlaybook } = await import("../../../src/mcp/tools/create-playbook.js");
     await handleCreatePlaybook(
-      { slug: SLUG, name: "my-playbook", trigger: "no_champion", content: "# v1", successRate: 0.5 },
+      {
+        slug: SLUG,
+        name: "my-playbook",
+        trigger: "no_champion",
+        content: "# v1",
+        successRate: 0.5,
+      },
       DATA_DIR
     );
     const res = await handleCreatePlaybook(
-      { slug: SLUG, name: "my-playbook", trigger: "has_champion", content: "# v2", successRate: 0.9 },
+      {
+        slug: SLUG,
+        name: "my-playbook",
+        trigger: "has_champion",
+        content: "# v2",
+        successRate: 0.9,
+      },
       DATA_DIR
     );
     const data = JSON.parse(res.content[0]!.text);

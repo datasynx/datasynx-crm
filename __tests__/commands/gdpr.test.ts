@@ -158,7 +158,12 @@ describe("runGdprErase — with --confirm", () => {
     const { fs } = await import("memfs");
     expect(fs.existsSync("/crm/.agentic/gdpr-erasures.json")).toBe(true);
     const raw = fs.readFileSync("/crm/.agentic/gdpr-erasures.json", "utf-8") as string;
-    const records = JSON.parse(raw) as Array<{ slug: string; erasedAt: string; erasedBy: string; reason: string }>;
+    const records = JSON.parse(raw) as Array<{
+      slug: string;
+      erasedAt: string;
+      erasedBy: string;
+      reason: string;
+    }>;
     expect(records).toHaveLength(1);
     expect(records[0]!.slug).toBe("acme-corp");
     expect(records[0]!.reason).toMatch(/GDPR|Art\.?\s*17/i);
@@ -172,7 +177,12 @@ describe("runGdprErase — with --confirm", () => {
     // Pre-seed an existing erasures file
     vol.fromJSON({
       "/crm/.agentic/gdpr-erasures.json": JSON.stringify([
-        { slug: "old-corp", erasedAt: "2026-01-01T00:00:00.000Z", erasedBy: "system", reason: "GDPR Art. 17 request" },
+        {
+          slug: "old-corp",
+          erasedAt: "2026-01-01T00:00:00.000Z",
+          erasedBy: "system",
+          reason: "GDPR Art. 17 request",
+        },
       ]),
     });
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -232,8 +242,18 @@ describe("runGdprListErasures", () => {
   it("lists erasures from gdpr-erasures.json", async () => {
     vol.fromJSON({
       "/crm/.agentic/gdpr-erasures.json": JSON.stringify([
-        { slug: "acme-corp", erasedAt: "2026-05-01T10:00:00.000Z", erasedBy: "alice", reason: "GDPR Art. 17 request" },
-        { slug: "beta-inc", erasedAt: "2026-05-15T12:00:00.000Z", erasedBy: "bob", reason: "GDPR Art. 17 request" },
+        {
+          slug: "acme-corp",
+          erasedAt: "2026-05-01T10:00:00.000Z",
+          erasedBy: "alice",
+          reason: "GDPR Art. 17 request",
+        },
+        {
+          slug: "beta-inc",
+          erasedAt: "2026-05-15T12:00:00.000Z",
+          erasedBy: "bob",
+          reason: "GDPR Art. 17 request",
+        },
       ]),
     });
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -251,7 +271,12 @@ describe("runGdprListErasures", () => {
   it("shows count of erasures", async () => {
     vol.fromJSON({
       "/crm/.agentic/gdpr-erasures.json": JSON.stringify([
-        { slug: "acme-corp", erasedAt: "2026-05-01T10:00:00.000Z", erasedBy: "alice", reason: "GDPR Art. 17 request" },
+        {
+          slug: "acme-corp",
+          erasedAt: "2026-05-01T10:00:00.000Z",
+          erasedBy: "alice",
+          reason: "GDPR Art. 17 request",
+        },
       ]),
     });
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
@@ -333,7 +358,9 @@ describe("runGdprErase — .agentic/ cleanup", () => {
     await runGdprErase("acme", { confirm: true }, DATA_DIR);
 
     const fs = (await import("fs")).default;
-    const queue = JSON.parse(fs.readFileSync(`${DATA_DIR}/.agentic/agent-queue.json`, "utf-8") as string) as Array<{ slug: string }>;
+    const queue = JSON.parse(
+      fs.readFileSync(`${DATA_DIR}/.agentic/agent-queue.json`, "utf-8") as string
+    ) as Array<{ slug: string }>;
     expect(queue.every((t) => t.slug !== "acme")).toBe(true);
     expect(queue.some((t) => t.slug === "other-corp")).toBe(true);
   });
@@ -356,7 +383,9 @@ describe("runGdprErase — .agentic/ cleanup", () => {
     await runGdprErase("acme", { confirm: true }, DATA_DIR);
 
     const fs = (await import("fs")).default;
-    const queue = JSON.parse(fs.readFileSync(`${DATA_DIR}/.agentic/agent-queue.json`, "utf-8") as string) as unknown[];
+    const queue = JSON.parse(
+      fs.readFileSync(`${DATA_DIR}/.agentic/agent-queue.json`, "utf-8") as string
+    ) as unknown[];
     expect(queue).toHaveLength(2); // beta + no-slug task remain
   });
 
@@ -366,8 +395,24 @@ describe("runGdprErase — .agentic/ cleanup", () => {
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/push-subscriptions.json`]: JSON.stringify({
         subscriptions: [
-          { id: "sub1", slug: "acme", provider: "gmail", status: "active", topic: "t", expiration: "2027-01-01", createdAt: "2026-01-01" },
-          { id: "sub2", slug: "beta", provider: "gmail", status: "active", topic: "t", expiration: "2027-01-01", createdAt: "2026-01-01" },
+          {
+            id: "sub1",
+            slug: "acme",
+            provider: "gmail",
+            status: "active",
+            topic: "t",
+            expiration: "2027-01-01",
+            createdAt: "2026-01-01",
+          },
+          {
+            id: "sub2",
+            slug: "beta",
+            provider: "gmail",
+            status: "active",
+            topic: "t",
+            expiration: "2027-01-01",
+            createdAt: "2026-01-01",
+          },
         ],
         updatedAt: "2026-01-01",
       }),
@@ -380,7 +425,9 @@ describe("runGdprErase — .agentic/ cleanup", () => {
     await runGdprErase("acme", { confirm: true }, DATA_DIR);
 
     const fs = (await import("fs")).default;
-    const file = JSON.parse(fs.readFileSync(`${DATA_DIR}/.agentic/push-subscriptions.json`, "utf-8") as string) as { subscriptions: Array<{ slug: string }> };
+    const file = JSON.parse(
+      fs.readFileSync(`${DATA_DIR}/.agentic/push-subscriptions.json`, "utf-8") as string
+    ) as { subscriptions: Array<{ slug: string }> };
     const subs = file.subscriptions;
     expect(subs.every((s) => s.slug !== "acme")).toBe(true);
     expect(subs).toHaveLength(1);
@@ -403,8 +450,18 @@ describe("runGdprErase — .agentic/ cleanup", () => {
           updatedAt: "2026-01-01",
           decomposition: {
             subGoals: [
-              { slug: "acme", description: "Close Acme deal", weight: 0.6, targetContribution: 300000 },
-              { slug: "beta", description: "Close Beta deal", weight: 0.4, targetContribution: 200000 },
+              {
+                slug: "acme",
+                description: "Close Acme deal",
+                weight: 0.6,
+                targetContribution: 300000,
+              },
+              {
+                slug: "beta",
+                description: "Close Beta deal",
+                weight: 0.4,
+                targetContribution: 200000,
+              },
             ],
             priorityOrder: [],
             reasoning: "",
@@ -420,7 +477,9 @@ describe("runGdprErase — .agentic/ cleanup", () => {
     await runGdprErase("acme", { confirm: true }, DATA_DIR);
 
     const fs = (await import("fs")).default;
-    const file = JSON.parse(fs.readFileSync(`${DATA_DIR}/.agentic/goals.json`, "utf-8") as string) as { goals: Array<{ decomposition: { subGoals: Array<{ slug: string }> } }> };
+    const file = JSON.parse(
+      fs.readFileSync(`${DATA_DIR}/.agentic/goals.json`, "utf-8") as string
+    ) as { goals: Array<{ decomposition: { subGoals: Array<{ slug: string }> } }> };
     const goals = file.goals;
     expect(goals[0]!.decomposition.subGoals.every((sg) => sg.slug !== "acme")).toBe(true);
     expect(goals[0]!.decomposition.subGoals).toHaveLength(1);

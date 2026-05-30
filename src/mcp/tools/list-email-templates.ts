@@ -17,7 +17,8 @@ export function registerListEmailTemplates(server: McpServer, dataDir: string = 
   server.registerTool(
     "list_email_templates",
     {
-      description: "List available email templates. Optionally filter by category (e.g. 'outreach', 'followup', 'support').",
+      description:
+        "List available email templates. Optionally filter by category (e.g. 'outreach', 'followup', 'support').",
       inputSchema: z.object({
         category: z.string().optional().describe("Filter by category"),
       }),

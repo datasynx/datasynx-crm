@@ -241,9 +241,7 @@ describe("recognizeCustomer", () => {
 
     const longTranscript = "x".repeat(2000);
 
-    await recognizeCustomer(longTranscript, [
-      { slug: "acme-corp", name: "Acme Corp" },
-    ]);
+    await recognizeCustomer(longTranscript, [{ slug: "acme-corp", name: "Acme Corp" }]);
 
     const callArgs = mockCreate.mock.calls[0]?.[0] as Record<string, unknown>;
     const messages = callArgs?.["messages"] as Array<Record<string, unknown>>;

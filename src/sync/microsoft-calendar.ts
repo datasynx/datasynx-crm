@@ -30,7 +30,9 @@ interface GraphEventsResponse {
   "@odata.nextLink"?: string;
 }
 
-export async function syncMicrosoftCalendar(opts: CalendarSyncOptions): Promise<CalendarSyncResult> {
+export async function syncMicrosoftCalendar(
+  opts: CalendarSyncOptions
+): Promise<CalendarSyncResult> {
   const result: CalendarSyncResult = { synced: 0, skipped: 0, errors: [] };
   const since = opts.since ?? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const until = new Date();
@@ -42,7 +44,8 @@ export async function syncMicrosoftCalendar(opts: CalendarSyncOptions): Promise<
   const { readInteractions } = await import("../fs/interactions-writer.js");
   const existing = await readInteractions(opts.dataDir, opts.slug).catch(() => "");
 
-  let url: string | undefined = `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${startStr}&endDateTime=${endStr}&$top=${top}&$select=id,subject,bodyPreview,start,end,attendees,organizer`;
+  let url: string | undefined =
+    `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${startStr}&endDateTime=${endStr}&$top=${top}&$select=id,subject,bodyPreview,start,end,attendees,organizer`;
 
   while (url) {
     let events: GraphEvent[];
@@ -79,9 +82,7 @@ export async function syncMicrosoftCalendar(opts: CalendarSyncOptions): Promise<
         .join(", ");
 
       const organizer =
-        event.organizer?.emailAddress?.name ??
-        event.organizer?.emailAddress?.address ??
-        "unknown";
+        event.organizer?.emailAddress?.name ?? event.organizer?.emailAddress?.address ?? "unknown";
 
       try {
         await appendInteraction(opts.dataDir, opts.slug, {

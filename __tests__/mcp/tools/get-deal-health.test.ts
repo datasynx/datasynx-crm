@@ -44,7 +44,13 @@ describe("get_deal_health tool", () => {
     const result = await handleGetDealHealth({ slug: "acme-corp" }, "/data");
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       slug: string;
-      deals: Array<{ deal: string; stage: string; score: number; grade: string; warnings: string[] }>;
+      deals: Array<{
+        deal: string;
+        stage: string;
+        score: number;
+        grade: string;
+        warnings: string[];
+      }>;
     };
 
     expect(parsed.deals).toHaveLength(1);
@@ -98,10 +104,14 @@ describe("get_deal_health tool", () => {
     const staleResult = await handleGetDealHealth({ slug: "acme-corp" }, "/data");
     const freshResult = await handleGetDealHealth({ slug: "acme-corp" }, "/data");
 
-    const staleParsed = JSON.parse((staleResult.content[0] as { type: string; text: string }).text) as {
+    const staleParsed = JSON.parse(
+      (staleResult.content[0] as { type: string; text: string }).text
+    ) as {
       deals: Array<{ score: number }>;
     };
-    const freshParsed = JSON.parse((freshResult.content[0] as { type: string; text: string }).text) as {
+    const freshParsed = JSON.parse(
+      (freshResult.content[0] as { type: string; text: string }).text
+    ) as {
       deals: Array<{ score: number }>;
     };
 

@@ -20,14 +20,19 @@ export async function handleListSequenceEnrollments(
   }
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({ enrollments }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify({ enrollments }, null, 2),
+      },
+    ],
   };
 }
 
-export function registerListSequenceEnrollments(server: McpServer, dataDir: string = DATA_DIR): void {
+export function registerListSequenceEnrollments(
+  server: McpServer,
+  dataDir: string = DATA_DIR
+): void {
   server.registerTool(
     "list_sequence_enrollments",
     {
@@ -35,7 +40,10 @@ export function registerListSequenceEnrollments(server: McpServer, dataDir: stri
 Returns: { enrollments: SequenceEnrollment[] }`,
       inputSchema: z.object({
         slug: z.string().optional().describe("Filter by customer slug"),
-        status: z.enum(["active", "paused", "completed"]).optional().describe("Filter by enrollment status"),
+        status: z
+          .enum(["active", "paused", "completed"])
+          .optional()
+          .describe("Filter by enrollment status"),
       }),
     },
     ({ slug, status }) =>

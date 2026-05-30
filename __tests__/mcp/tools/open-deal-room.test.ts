@@ -18,7 +18,10 @@ describe("handleOpenDealRoom", () => {
   it("returns slug and dealName", async () => {
     vol.fromJSON({});
     const { handleOpenDealRoom } = await import("../../../src/mcp/tools/open-deal-room.js");
-    const result = await handleOpenDealRoom({ slug: SLUG, dealName: "Enterprise License" }, DATA_DIR);
+    const result = await handleOpenDealRoom(
+      { slug: SLUG, dealName: "Enterprise License" },
+      DATA_DIR
+    );
     const parsed = parseResult(result);
     expect(parsed["slug"]).toBe(SLUG);
     expect(parsed["dealName"]).toBe("Enterprise License");
@@ -45,7 +48,7 @@ describe("handleOpenDealRoom", () => {
     const { handleOpenDealRoom } = await import("../../../src/mcp/tools/open-deal-room.js");
     const result = await handleOpenDealRoom({ slug: SLUG, dealName: "Test Deal" }, DATA_DIR);
     const parsed = parseResult(result);
-    expect((parsed["executiveSummary"] as string)).toContain(SLUG);
+    expect(parsed["executiveSummary"] as string).toContain(SLUG);
   });
 
   it("revenueSimulation object has p50, p10, p90", async () => {

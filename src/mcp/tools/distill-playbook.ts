@@ -14,33 +14,45 @@ export async function handleDistillPlaybook(
     const result = await distillPlaybook(dataDir, input.slug, input.dealName, input.outcome, llmFn);
 
     if (!result.ok) {
-      const error = result.errorKind === "no_interactions"
-        ? `No interactions.md found for ${input.slug}`
-        : "LLM response could not be parsed as playbook";
+      const error =
+        result.errorKind === "no_interactions"
+          ? `No interactions.md found for ${input.slug}`
+          : "LLM response could not be parsed as playbook";
       return {
         content: [{ type: "text", text: JSON.stringify({ success: false, error }, null, 2) }],
       };
     }
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          success: true,
-          playbook: {
-            name: result.playbook.name,
-            trigger: result.playbook.frontmatter.trigger,
-            successRate: result.playbook.frontmatter.successRate,
-            usedCount: result.playbook.frontmatter.usedCount,
-            path: result.playbook.path,
-          },
-          reasoning: result.reasoning,
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              success: true,
+              playbook: {
+                name: result.playbook.name,
+                trigger: result.playbook.frontmatter.trigger,
+                successRate: result.playbook.frontmatter.successRate,
+                usedCount: result.playbook.frontmatter.usedCount,
+                path: result.playbook.path,
+              },
+              reasoning: result.reasoning,
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -66,6 +78,7 @@ Returns: { success: true, playbook: { name, trigger, successRate, path }, reason
         outcome: z.enum(["won", "lost"]).describe("Deal outcome"),
       }),
     },
-    async ({ slug, dealName, outcome }) => handleDistillPlaybook({ slug, dealName, outcome }, DATA_DIR)
+    async ({ slug, dealName, outcome }) =>
+      handleDistillPlaybook({ slug, dealName, outcome }, DATA_DIR)
   );
 }

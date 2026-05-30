@@ -20,7 +20,9 @@ export async function handleCreateKbArticle(
   const existing = getKbArticle(dataDir, input.id);
   if (existing) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ error: `Article '${input.id}' already exists` }) }],
+      content: [
+        { type: "text", text: JSON.stringify({ error: `Article '${input.id}' already exists` }) },
+      ],
     };
   }
 
@@ -40,15 +42,21 @@ export async function handleCreateKbArticle(
   writeKbArticle(dataDir, article);
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({
-        id: article.id,
-        title: article.title,
-        category: article.category,
-        path: `.agentic/knowledge-base/${article.category}/${article.id}.md`,
-      }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          {
+            id: article.id,
+            title: article.title,
+            category: article.category,
+            path: `.agentic/knowledge-base/${article.category}/${article.id}.md`,
+          },
+          null,
+          2
+        ),
+      },
+    ],
   };
 }
 
@@ -64,7 +72,10 @@ Returns: { id, title, category, path }`,
         body: z.string().min(1).describe("Article body in Markdown"),
         category: z.string().optional().describe("Category (default: 'general')"),
         tags: z.array(z.string()).optional().describe("Tags for search"),
-        public: z.boolean().optional().describe("Make article publicly accessible (default: false)"),
+        public: z
+          .boolean()
+          .optional()
+          .describe("Make article publicly accessible (default: false)"),
         sourceTicketId: z.string().optional().describe("Ticket ID this article was created from"),
       }),
     },

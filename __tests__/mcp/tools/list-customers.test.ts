@@ -128,7 +128,9 @@ describe("list_customers — RBAC can_see", () => {
     process.env["DXCRM_ACTOR"] = "carol";
 
     const result = await handleListCustomers({}, "/data");
-    const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as Array<{
+      slug: string;
+    }>;
     expect(parsed).toHaveLength(1);
     expect(parsed[0]!.slug).toBe("acme-corp");
   });
@@ -142,7 +144,9 @@ describe("list_customers — RBAC can_see", () => {
     process.env["DXCRM_ACTOR"] = "alice";
 
     const result = await handleListCustomers({}, "/data");
-    const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as Array<{
+      slug: string;
+    }>;
     expect(parsed).toHaveLength(2);
   });
 
@@ -153,7 +157,9 @@ describe("list_customers — RBAC can_see", () => {
     });
 
     const result = await handleListCustomers({}, "/data");
-    const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as Array<{
+      slug: string;
+    }>;
     expect(parsed).toHaveLength(2);
   });
 });

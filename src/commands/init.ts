@@ -7,7 +7,10 @@ import { success, error, info, bold } from "../ui/colors.js";
 
 export const initCommand = new Command("init")
   .description("Initialize CRM and configure AI frameworks")
-  .option("--team <url>", "Team mode: configure frameworks to connect to shared HTTP server at this URL (e.g. http://vm-ip:3847/mcp)")
+  .option(
+    "--team <url>",
+    "Team mode: configure frameworks to connect to shared HTTP server at this URL (e.g. http://vm-ip:3847/mcp)"
+  )
   .action(async (opts: { team?: string }) => {
     const dataDir = process.cwd();
 
@@ -79,7 +82,16 @@ export const initCommand = new Command("init")
                 name: { type: "string" },
                 relationship_stage: {
                   type: "string",
-                  enum: ["lead", "qualified", "discovery", "proposal", "negotiation", "active", "churned", "closed"],
+                  enum: [
+                    "lead",
+                    "qualified",
+                    "discovery",
+                    "proposal",
+                    "negotiation",
+                    "active",
+                    "churned",
+                    "closed",
+                  ],
                 },
                 domain: { type: "string" },
                 email: { type: "string", format: "email" },
@@ -122,9 +134,7 @@ export const initCommand = new Command("init")
 
     if (results.length === 0) {
       console.log(
-        info(
-          "  No AI frameworks detected. Configure manually: dxcrm guide --framework <name>"
-        )
+        info("  No AI frameworks detected. Configure manually: dxcrm guide --framework <name>")
       );
     } else {
       for (const r of results) {

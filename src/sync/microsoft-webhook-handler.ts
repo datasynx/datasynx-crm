@@ -38,7 +38,10 @@ export interface GraphMessage {
   bodyPreview?: string;
 }
 
-export type FetchGraphMessageFn = (accessToken: string, messageId: string) => Promise<GraphMessage | null>;
+export type FetchGraphMessageFn = (
+  accessToken: string,
+  messageId: string
+) => Promise<GraphMessage | null>;
 export type AppendInteractionFn = typeof appendInteraction;
 
 export interface HandleMicrosoftPushOptions {
@@ -52,10 +55,14 @@ function findSubscriptionByMsId(
   subs: PushSubscription[],
   subscriptionId: string
 ): PushSubscription | null {
-  return subs.find(
-    (s) => s.provider === "microsoft-graph" && s.status === "active" &&
-      s.providerData.microsoftSubscriptionId === subscriptionId
-  ) ?? null;
+  return (
+    subs.find(
+      (s) =>
+        s.provider === "microsoft-graph" &&
+        s.status === "active" &&
+        s.providerData.microsoftSubscriptionId === subscriptionId
+    ) ?? null
+  );
 }
 
 export async function handleMicrosoftPushEvent(
@@ -73,14 +80,23 @@ export async function handleMicrosoftPushEvent(
 
   for (const notification of notifications) {
     const sub = findSubscriptionByMsId(subs, notification.subscriptionId);
-    if (!sub) { skipped++; continue; }
+    if (!sub) {
+      skipped++;
+      continue;
+    }
 
     const messageId = notification.resourceData?.id;
-    if (!messageId || !fetchMessageFn) { skipped++; continue; }
+    if (!messageId || !fetchMessageFn) {
+      skipped++;
+      continue;
+    }
 
     try {
       const message = await fetchMessageFn(accessToken, messageId);
-      if (!message) { skipped++; continue; }
+      if (!message) {
+        skipped++;
+        continue;
+      }
 
       const from = message.from?.emailAddress?.address ?? "unknown";
       const sourceRef = `msgraph://message/${message.id}`;

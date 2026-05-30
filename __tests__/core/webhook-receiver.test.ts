@@ -107,12 +107,16 @@ describe("WebhookQueue", () => {
     const slowHandler = {
       provider: "slow",
       handle: async (_payload: unknown) => {
-        await new Promise<void>((r) => { resolveFirst = r; });
+        await new Promise<void>((r) => {
+          resolveFirst = r;
+        });
       },
     };
     const fastHandler = {
       provider: "fast",
-      handle: async (_payload: unknown) => { /* no-op */ },
+      handle: async (_payload: unknown) => {
+        /* no-op */
+      },
     };
     queue.enqueue(slowHandler, {});
     queue.enqueue(fastHandler, {});

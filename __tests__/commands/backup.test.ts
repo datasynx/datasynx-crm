@@ -71,7 +71,9 @@ describe("runBackup", () => {
     vol.fromJSON({ "/crm/customers/acme-corp/main_facts.md": "# Acme" });
 
     const { execSync } = await import("child_process");
-    vi.mocked(execSync).mockImplementation(() => { throw new Error("zip not found"); });
+    vi.mocked(execSync).mockImplementation(() => {
+      throw new Error("zip not found");
+    });
 
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
@@ -110,7 +112,9 @@ describe("runRestore", () => {
     vol.fromJSON({});
 
     const { execSync } = await import("child_process");
-    vi.mocked(execSync).mockImplementation(() => { throw new Error("unzip not found"); });
+    vi.mocked(execSync).mockImplementation(() => {
+      throw new Error("unzip not found");
+    });
 
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
@@ -119,7 +123,9 @@ describe("runRestore", () => {
 
     const { runRestore } = await import("../../src/commands/backup.js");
 
-    await expect(runRestore("/backups/dxcrm-backup.zip", "/crm")).rejects.toThrow("process.exit called");
+    await expect(runRestore("/backups/dxcrm-backup.zip", "/crm")).rejects.toThrow(
+      "process.exit called"
+    );
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("Restore failed"));
 
     errorSpy.mockRestore();
@@ -132,8 +138,16 @@ describe("runRestore", () => {
 describe("readBackupLog", () => {
   it("returns entries from backup-log.json", async () => {
     const entries = [
-      { filename: "b.zip", path: "/crm/b.zip", createdAt: "2026-05-01T00:00:00Z",
-        sizeBytes: 1024, verified: true, encrypted: false, customerCount: 5, fileCount: 50 },
+      {
+        filename: "b.zip",
+        path: "/crm/b.zip",
+        createdAt: "2026-05-01T00:00:00Z",
+        sizeBytes: 1024,
+        verified: true,
+        encrypted: false,
+        customerCount: 5,
+        fileCount: 50,
+      },
     ];
     vol.fromJSON({ "/crm/.agentic/backup-log.json": JSON.stringify(entries) });
     const { readBackupLog } = await import("../../src/commands/backup.js");
@@ -251,7 +265,9 @@ describe("verifyBackupFile", () => {
   it("returns false when unzip -t throws", async () => {
     vol.fromJSON({ "/crm/backup.zip": "data" });
     const { execSync } = await import("child_process");
-    vi.mocked(execSync).mockImplementation(() => { throw new Error("bad zip"); });
+    vi.mocked(execSync).mockImplementation(() => {
+      throw new Error("bad zip");
+    });
     const { verifyBackupFile } = await import("../../src/commands/backup.js");
     expect(verifyBackupFile("/crm/backup.zip")).toBe(false);
   });
@@ -272,7 +288,8 @@ describe("uploadBackup", () => {
     const { uploadBackup } = await import("../../src/commands/backup.js");
     await uploadBackup("/crm/backup.zip", "s3://my-bucket/backups/");
     expect(vi.mocked(execSync)).toHaveBeenCalledWith(
-      expect.stringContaining("aws s3 cp"), expect.anything()
+      expect.stringContaining("aws s3 cp"),
+      expect.anything()
     );
     consoleSpy.mockRestore();
   });
@@ -285,7 +302,8 @@ describe("uploadBackup", () => {
     const { uploadBackup } = await import("../../src/commands/backup.js");
     await uploadBackup("/crm/backup.zip", "rsync://host:/backups/");
     expect(vi.mocked(execSync)).toHaveBeenCalledWith(
-      expect.stringContaining("rsync"), expect.anything()
+      expect.stringContaining("rsync"),
+      expect.anything()
     );
     consoleSpy.mockRestore();
   });

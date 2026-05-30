@@ -1,7 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-beforeEach(() => { vol.reset(); vi.resetModules(); });
+beforeEach(() => {
+  vol.reset();
+  vi.resetModules();
+});
 
 describe("parseCSVSync", () => {
   it("parses header row and data rows", async () => {

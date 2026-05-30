@@ -19,7 +19,7 @@ async function syncWithBackoff(fn: () => Promise<void>, maxRetries = 3): Promise
       if (msg.includes("429") || msg.includes("rateLimitExceeded")) {
         const delay = Math.pow(2, attempt) * 2000; // 2s, 4s, 8s
         process.stderr.write(`[daemon] Rate limit, retrying in ${delay}ms\n`);
-        await new Promise(r => setTimeout(r, delay));
+        await new Promise((r) => setTimeout(r, delay));
       } else {
         throw err;
       }
@@ -32,7 +32,11 @@ async function syncAllCustomers(): Promise<void> {
   if (!fs.existsSync(customersDir)) return;
 
   const slugs = fs.readdirSync(customersDir).filter((s) => {
-    try { return fs.statSync(path.join(customersDir, s)).isDirectory(); } catch { return false; }
+    try {
+      return fs.statSync(path.join(customersDir, s)).isDirectory();
+    } catch {
+      return false;
+    }
   });
 
   const slugsToSync = slugs.slice(0, MAX_CUSTOMERS_PER_CYCLE);
@@ -88,7 +92,8 @@ async function startWatcher(): Promise<void> {
     };
 
     if (sources.transcripts?.enabled && sources.transcripts.paths?.length) {
-      const { watchTranscripts, processTranscriptFileAutoMatch } = await import("../sync/transcript-watcher.js");
+      const { watchTranscripts, processTranscriptFileAutoMatch } =
+        await import("../sync/transcript-watcher.js");
       watchTranscripts({
         paths: sources.transcripts.paths,
         extensions: sources.transcripts.extensions ?? [".txt", ".vtt"],
@@ -149,8 +154,17 @@ async function checkAgentWakeTriggers(): Promise<void> {
           await new Promise<void>((resolve, reject) => {
             const req = https.request(
               `https://api.telegram.org/bot${token}/sendMessage`,
-              { method: "POST", headers: { "Content-Type": "application/json", "Content-Length": Buffer.byteLength(body) } },
-              (res) => { res.resume(); resolve(); }
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Content-Length": Buffer.byteLength(body),
+                },
+              },
+              (res) => {
+                res.resume();
+                resolve();
+              }
             );
             req.on("error", reject);
             req.write(body);
@@ -172,7 +186,10 @@ async function checkAgentWakeTriggers(): Promise<void> {
 }
 
 // Gmail sync — interval configurable via DXCRM_DAEMON_INTERVAL (minutes, default 30)
-const daemonIntervalMin = Math.max(1, parseInt(process.env["DXCRM_DAEMON_INTERVAL"] ?? "30", 10) || 30);
+const daemonIntervalMin = Math.max(
+  1,
+  parseInt(process.env["DXCRM_DAEMON_INTERVAL"] ?? "30", 10) || 30
+);
 new CronJob(
   `*/${daemonIntervalMin} * * * *`,
   async () => {
@@ -188,7 +205,7 @@ new CronJob(
   false,
   undefined,
   false, // unrefTimeout — keep event loop alive
-  true   // waitForCompletion
+  true // waitForCompletion
 );
 
 // Scheduled backup check — hourly, runs backup if >1 day since last
@@ -209,7 +226,7 @@ new CronJob(
   false,
   undefined,
   false, // unrefTimeout — keep event loop alive
-  true   // waitForCompletion
+  true // waitForCompletion
 );
 
 // Daily push subscription renewal at 06:00
@@ -228,7 +245,7 @@ new CronJob(
       if (!fs.existsSync(tokenPath) || !fs.existsSync(credPath)) return;
       const { getGmailAuth } = await import("../sync/gmail-auth.js");
       const auth = await getGmailAuth(credPath, tokenPath);
-      const token = (auth.credentials?.access_token) as string | undefined ?? "";
+      const token = (auth.credentials?.access_token as string | undefined) ?? "";
       const result = await renewExpiringSubscriptions(DATA_DIR, buildGmailRenewFn(token, ""), 24);
       if (result.renewed.length > 0) {
         process.stderr.write(`[push] Renewed ${result.renewed.length} subscription(s)\n`);
@@ -247,7 +264,7 @@ new CronJob(
   false,
   undefined,
   false, // unrefTimeout — keep event loop alive
-  true   // waitForCompletion
+  true // waitForCompletion
 );
 
 // Daily proactive checks at 07:00 — relationship decay, deal risk, daily briefing
@@ -265,7 +282,9 @@ new CronJob(
       }
       const { drainProactiveQueue } = await import("../core/notification-dispatcher.js");
       const drain = await drainProactiveQueue(DATA_DIR);
-      process.stderr.write(`[proactive] Dispatched ${drain.sent} task(s), ${drain.failed} failed\n`);
+      process.stderr.write(
+        `[proactive] Dispatched ${drain.sent} task(s), ${drain.failed} failed\n`
+      );
       const { syncGoalProgressFromPipeline } = await import("../core/goal-engine.js");
       const goalSync = await syncGoalProgressFromPipeline(DATA_DIR);
       if (goalSync.updated.length > 0) {
@@ -282,7 +301,7 @@ new CronJob(
   false,
   undefined,
   false, // unrefTimeout — keep event loop alive
-  true   // waitForCompletion
+  true // waitForCompletion
 );
 
 // SLA breach check — daily at 08:00
@@ -296,7 +315,9 @@ new CronJob(
       if (breaches.length > 0) {
         process.stderr.write(`[tickets] ${breaches.length} SLA breach(es) found\n`);
         for (const { slug, ticket } of breaches) {
-          process.stderr.write(`[tickets] SLA breach: ${slug}/${ticket.id} "${ticket.title}" due ${ticket.slaDue}\n`);
+          process.stderr.write(
+            `[tickets] SLA breach: ${slug}/${ticket.id} "${ticket.title}" due ${ticket.slaDue}\n`
+          );
         }
       }
     } catch (err) {
@@ -310,7 +331,7 @@ new CronJob(
   false,
   undefined,
   false, // unrefTimeout — keep event loop alive
-  true   // waitForCompletion
+  true // waitForCompletion
 );
 
 // Email sequence cycle — every 6 hours
@@ -321,7 +342,9 @@ new CronJob(
       const { runSequenceCycle } = await import("../core/sequence-engine.js");
       const today = new Date().toISOString().slice(0, 10);
       const result = await runSequenceCycle(DATA_DIR, today);
-      process.stderr.write(`[sequences] ${result.sent} sent, ${result.completed} completed, ${result.errors.length} errors\n`);
+      process.stderr.write(
+        `[sequences] ${result.sent} sent, ${result.completed} completed, ${result.errors.length} errors\n`
+      );
     } catch (err) {
       process.stderr.write(`[sequences] cycle failed: ${(err as Error).message}\n`);
     }
@@ -333,7 +356,7 @@ new CronJob(
   false,
   undefined,
   false, // unrefTimeout — keep event loop alive
-  true   // waitForCompletion
+  true // waitForCompletion
 );
 
 await startWatcher();

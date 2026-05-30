@@ -2,7 +2,11 @@ import { buildStakeholderMap, type StakeholderMap } from "../core/org-intelligen
 import { readHealth } from "../core/relationship-health.js";
 import { readPipeline } from "../fs/pipeline-writer.js";
 import { scoreDeal } from "../core/deal-health.js";
-import { buildSimulationInput, runSimulation, type SimulationResult } from "../core/revenue-simulation.js";
+import {
+  buildSimulationInput,
+  runSimulation,
+  type SimulationResult,
+} from "../core/revenue-simulation.js";
 import { listPlaybooks, matchPlaybooks, type PlaybookMatch } from "../core/playbooks.js";
 import type { DealHealthScore } from "../core/deal-health.js";
 import type { ContactHealth } from "../core/relationship-health.js";
@@ -75,7 +79,13 @@ export async function buildDealRoom(
         ...(daysToClose !== undefined ? { daysToClose } : {}),
         ...(deal.probability !== undefined ? { probability: deal.probability } : {}),
       });
-      return { deal: deal.name, stage: deal.stage, score: scored.score, grade: scored.grade, warnings: scored.warnings };
+      return {
+        deal: deal.name,
+        stage: deal.stage,
+        score: scored.score,
+        grade: scored.grade,
+        warnings: scored.warnings,
+      };
     });
 
   // Playbook matching — use the first active deal as context
@@ -105,9 +115,20 @@ export async function buildDealRoom(
     recommendedPlaybook = matches[0] ?? null;
   }
 
-  const riskScore = computeRiskScore(stakeholders.missingRoles, dealHealth, health?.overallHealth ?? 100);
+  const riskScore = computeRiskScore(
+    stakeholders.missingRoles,
+    dealHealth,
+    health?.overallHealth ?? 100
+  );
   const topPriorities = buildTopPriorities(stakeholders, dealHealth);
-  const executiveSummary = buildExecutiveSummary(slug, dealName, stakeholders, health?.overallHealth ?? 100, simResult, riskScore);
+  const executiveSummary = buildExecutiveSummary(
+    slug,
+    dealName,
+    stakeholders,
+    health?.overallHealth ?? 100,
+    simResult,
+    riskScore
+  );
 
   return {
     slug,
@@ -144,9 +165,7 @@ function computeRiskScore(
   }
 
   const avgDealScore =
-    dealHealth.length > 0
-      ? dealHealth.reduce((s, d) => s + d.score, 0) / dealHealth.length
-      : 100;
+    dealHealth.length > 0 ? dealHealth.reduce((s, d) => s + d.score, 0) / dealHealth.length : 100;
   risk += Math.round((100 - avgDealScore) * 0.3);
 
   risk += Math.round((100 - overallHealth) * 0.2);
@@ -154,10 +173,7 @@ function computeRiskScore(
   return Math.min(100, Math.max(0, risk));
 }
 
-function buildTopPriorities(
-  stakeholders: StakeholderMap,
-  dealHealth: DealHealthEntry[]
-): string[] {
+function buildTopPriorities(stakeholders: StakeholderMap, dealHealth: DealHealthEntry[]): string[] {
   const priorities: string[] = [];
 
   for (const mr of stakeholders.missingRoles) {
@@ -172,7 +188,9 @@ function buildTopPriorities(
   const atRiskDeals = dealHealth.filter((d) => d.score < 50);
   const showCount = Math.min(3, atRiskDeals.length);
   for (const d of atRiskDeals.slice(0, showCount)) {
-    priorities.push(`Rescue deal "${d.deal}" (health ${d.score}/100): ${d.warnings[0] ?? "at risk"}`);
+    priorities.push(
+      `Rescue deal "${d.deal}" (health ${d.score}/100): ${d.warnings[0] ?? "at risk"}`
+    );
   }
   if (atRiskDeals.length > showCount) {
     priorities.push(`+${atRiskDeals.length - showCount} more at-risk deal(s) need attention.`);
@@ -208,7 +226,9 @@ function buildExecutiveSummary(
     parts.push(`Pipeline P50 forecast: €${(sim.p50 / 1000).toFixed(1)}k.`);
   }
   if (missingCritical > 0) {
-    parts.push(`Critical gaps: ${missingCritical} key role(s) unidentified — risk score ${riskScore}/100.`);
+    parts.push(
+      `Critical gaps: ${missingCritical} key role(s) unidentified — risk score ${riskScore}/100.`
+    );
   } else {
     parts.push(`Overall risk score: ${riskScore}/100.`);
   }

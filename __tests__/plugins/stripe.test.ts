@@ -116,11 +116,7 @@ describe("handleGetStripeContext", () => {
     }));
 
     const { handleGetStripeContext } = await import("../../src/plugins/stripe.js");
-    const result = await handleGetStripeContext(
-      { slug: "acme-corp" },
-      "/data",
-      STRIPE_TOKEN
-    );
+    const result = await handleGetStripeContext({ slug: "acme-corp" }, "/data", STRIPE_TOKEN);
     const parsed = JSON.parse((result.content[0] as { type: string; text: string }).text) as {
       success: boolean;
       error: string;

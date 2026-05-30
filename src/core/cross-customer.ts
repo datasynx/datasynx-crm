@@ -17,9 +17,9 @@ export async function searchAcrossCustomers(
   const customersDir = path.join(dataDir, "customers");
   if (!fs.existsSync(customersDir)) return [];
 
-  const slugs = fs.readdirSync(customersDir).filter(
-    (d) => d !== excludeSlug && fs.statSync(path.join(customersDir, d)).isDirectory()
-  );
+  const slugs = fs
+    .readdirSync(customersDir)
+    .filter((d) => d !== excludeSlug && fs.statSync(path.join(customersDir, d)).isDirectory());
 
   const allResults: CrossCustomerResult[] = [];
 

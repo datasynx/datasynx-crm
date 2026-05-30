@@ -14,7 +14,14 @@ export async function handleUpdateTicket(
 
   if (!ticket) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ error: `Ticket '${input.ticketId}' not found for customer '${input.slug}'` }) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            error: `Ticket '${input.ticketId}' not found for customer '${input.slug}'`,
+          }),
+        },
+      ],
     };
   }
 

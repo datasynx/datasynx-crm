@@ -3,16 +3,27 @@ import { QuoteSchema, QuoteLineItemSchema } from "../../src/schemas/quote.js";
 
 describe("QuoteLineItemSchema", () => {
   it("accepts valid line item", () => {
-    const result = QuoteLineItemSchema.safeParse({ description: "Consulting", quantity: 2, unitPrice: 500, total: 1000 });
+    const result = QuoteLineItemSchema.safeParse({
+      description: "Consulting",
+      quantity: 2,
+      unitPrice: 500,
+      total: 1000,
+    });
     expect(result.success).toBe(true);
   });
 
   it("rejects zero quantity", () => {
-    expect(QuoteLineItemSchema.safeParse({ description: "X", quantity: 0, unitPrice: 100, total: 0 }).success).toBe(false);
+    expect(
+      QuoteLineItemSchema.safeParse({ description: "X", quantity: 0, unitPrice: 100, total: 0 })
+        .success
+    ).toBe(false);
   });
 
   it("rejects empty description", () => {
-    expect(QuoteLineItemSchema.safeParse({ description: "", quantity: 1, unitPrice: 100, total: 100 }).success).toBe(false);
+    expect(
+      QuoteLineItemSchema.safeParse({ description: "", quantity: 1, unitPrice: 100, total: 100 })
+        .success
+    ).toBe(false);
   });
 });
 

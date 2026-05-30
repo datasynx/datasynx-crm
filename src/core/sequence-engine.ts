@@ -87,12 +87,16 @@ export async function processSequenceStep(
         body,
         isHtml: false,
       });
-      process.stderr.write(`[sequences] Sent step ${enrollment.currentStep} to ${enrollment.contactEmail}\n`);
+      process.stderr.write(
+        `[sequences] Sent step ${enrollment.currentStep} to ${enrollment.contactEmail}\n`
+      );
     } catch (err) {
       process.stderr.write(`[sequences] Send failed: ${(err as Error).message}\n`);
     }
   } else {
-    process.stderr.write(`[sequences] Gmail not configured, advancing step for ${enrollment.contactEmail}\n`);
+    process.stderr.write(
+      `[sequences] Gmail not configured, advancing step for ${enrollment.contactEmail}\n`
+    );
   }
 
   // Update enrollment
@@ -124,7 +128,9 @@ export async function runSequenceCycle(
     } catch (err) {
       const msg = `${enrollment.id}: ${(err as Error).message}`;
       errors.push(msg);
-      process.stderr.write(`[sequences] Error processing ${enrollment.id}: ${(err as Error).message}\n`);
+      process.stderr.write(
+        `[sequences] Error processing ${enrollment.id}: ${(err as Error).message}\n`
+      );
     }
   }
 

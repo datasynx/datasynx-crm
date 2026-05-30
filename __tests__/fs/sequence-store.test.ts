@@ -1,8 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { vol } from "memfs";
 
-vi.mock("fs", async () => { const { fs } = await import("memfs"); return { default: fs, ...fs }; });
-vi.mock("@lancedb/lancedb", () => ({ connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }) }));
+vi.mock("fs", async () => {
+  const { fs } = await import("memfs");
+  return { default: fs, ...fs };
+});
+vi.mock("@lancedb/lancedb", () => ({
+  connect: vi.fn().mockResolvedValue({ tableNames: vi.fn().mockResolvedValue([]) }),
+}));
 
 const DATA_DIR = "/data";
 
@@ -19,7 +24,10 @@ createdAt: '2026-05-29T00:00:00.000Z'
 `;
 
 describe("listSequences", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("returns empty array when directory absent", async () => {
     vol.fromJSON({});
@@ -44,7 +52,10 @@ describe("listSequences", () => {
 });
 
 describe("getSequence", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("returns null for missing id", async () => {
     vol.fromJSON({});
@@ -61,7 +72,10 @@ describe("getSequence", () => {
 });
 
 describe("writeSequence / readEnrollments / writeEnrollment / updateEnrollment", () => {
-  beforeEach(() => { vol.reset(); vi.resetModules(); });
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+  });
 
   it("writes and reads back a sequence", async () => {
     vol.fromJSON({});
@@ -95,7 +109,8 @@ describe("writeSequence / readEnrollments / writeEnrollment / updateEnrollment",
 
   it("updateEnrollment modifies existing enrollment", async () => {
     vol.fromJSON({});
-    const { writeEnrollment, updateEnrollment, readEnrollments } = await import("../../src/fs/sequence-store.js");
+    const { writeEnrollment, updateEnrollment, readEnrollments } =
+      await import("../../src/fs/sequence-store.js");
     const e = {
       id: "e1",
       sequenceId: "outreach",

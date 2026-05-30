@@ -95,7 +95,11 @@ describe("runPipedriveApiImport", () => {
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { runPipedriveApiImport } = await import("../../src/commands/import.js");
 
-    await runPipedriveApiImport({ url: "https://myco.pipedrive.com", token: "tok_test", dataDir: "/crm" });
+    await runPipedriveApiImport({
+      url: "https://myco.pipedrive.com",
+      token: "tok_test",
+      dataDir: "/crm",
+    });
 
     const call = vi.mocked(appendInteraction).mock.calls[0];
     const entry = call![2] as { sourceRef: string };
@@ -113,7 +117,11 @@ describe("runPipedriveApiImport", () => {
     const { appendInteraction } = await import("../../src/fs/interactions-writer.js");
     const { runPipedriveApiImport } = await import("../../src/commands/import.js");
 
-    const result = await runPipedriveApiImport({ url: "https://myco.pipedrive.com", token: "tok_test", dataDir: "/crm" });
+    const result = await runPipedriveApiImport({
+      url: "https://myco.pipedrive.com",
+      token: "tok_test",
+      dataDir: "/crm",
+    });
 
     expect(result.interactionsImported).toBe(0);
     expect(vi.mocked(appendInteraction)).not.toHaveBeenCalled();
@@ -124,7 +132,11 @@ describe("runPipedriveApiImport", () => {
 
     const { runPipedriveApiImport } = await import("../../src/commands/import.js");
 
-    const result = await runPipedriveApiImport({ url: "https://myco.pipedrive.com", token: "bad", dataDir: "/crm" });
+    const result = await runPipedriveApiImport({
+      url: "https://myco.pipedrive.com",
+      token: "bad",
+      dataDir: "/crm",
+    });
 
     expect(result.errors.length).toBeGreaterThan(0);
     expect(result.errors[0]).toMatch(/401|Unauthorized/);

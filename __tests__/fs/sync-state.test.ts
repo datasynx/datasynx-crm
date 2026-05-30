@@ -51,7 +51,9 @@ describe("writeSyncState", () => {
     vol.fromJSON({ [`${DATA_DIR}/.agentic/`]: null });
     const state = { "acme-corp": { lastGmailSync: "2026-05-26T12:00:00.000Z" } };
     writeSyncState(DATA_DIR, state);
-    const written = JSON.parse(vol.fs.readFileSync(SYNC_STATE_PATH, "utf-8") as string) as typeof state;
+    const written = JSON.parse(
+      vol.fs.readFileSync(SYNC_STATE_PATH, "utf-8") as string
+    ) as typeof state;
     expect(written["acme-corp"]?.lastGmailSync).toBe("2026-05-26T12:00:00.000Z");
   });
 });

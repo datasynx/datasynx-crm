@@ -7,14 +7,14 @@ export function templatesDir(dataDir: string): string {
   return path.join(dataDir, ".agentic", "templates");
 }
 
-function templatePath(dataDir: string, category: string, id: string): string {
-  return path.join(templatesDir(dataDir), category, `${id}.md`);
-}
-
 function parseTemplateFile(filePath: string, id: string): EmailTemplate | null {
   try {
     const raw = matter(fs.readFileSync(filePath, "utf-8"));
-    const result = EmailTemplateSchema.safeParse({ id, createdAt: new Date().toISOString(), ...raw.data });
+    const result = EmailTemplateSchema.safeParse({
+      id,
+      createdAt: new Date().toISOString(),
+      ...raw.data,
+    });
     if (!result.success) return null;
     return { ...result.data, body: raw.content.trim() };
   } catch {
@@ -28,7 +28,11 @@ export function listTemplates(dataDir: string, opts?: { category?: string }): Em
   const results: EmailTemplate[] = [];
 
   const categories = fs.readdirSync(base).filter((name) => {
-    try { return fs.statSync(path.join(base, name)).isDirectory(); } catch { return false; }
+    try {
+      return fs.statSync(path.join(base, name)).isDirectory();
+    } catch {
+      return false;
+    }
   });
 
   for (const cat of categories) {
@@ -51,7 +55,11 @@ export function getTemplate(dataDir: string, id: string): EmailTemplate | null {
   // Search all categories
   const categories = fs.existsSync(base)
     ? fs.readdirSync(base).filter((n) => {
-        try { return fs.statSync(path.join(base, n)).isDirectory(); } catch { return false; }
+        try {
+          return fs.statSync(path.join(base, n)).isDirectory();
+        } catch {
+          return false;
+        }
       })
     : [];
 
@@ -75,6 +83,9 @@ export function deleteTemplate(dataDir: string, id: string): boolean {
   const tmpl = getTemplate(dataDir, id);
   if (!tmpl) return false;
   const p = path.join(templatesDir(dataDir), tmpl.category, `${id}.md`);
-  if (fs.existsSync(p)) { fs.unlinkSync(p); return true; }
+  if (fs.existsSync(p)) {
+    fs.unlinkSync(p);
+    return true;
+  }
   return false;
 }

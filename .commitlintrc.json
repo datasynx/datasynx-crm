@@ -1,0 +1,15 @@
+{
+  "extends": ["@commitlint/config-conventional"],
+  "rules": {
+    "subject-max-length": [2, "always", 72],
+    "scope-enum": [
+      1,
+      "always",
+      [
+        "cli", "mcp", "core", "sync", "backup", "ticket",
+        "survey", "kb", "rbac", "daemon", "build", "ci",
+        "docs", "deps", "security", "e2e", "types"
+      ]
+    ]
+  }
+}

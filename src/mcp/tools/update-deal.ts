@@ -107,12 +107,7 @@ Returns: { success: boolean, deal: object }`,
           .optional()
           .describe("Deal stage"),
         value: z.number().optional().describe("Deal value in euros"),
-        probability: z
-          .number()
-          .min(0)
-          .max(100)
-          .optional()
-          .describe("Win probability (0-100)"),
+        probability: z.number().min(0).max(100).optional().describe("Win probability (0-100)"),
         closeDate: z
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)

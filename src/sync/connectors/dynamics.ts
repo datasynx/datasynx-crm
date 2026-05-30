@@ -22,10 +22,7 @@ interface ODataResponse<T> {
   "@odata.nextLink"?: string;
 }
 
-async function* fetchWithNextLink<T>(
-  firstUrl: string,
-  token: string
-): AsyncGenerator<T> {
+async function* fetchWithNextLink<T>(firstUrl: string, token: string): AsyncGenerator<T> {
   let url: string | undefined = firstUrl;
   while (url) {
     const res = await fetch(url, {

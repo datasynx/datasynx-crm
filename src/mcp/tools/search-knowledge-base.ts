@@ -16,17 +16,23 @@ export async function handleSearchKnowledgeBase(
   const limited = filtered.slice(0, input.limit ?? 10);
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({
-        query: input.query,
-        count: limited.length,
-        articles: limited.map((a) => ({
-          ...getKbMetaForExport(a),
-          excerpt: a.body.slice(0, 300).trim(),
-        })),
-      }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          {
+            query: input.query,
+            count: limited.length,
+            articles: limited.map((a) => ({
+              ...getKbMetaForExport(a),
+              excerpt: a.body.slice(0, 300).trim(),
+            })),
+          },
+          null,
+          2
+        ),
+      },
+    ],
   };
 }
 
@@ -38,7 +44,10 @@ export function registerSearchKnowledgeBase(server: McpServer, dataDir: string =
 Returns: { count, articles[] } with excerpts`,
       inputSchema: z.object({
         query: z.string().describe("Search query"),
-        category: z.string().optional().describe("Filter by category (e.g. 'troubleshooting', 'howto')"),
+        category: z
+          .string()
+          .optional()
+          .describe("Filter by category (e.g. 'troubleshooting', 'howto')"),
         publicOnly: z.boolean().optional().describe("Only return public articles"),
         limit: z.number().int().positive().optional().describe("Max results (default 10)"),
       }),

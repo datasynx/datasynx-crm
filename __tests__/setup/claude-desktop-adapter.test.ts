@@ -11,7 +11,13 @@ const HOME = os.homedir();
 function getDesktopConfigPath(): string {
   switch (process.platform) {
     case "darwin":
-      return path.join(HOME, "Library", "Application Support", "Claude", "claude_desktop_config.json");
+      return path.join(
+        HOME,
+        "Library",
+        "Application Support",
+        "Claude",
+        "claude_desktop_config.json"
+      );
     case "win32":
       return path.join(process.env["APPDATA"] ?? HOME, "Claude", "claude_desktop_config.json");
     default:

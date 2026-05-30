@@ -70,7 +70,12 @@ describe("plugin list", () => {
   it("shows count in header for multiple plugins", async () => {
     mockList.mockReturnValue([
       samplePlugin,
-      { name: "stripe", version: "1.0.0", description: "Stripe plugin", mcpTools: ["get_stripe_context"] },
+      {
+        name: "stripe",
+        version: "1.0.0",
+        description: "Stripe plugin",
+        mcpTools: ["get_stripe_context"],
+      },
     ]);
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const { pluginCommand } = await import("../../src/commands/plugin.js");
@@ -101,10 +106,14 @@ describe("plugin info", () => {
 
   it("calls process.exit(1) when plugin not found", async () => {
     mockGet.mockReturnValue(undefined);
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => { throw new Error("exit"); });
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
     const errSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const { pluginCommand } = await import("../../src/commands/plugin.js");
-    await expect(pluginCommand.parseAsync(["node", "dxcrm", "info", "unknown"])).rejects.toThrow("exit");
+    await expect(pluginCommand.parseAsync(["node", "dxcrm", "info", "unknown"])).rejects.toThrow(
+      "exit"
+    );
     exitSpy.mockRestore();
     errSpy.mockRestore();
   });

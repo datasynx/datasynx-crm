@@ -62,10 +62,7 @@ describe("RateLimiter", () => {
   it("caps delay at maxDelayMs", async () => {
     vi.useFakeTimers();
     const limiter = new RateLimiter({ maxRetries: 3, baseDelayMs: 10000, maxDelayMs: 5000 });
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(new Error("fail"))
-      .mockResolvedValue("ok");
+    const fn = vi.fn().mockRejectedValueOnce(new Error("fail")).mockResolvedValue("ok");
 
     const promise = limiter.execute(fn);
     // delay should be min(10000*2^0, 5000) = 5000

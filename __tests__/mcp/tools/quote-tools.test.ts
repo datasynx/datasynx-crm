@@ -48,13 +48,19 @@ describe("handleGenerateQuote", () => {
   it("returns quote metadata on success", async () => {
     mockGenerateQuote.mockResolvedValue(makeQuote());
     const { handleGenerateQuote } = await import("../../../src/mcp/tools/generate-quote.js");
-    const result = await handleGenerateQuote({
-      slug: "acme-corp",
-      dealName: "Acme Enterprise Deal",
-      lineItems: [{ description: "License", quantity: 1, unitPrice: 5000 }],
-    }, DATA_DIR);
+    const result = await handleGenerateQuote(
+      {
+        slug: "acme-corp",
+        dealName: "Acme Enterprise Deal",
+        lineItems: [{ description: "License", quantity: 1, unitPrice: 5000 }],
+      },
+      DATA_DIR
+    );
     const parsed = JSON.parse(result.content[0].text) as {
-      quoteNumber: string; total: number; currency: string; status: string;
+      quoteNumber: string;
+      total: number;
+      currency: string;
+      status: string;
     };
     expect(parsed.quoteNumber).toBe("Q-2026-001");
     expect(parsed.total).toBe(5950);
@@ -65,11 +71,14 @@ describe("handleGenerateQuote", () => {
   it("returns error message when generateQuote throws", async () => {
     mockGenerateQuote.mockRejectedValue(new Error("Failed to generate quote"));
     const { handleGenerateQuote } = await import("../../../src/mcp/tools/generate-quote.js");
-    const result = await handleGenerateQuote({
-      slug: "acme",
-      dealName: "Test",
-      lineItems: [{ description: "X", quantity: 1, unitPrice: 100 }],
-    }, DATA_DIR);
+    const result = await handleGenerateQuote(
+      {
+        slug: "acme",
+        dealName: "Test",
+        lineItems: [{ description: "X", quantity: 1, unitPrice: 100 }],
+      },
+      DATA_DIR
+    );
     const parsed = JSON.parse(result.content[0].text) as { error: string };
     expect(parsed.error).toContain("Failed to generate");
   });
@@ -77,19 +86,25 @@ describe("handleGenerateQuote", () => {
   it("passes optional params to generateQuote", async () => {
     mockGenerateQuote.mockResolvedValue(makeQuote());
     const { handleGenerateQuote } = await import("../../../src/mcp/tools/generate-quote.js");
-    await handleGenerateQuote({
-      slug: "acme",
-      dealName: "Deal",
-      lineItems: [{ description: "X", quantity: 1, unitPrice: 100 }],
-      vatPercent: 20,
-      validUntilDays: 14,
-      currency: "GBP",
-    }, DATA_DIR);
-    expect(mockGenerateQuote).toHaveBeenCalledWith(DATA_DIR, expect.objectContaining({
-      vatPercent: 20,
-      validUntilDays: 14,
-      currency: "GBP",
-    }));
+    await handleGenerateQuote(
+      {
+        slug: "acme",
+        dealName: "Deal",
+        lineItems: [{ description: "X", quantity: 1, unitPrice: 100 }],
+        vatPercent: 20,
+        validUntilDays: 14,
+        currency: "GBP",
+      },
+      DATA_DIR
+    );
+    expect(mockGenerateQuote).toHaveBeenCalledWith(
+      DATA_DIR,
+      expect.objectContaining({
+        vatPercent: 20,
+        validUntilDays: 14,
+        currency: "GBP",
+      })
+    );
   });
 });
 

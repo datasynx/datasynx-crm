@@ -16,7 +16,12 @@ export async function handleGetProactiveBriefing(
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -33,7 +38,6 @@ Returns: { date, generatedAt, urgent: string[], opportunities: string[], forecas
         date: z.string().optional().describe("ISO date (YYYY-MM-DD). Defaults to today."),
       }),
     },
-    async ({ date }) =>
-      handleGetProactiveBriefing(date ? { date } : {})
+    async ({ date }) => handleGetProactiveBriefing(date ? { date } : {})
   );
 }

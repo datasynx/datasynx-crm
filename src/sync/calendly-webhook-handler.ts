@@ -26,7 +26,11 @@ function resolveSlugByEmail(dataDir: string, email: string): string | null {
   const customersDir = path.join(dataDir, "customers");
   if (!fs.existsSync(customersDir)) return null;
   const slugs = fs.readdirSync(customersDir).filter((s) => {
-    try { return fs.statSync(path.join(customersDir, s)).isDirectory(); } catch { return false; }
+    try {
+      return fs.statSync(path.join(customersDir, s)).isDirectory();
+    } catch {
+      return false;
+    }
   });
   for (const slug of slugs) {
     const factsPath = path.join(customersDir, slug, "main_facts.md");
@@ -38,7 +42,10 @@ function resolveSlugByEmail(dataDir: string, email: string): string | null {
   return null;
 }
 
-export async function handleCalendlyWebhook(payload: CalendlyWebhookPayload, dataDir: string): Promise<void> {
+export async function handleCalendlyWebhook(
+  payload: CalendlyWebhookPayload,
+  dataDir: string
+): Promise<void> {
   if (payload.event !== "invitee.created") return;
 
   const invitee = payload.payload.invitee;
@@ -55,7 +62,9 @@ export async function handleCalendlyWebhook(payload: CalendlyWebhookPayload, dat
   if (!slug) return;
 
   const eventUri = scheduled?.uri ?? payload.payload.scheduled_event_uuid ?? "";
-  const sourceRef = eventUri ? `calendly://event/${eventUri.split("/").pop()}` : `calendly://event/${Date.now()}`;
+  const sourceRef = eventUri
+    ? `calendly://event/${eventUri.split("/").pop()}`
+    : `calendly://event/${Date.now()}`;
 
   await appendInteraction(dataDir, slug, {
     date,

@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { vol } from "memfs";
-import {
-  readPipeline,
-  upsertDeal,
-} from "../../src/fs/pipeline-writer.js";
+import { readPipeline, upsertDeal } from "../../src/fs/pipeline-writer.js";
 import type { PipelineDeal } from "../../src/schemas/pipeline.js";
 
 const DATA_DIR = "/data";
@@ -13,8 +10,7 @@ const CUSTOMER_DIR = `${DATA_DIR}/customers/${SLUG}`;
 beforeEach(() => {
   vol.reset();
   vol.fromJSON({
-    [`${CUSTOMER_DIR}/pipeline.md`]:
-      "# Pipeline — Acme Corp\n\n<!-- Deals listed here -->\n",
+    [`${CUSTOMER_DIR}/pipeline.md`]: "# Pipeline — Acme Corp\n\n<!-- Deals listed here -->\n",
   });
 });
 
@@ -67,7 +63,12 @@ describe("upsertDeal", () => {
 
   it("updates existing deal by name (upsert)", async () => {
     await upsertDeal(DATA_DIR, SLUG, deal1);
-    const updated = { ...deal1, stage: "negotiation" as const, probability: 80, updated: "2024-06-10" };
+    const updated = {
+      ...deal1,
+      stage: "negotiation" as const,
+      probability: 80,
+      updated: "2024-06-10",
+    };
     await upsertDeal(DATA_DIR, SLUG, updated);
     const deals = await readPipeline(DATA_DIR, SLUG);
     // Should still be just 1 deal (updated, not duplicated)

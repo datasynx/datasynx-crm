@@ -97,20 +97,23 @@ async function* fetchAssociatedActivities(
     const assocData = await hubspotGet<{
       results: HubSpotAssociation[];
       paging?: { next?: { after?: string } };
-    }>(token, `/crm/v4/objects/contacts/${contactId}/associations/${objectType}?${params.toString()}`);
+    }>(
+      token,
+      `/crm/v4/objects/contacts/${contactId}/associations/${objectType}?${params.toString()}`
+    );
 
     for (const assoc of assocData.results) {
       const detail = await hubspotGet<{
         id: string;
         properties: HubSpotActivityProperties;
-      }>(token, `/crm/v3/objects/${objectType}/${assoc.toObjectId}?properties=${PROP_MAP[objectType]}`);
+      }>(
+        token,
+        `/crm/v3/objects/${objectType}/${assoc.toObjectId}?properties=${PROP_MAP[objectType]}`
+      );
 
       const props = detail.properties;
       const notes =
-        props.hs_note_body ??
-        props.hs_call_body ??
-        props.hs_email_text ??
-        props.hs_meeting_body;
+        props.hs_note_body ?? props.hs_call_body ?? props.hs_email_text ?? props.hs_meeting_body;
 
       const subject = props.hs_email_subject ?? props.hs_meeting_title;
 

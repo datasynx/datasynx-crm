@@ -36,18 +36,16 @@ function mockHttpResponse(body: unknown) {
     _triggerError: (e: Error) => errorCb?.(e),
   };
 
-  mockHttpsRequest.mockImplementationOnce(
-    (_opts: unknown, cb: HttpCallback) => {
-      const res = {
-        on: (event: string, handler: (chunk?: Buffer | string) => void) => {
-          if (event === "data") handler(JSON.stringify(body));
-          if (event === "end") handler();
-        },
-      };
-      cb(res);
-      return req;
-    }
-  );
+  mockHttpsRequest.mockImplementationOnce((_opts: unknown, cb: HttpCallback) => {
+    const res = {
+      on: (event: string, handler: (chunk?: Buffer | string) => void) => {
+        if (event === "data") handler(JSON.stringify(body));
+        if (event === "end") handler();
+      },
+    };
+    cb(res);
+    return req;
+  });
   return req;
 }
 
@@ -69,7 +67,9 @@ function mockHttpError(err: Error) {
 // ─── readSignals / writeSignals ───────────────────────────────────────────────
 
 describe("readSignals / writeSignals", () => {
-  beforeEach(() => { vol.reset(); });
+  beforeEach(() => {
+    vol.reset();
+  });
 
   it("returns [] when signals file does not exist", async () => {
     vol.fromJSON({});
@@ -330,7 +330,8 @@ describe("fetchSignalsForCustomer", () => {
     });
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/.keep`]: "" });
 
-    const { fetchSignalsForCustomer, signalsFilePath } = await import("../../src/sync/external-signals.js");
+    const { fetchSignalsForCustomer, signalsFilePath } =
+      await import("../../src/sync/external-signals.js");
     await fetchSignalsForCustomer(DATA_DIR, "acme", "acme.com", "Acme", TODAY);
 
     const fs = (await import("fs")).default;
@@ -339,10 +340,13 @@ describe("fetchSignalsForCustomer", () => {
 
   it("does not write file when no signals found", async () => {
     // HN returns no matching hits
-    mockHttpResponse({ hits: [{ objectID: "3", title: "Unrelated cats article", created_at: "2026-05-01" }] });
+    mockHttpResponse({
+      hits: [{ objectID: "3", title: "Unrelated cats article", created_at: "2026-05-01" }],
+    });
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/.keep`]: "" });
 
-    const { fetchSignalsForCustomer, signalsFilePath } = await import("../../src/sync/external-signals.js");
+    const { fetchSignalsForCustomer, signalsFilePath } =
+      await import("../../src/sync/external-signals.js");
     await fetchSignalsForCustomer(DATA_DIR, "acme", "acme.com", "Acme", TODAY);
 
     const fs = (await import("fs")).default;
@@ -353,8 +357,11 @@ describe("fetchSignalsForCustomer", () => {
     process.env["CRUNCHBASE_API_KEY"] = "key";
     // HN: no match; Crunchbase: funding
     mockHttpResponse({ hits: [] }); // HN
-    mockHttpResponse({              // Crunchbase
-      data: { properties: { last_funding_type: "series_a", funding_total: { value_usd: 10_000_000 } } },
+    mockHttpResponse({
+      // Crunchbase
+      data: {
+        properties: { last_funding_type: "series_a", funding_total: { value_usd: 10_000_000 } },
+      },
     });
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/.keep`]: "" });
 

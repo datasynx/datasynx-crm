@@ -54,7 +54,9 @@ Beta GmbH,info@beta.de,beta.de,Demo call,2024-01-16
 
     const { handleListCustomers } = await import("../../src/mcp/tools/list-customers.js");
     const listResult = await handleListCustomers({}, DATA_DIR);
-    const list = JSON.parse((listResult.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const list = JSON.parse(
+      (listResult.content[0] as { type: string; text: string }).text
+    ) as Array<{ slug: string }>;
 
     expect(list).toHaveLength(2);
     const slugs = list.map((c) => c.slug);
@@ -153,7 +155,9 @@ Beta GmbH,info@beta.de,beta.de,Demo scheduled,Meeting,2024-01-17,hs-003
 
     const { handleListCustomers } = await import("../../src/mcp/tools/list-customers.js");
     const listResult = await handleListCustomers({}, DATA_DIR);
-    const list = JSON.parse((listResult.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const list = JSON.parse(
+      (listResult.content[0] as { type: string; text: string }).text
+    ) as Array<{ slug: string }>;
 
     expect(list.map((c) => c.slug)).toContain("acme-corp");
     expect(list.map((c) => c.slug)).toContain("beta-gmbh");
@@ -199,7 +203,9 @@ task-3,sf-002,2026-01-17,Meeting,Product demo
 
     const { handleListCustomers } = await import("../../src/mcp/tools/list-customers.js");
     const listResult = await handleListCustomers({}, DATA_DIR);
-    const list = JSON.parse((listResult.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const list = JSON.parse(
+      (listResult.content[0] as { type: string; text: string }).text
+    ) as Array<{ slug: string }>;
 
     expect(list.map((c) => c.slug)).toContain("acme-corp");
     expect(list.map((c) => c.slug)).toContain("beta-gmbh");
@@ -213,7 +219,11 @@ task-3,sf-002,2026-01-17,Meeting,Product demo
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
 
     const { runImport } = await import("../../src/commands/import.js");
-    const result = await runImport(`${DATA_DIR}/sf-export`, { from: "salesforce", dryRun: true }, DATA_DIR);
+    const result = await runImport(
+      `${DATA_DIR}/sf-export`,
+      { from: "salesforce", dryRun: true },
+      DATA_DIR
+    );
 
     expect(result.customersCreated).toBe(0);
     expect(mockAppend).not.toHaveBeenCalled();
@@ -262,7 +272,9 @@ act-3,102,2026-02-12,meeting,Intro meeting
 
     const { handleListCustomers } = await import("../../src/mcp/tools/list-customers.js");
     const listResult = await handleListCustomers({}, DATA_DIR);
-    const list = JSON.parse((listResult.content[0] as { type: string; text: string }).text) as Array<{ slug: string }>;
+    const list = JSON.parse(
+      (listResult.content[0] as { type: string; text: string }).text
+    ) as Array<{ slug: string }>;
 
     expect(list.map((c) => c.slug)).toContain("acme-corp");
     expect(list.map((c) => c.slug)).toContain("beta-gmbh");

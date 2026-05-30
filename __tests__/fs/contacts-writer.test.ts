@@ -4,13 +4,20 @@ import { vol } from "memfs";
 const DATA_DIR = "/data";
 const SLUG = "acme-corp";
 
-beforeEach(() => { vol.reset(); vi.resetModules(); });
+beforeEach(() => {
+  vol.reset();
+  vi.resetModules();
+});
 
 describe("upsertContact / listContacts", () => {
   it("writes first contact and reads it back", async () => {
     vol.fromJSON({});
     const { upsertContact, listContacts } = await import("../../src/fs/contacts-writer.js");
-    upsertContact(DATA_DIR, SLUG, { email: "alice@acme.com", name: "Alice Smith", isPrimary: true });
+    upsertContact(DATA_DIR, SLUG, {
+      email: "alice@acme.com",
+      name: "Alice Smith",
+      isPrimary: true,
+    });
     const contacts = listContacts(DATA_DIR, SLUG);
     expect(contacts).toHaveLength(1);
     expect(contacts[0]?.email).toBe("alice@acme.com");
@@ -47,7 +54,11 @@ describe("upsertContact / listContacts", () => {
     vol.fromJSON({});
     const { upsertContact, listContacts } = await import("../../src/fs/contacts-writer.js");
     upsertContact(DATA_DIR, SLUG, { email: "alice@acme.com", name: "Alice", isPrimary: false });
-    upsertContact(DATA_DIR, SLUG, { email: "ALICE@ACME.COM", name: "Alice Updated", isPrimary: false });
+    upsertContact(DATA_DIR, SLUG, {
+      email: "ALICE@ACME.COM",
+      name: "Alice Updated",
+      isPrimary: false,
+    });
     const contacts = listContacts(DATA_DIR, SLUG);
     expect(contacts).toHaveLength(1);
     expect(contacts[0]?.name).toBe("Alice Updated");

@@ -48,7 +48,8 @@ function parseResult(result: { content: Array<{ type: string; text: string }> })
 describe("handleGetOrgIntelligence", () => {
   it("returns slug in result", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/graph.json`]: makeGraphJson() });
-    const { handleGetOrgIntelligence } = await import("../../../src/mcp/tools/get-org-intelligence.js");
+    const { handleGetOrgIntelligence } =
+      await import("../../../src/mcp/tools/get-org-intelligence.js");
     const result = await handleGetOrgIntelligence({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect(parsed["slug"]).toBe(SLUG);
@@ -56,7 +57,8 @@ describe("handleGetOrgIntelligence", () => {
 
   it("returns people array with champion", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/graph.json`]: makeGraphJson() });
-    const { handleGetOrgIntelligence } = await import("../../../src/mcp/tools/get-org-intelligence.js");
+    const { handleGetOrgIntelligence } =
+      await import("../../../src/mcp/tools/get-org-intelligence.js");
     const result = await handleGetOrgIntelligence({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     const people = parsed["people"] as Array<{ role: string; name: string }>;
@@ -67,7 +69,8 @@ describe("handleGetOrgIntelligence", () => {
 
   it("returns missingRoles array", async () => {
     vol.fromJSON({ [`${DATA_DIR}/customers/${SLUG}/graph.json`]: makeGraphJson() });
-    const { handleGetOrgIntelligence } = await import("../../../src/mcp/tools/get-org-intelligence.js");
+    const { handleGetOrgIntelligence } =
+      await import("../../../src/mcp/tools/get-org-intelligence.js");
     const result = await handleGetOrgIntelligence({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
     expect(Array.isArray(parsed["missingRoles"])).toBe(true);
@@ -75,7 +78,8 @@ describe("handleGetOrgIntelligence", () => {
 
   it("returns empty people when slug not found (readGraph falls back to emptyGraph)", async () => {
     vol.fromJSON({});
-    const { handleGetOrgIntelligence } = await import("../../../src/mcp/tools/get-org-intelligence.js");
+    const { handleGetOrgIntelligence } =
+      await import("../../../src/mcp/tools/get-org-intelligence.js");
     const result = await handleGetOrgIntelligence({ slug: "no-such-slug" }, DATA_DIR);
     const parsed = parseResult(result);
     expect(parsed["people"]).toBeDefined();
@@ -86,7 +90,8 @@ describe("handleGetOrgIntelligence", () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/graph.json`]: "{ not valid json",
     });
-    const { handleGetOrgIntelligence } = await import("../../../src/mcp/tools/get-org-intelligence.js");
+    const { handleGetOrgIntelligence } =
+      await import("../../../src/mcp/tools/get-org-intelligence.js");
     // readGraph catches parse errors and returns emptyGraph — should not throw
     const result = await handleGetOrgIntelligence({ slug: SLUG }, DATA_DIR);
     const parsed = parseResult(result);
@@ -98,8 +103,12 @@ describe("handleGetOrgIntelligence", () => {
     vol.fromJSON({
       [`${DATA_DIR}/customers/${SLUG}/graph.json`]: makeGraphJson(),
     });
-    const { handleGetOrgIntelligence } = await import("../../../src/mcp/tools/get-org-intelligence.js");
-    const result = await handleGetOrgIntelligence({ slug: SLUG, dealName: "Enterprise 2026" }, DATA_DIR);
+    const { handleGetOrgIntelligence } =
+      await import("../../../src/mcp/tools/get-org-intelligence.js");
+    const result = await handleGetOrgIntelligence(
+      { slug: SLUG, dealName: "Enterprise 2026" },
+      DATA_DIR
+    );
     const parsed = parseResult(result);
     expect(parsed["dealName"]).toBe("Enterprise 2026");
   });

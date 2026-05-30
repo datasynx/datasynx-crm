@@ -56,7 +56,7 @@ describe("update_deal tool", () => {
     const [calledDataDir, calledSlug, calledDeal] = mockUpsert.mock.calls[0] as [
       string,
       string,
-      { name: string; stage: string; value: number }
+      { name: string; stage: string; value: number },
     ];
     expect(calledDataDir).toBe("/data");
     expect(calledSlug).toBe("beta-gmbh");

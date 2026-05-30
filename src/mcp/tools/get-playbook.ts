@@ -20,27 +20,31 @@ export async function handleGetPlaybook(
     const playbooks = listPlaybooks(dataDir, input.slug);
 
     const hasDealContext =
-      input.stage !== undefined ||
-      input.value !== undefined ||
-      input.healthScore !== undefined;
+      input.stage !== undefined || input.value !== undefined || input.healthScore !== undefined;
 
     if (!hasDealContext) {
       return {
-        content: [{
-          type: "text",
-          text: JSON.stringify({
-            matches: playbooks.map((pb) => ({
-              name: pb.name,
-              trigger: pb.frontmatter.trigger,
-              successRate: pb.frontmatter.successRate,
-              usedCount: pb.frontmatter.usedCount,
-              lastUpdated: pb.frontmatter.lastUpdated,
-              content: pb.content,
-            })),
-            totalPlaybooks: playbooks.length,
-            slug: input.slug,
-          }, null, 2),
-        }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              {
+                matches: playbooks.map((pb) => ({
+                  name: pb.name,
+                  trigger: pb.frontmatter.trigger,
+                  successRate: pb.frontmatter.successRate,
+                  usedCount: pb.frontmatter.usedCount,
+                  lastUpdated: pb.frontmatter.lastUpdated,
+                  content: pb.content,
+                })),
+                totalPlaybooks: playbooks.length,
+                slug: input.slug,
+              },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
 
@@ -57,26 +61,37 @@ export async function handleGetPlaybook(
 
     const matches = matchPlaybooks(playbooks, mockDeal, input.daysSinceContact ?? 0);
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          matches: matches.map((m) => ({
-            name: m.playbook.name,
-            score: m.score,
-            matchedConditions: m.matchedConditions,
-            trigger: m.playbook.frontmatter.trigger,
-            successRate: m.playbook.frontmatter.successRate,
-            usedCount: m.playbook.frontmatter.usedCount,
-            content: m.playbook.content,
-          })),
-          totalPlaybooks: playbooks.length,
-          slug: input.slug,
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              matches: matches.map((m) => ({
+                name: m.playbook.name,
+                score: m.score,
+                matchedConditions: m.matchedConditions,
+                trigger: m.playbook.frontmatter.trigger,
+                successRate: m.playbook.frontmatter.successRate,
+                usedCount: m.playbook.frontmatter.usedCount,
+                content: m.playbook.content,
+              })),
+              totalPlaybooks: playbooks.length,
+              slug: input.slug,
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -109,13 +124,16 @@ Returns: { matches: [{ name, score, trigger, successRate, usedCount, content }],
       }),
     },
     async ({ slug, stage, value, healthScore, daysSinceContact, championPresent }) =>
-      handleGetPlaybook({
-        slug,
-        ...(stage !== undefined ? { stage } : {}),
-        ...(value !== undefined ? { value } : {}),
-        ...(healthScore !== undefined ? { healthScore } : {}),
-        ...(daysSinceContact !== undefined ? { daysSinceContact } : {}),
-        ...(championPresent !== undefined ? { championPresent } : {}),
-      }, DATA_DIR)
+      handleGetPlaybook(
+        {
+          slug,
+          ...(stage !== undefined ? { stage } : {}),
+          ...(value !== undefined ? { value } : {}),
+          ...(healthScore !== undefined ? { healthScore } : {}),
+          ...(daysSinceContact !== undefined ? { daysSinceContact } : {}),
+          ...(championPresent !== undefined ? { championPresent } : {}),
+        },
+        DATA_DIR
+      )
   );
 }

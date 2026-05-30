@@ -15,7 +15,9 @@ describe("runRbacSet", () => {
 
     await runRbacSet("alice", "admin", "/crm");
 
-    const content = JSON.parse(vol.readFileSync("/crm/.agentic/rbac.json", "utf-8") as string) as Record<string, unknown>;
+    const content = JSON.parse(
+      vol.readFileSync("/crm/.agentic/rbac.json", "utf-8") as string
+    ) as Record<string, unknown>;
     expect((content["actors"] as Record<string, string>)["alice"]).toBe("admin");
     consoleSpy.mockRestore();
   });
@@ -23,7 +25,9 @@ describe("runRbacSet", () => {
   it("exits on invalid role", async () => {
     vol.fromJSON({});
     const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => { throw new Error("exit"); }) as never);
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation((() => {
+      throw new Error("exit");
+    }) as never);
     const { runRbacSet } = await import("../../src/commands/rbac.js");
 
     await expect(runRbacSet("alice", "superuser", "/crm")).rejects.toThrow("exit");

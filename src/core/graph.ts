@@ -167,24 +167,12 @@ export function upsertEdge(
   return { ...graph, edges: [...graph.edges, newEdge] };
 }
 
-export function findEdges(
-  graph: CustomerGraph,
-  fromId: string,
-  type?: EdgeType
-): GraphEdge[] {
-  return graph.edges.filter(
-    (e) => e.from === fromId && (type === undefined || e.type === type)
-  );
+export function findEdges(graph: CustomerGraph, fromId: string, type?: EdgeType): GraphEdge[] {
+  return graph.edges.filter((e) => e.from === fromId && (type === undefined || e.type === type));
 }
 
-export function findEdgesTo(
-  graph: CustomerGraph,
-  toId: string,
-  type?: EdgeType
-): GraphEdge[] {
-  return graph.edges.filter(
-    (e) => e.to === toId && (type === undefined || e.type === type)
-  );
+export function findEdgesTo(graph: CustomerGraph, toId: string, type?: EdgeType): GraphEdge[] {
+  return graph.edges.filter((e) => e.to === toId && (type === undefined || e.type === type));
 }
 
 // ─── Role assignment ──────────────────────────────────────────────────────────
@@ -225,9 +213,7 @@ export function getStakeholders(graph: CustomerGraph): StakeholderSummary {
   };
 
   const resolve = (edges: GraphEdge[]): GraphNode[] =>
-    dedup(
-      edges.map((e) => findNode(graph, e.from)).filter((n): n is GraphNode => n !== undefined)
-    );
+    dedup(edges.map((e) => findNode(graph, e.from)).filter((n): n is GraphNode => n !== undefined));
 
   const champions = resolve(graph.edges.filter((e) => e.type === "IS_CHAMPION"));
   const blockers = resolve(graph.edges.filter((e) => e.type === "IS_BLOCKER"));
@@ -283,9 +269,7 @@ export function findPath(graph: CustomerGraph, fromId: string, toId: string): st
   if (fromId === toId) return [fromId];
 
   const visited = new Set<string>([fromId]);
-  const queue: Array<{ nodeId: string; path: string[] }> = [
-    { nodeId: fromId, path: [fromId] },
-  ];
+  const queue: Array<{ nodeId: string; path: string[] }> = [{ nodeId: fromId, path: [fromId] }];
 
   while (queue.length > 0) {
     const current = queue.shift()!;

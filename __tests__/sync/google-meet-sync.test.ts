@@ -77,7 +77,9 @@ describe("syncGoogleMeetTranscript", () => {
     const entry = call[2] as { type: string; sourceRef: string; summary: string; with: string };
     expect(entry.type).toBe("Meeting");
     expect(entry.with).toBe("Google Meet");
-    expect(entry.sourceRef).toBe("google://meet/transcript/conferenceRecords/abc123/transcripts/t1");
+    expect(entry.sourceRef).toBe(
+      "google://meet/transcript/conferenceRecords/abc123/transcripts/t1"
+    );
     expect(entry.summary).toContain("Alice");
   });
 

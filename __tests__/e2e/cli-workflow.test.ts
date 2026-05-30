@@ -104,9 +104,9 @@ describe("E2E: Core CRM Loop — create → log_interaction → context", () => 
       DATA_DIR
     );
 
-    const logParsed = JSON.parse(
-      (logResult.content[0] as { text: string }).text
-    ) as { success: boolean };
+    const logParsed = JSON.parse((logResult.content[0] as { text: string }).text) as {
+      success: boolean;
+    };
     expect(logParsed.success).toBe(true);
 
     const fs = (await import("fs")).default;
@@ -151,9 +151,10 @@ describe("E2E: Core CRM Loop — create → log_interaction → context", () => 
       DATA_DIR
     );
 
-    const dealParsed = JSON.parse(
-      (dealResult.content[0] as { text: string }).text
-    ) as { success: boolean; deal: { name: string; stage: string } };
+    const dealParsed = JSON.parse((dealResult.content[0] as { text: string }).text) as {
+      success: boolean;
+      deal: { name: string; stage: string };
+    };
     expect(dealParsed.success).toBe(true);
     expect(dealParsed.deal.name).toBe("Enterprise License 2026");
     expect(dealParsed.deal.stage).toBe("proposal");
@@ -175,9 +176,8 @@ describe("E2E: update_customer_facts", () => {
     const { createCustomer } = await import("../../src/commands/create.js");
     await createCustomer({ name: "Acme Corp", domain: "acme.com", dataDir: DATA_DIR });
 
-    const { handleUpdateCustomerFacts } = await import(
-      "../../src/mcp/tools/update-customer-facts.js"
-    );
+    const { handleUpdateCustomerFacts } =
+      await import("../../src/mcp/tools/update-customer-facts.js");
     const result = await handleUpdateCustomerFacts(
       {
         slug: "acme-corp",
@@ -231,10 +231,7 @@ describe("E2E: export_customer", () => {
     await createCustomer({ name: "Beta GmbH", dataDir: DATA_DIR });
 
     const { handleExportCustomer } = await import("../../src/mcp/tools/export-customer.js");
-    const result = await handleExportCustomer(
-      { slug: "beta-gmbh", format: "markdown" },
-      DATA_DIR
-    );
+    const result = await handleExportCustomer({ slug: "beta-gmbh", format: "markdown" }, DATA_DIR);
 
     const md = (result.content[0] as { text: string }).text;
     expect(md).toContain("Beta GmbH");
@@ -254,9 +251,7 @@ describe("E2E: GDPR Compliance Flow", () => {
     await runGdprErase("acme-corp", { confirm: false }, DATA_DIR);
 
     const fs = (await import("fs")).default;
-    expect(
-      fs.existsSync(path.join(DATA_DIR, "customers/acme-corp/main_facts.md"))
-    ).toBe(true);
+    expect(fs.existsSync(path.join(DATA_DIR, "customers/acme-corp/main_facts.md"))).toBe(true);
     consoleSpy.mockRestore();
   });
 
@@ -299,9 +294,7 @@ describe("E2E: RBAC Permissions Flow", () => {
     vol.mkdirSync(path.join(DATA_DIR, ".agentic"), { recursive: true });
 
     const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
-    const { runRbacSet, runRbacShow, runRbacCheck } = await import(
-      "../../src/commands/rbac.js"
-    );
+    const { runRbacSet, runRbacShow, runRbacCheck } = await import("../../src/commands/rbac.js");
 
     await runRbacSet("alice", "admin", DATA_DIR);
     await runRbacSet("bob", "rep", DATA_DIR);
@@ -340,9 +333,8 @@ describe("E2E: RBAC Enforcement Workflow", () => {
     process.env["DXCRM_ACTOR"] = "alice";
 
     try {
-      const { handleUpdateCustomerFacts } = await import(
-        "../../src/mcp/tools/update-customer-facts.js"
-      );
+      const { handleUpdateCustomerFacts } =
+        await import("../../src/mcp/tools/update-customer-facts.js");
       const result = await handleUpdateCustomerFacts(
         { slug: "rbac-corp", domain: "rbac.io" },
         DATA_DIR
@@ -400,9 +392,8 @@ describe("E2E: RBAC Enforcement Workflow", () => {
     process.env["DXCRM_ACTOR"] = "alice";
 
     try {
-      const { handleUpdateCustomerFacts } = await import(
-        "../../src/mcp/tools/update-customer-facts.js"
-      );
+      const { handleUpdateCustomerFacts } =
+        await import("../../src/mcp/tools/update-customer-facts.js");
       const result = await handleUpdateCustomerFacts(
         { slug: "rbac-corp", domain: "admin.io" },
         DATA_DIR
@@ -422,9 +413,8 @@ describe("E2E: RBAC Enforcement Workflow", () => {
     const { createCustomer } = await import("../../src/commands/create.js");
     await createCustomer({ name: "Open Corp", dataDir: DATA_DIR });
 
-    const { handleUpdateCustomerFacts } = await import(
-      "../../src/mcp/tools/update-customer-facts.js"
-    );
+    const { handleUpdateCustomerFacts } =
+      await import("../../src/mcp/tools/update-customer-facts.js");
     const result = await handleUpdateCustomerFacts(
       { slug: "open-corp", domain: "open.io" },
       DATA_DIR
@@ -476,9 +466,7 @@ describe("E2E: GDPR Erasure Flow", () => {
     consoleSpy.mockRestore();
 
     const fs = (await import("fs")).default;
-    expect(
-      fs.existsSync(path.join(DATA_DIR, "customers/dry-run-corp/main_facts.md"))
-    ).toBe(true);
+    expect(fs.existsSync(path.join(DATA_DIR, "customers/dry-run-corp/main_facts.md"))).toBe(true);
     expect(fs.existsSync(path.join(DATA_DIR, ".agentic", "audit.log"))).toBe(false);
   });
 
@@ -524,9 +512,8 @@ describe("E2E: Full Customer Lifecycle", () => {
       DATA_DIR
     );
 
-    const { handleGetCustomerContext } = await import(
-      "../../src/mcp/tools/get-customer-context.js"
-    );
+    const { handleGetCustomerContext } =
+      await import("../../src/mcp/tools/get-customer-context.js");
     const ctxResult = await handleGetCustomerContext({ slug }, DATA_DIR);
     const text = (ctxResult.content[0] as { text: string }).text;
     expect(text).toContain("Q1 review");
@@ -544,9 +531,8 @@ describe("E2E: Full Customer Lifecycle", () => {
       DATA_DIR
     );
 
-    const { handleGetPipelineForecast } = await import(
-      "../../src/mcp/tools/get-pipeline-forecast.js"
-    );
+    const { handleGetPipelineForecast } =
+      await import("../../src/mcp/tools/get-pipeline-forecast.js");
     const forecastResult = await handleGetPipelineForecast({}, DATA_DIR);
     const parsed = JSON.parse((forecastResult.content[0] as { text: string }).text) as {
       totalWeightedValue: number;
@@ -589,9 +575,8 @@ describe("E2E: Custom Pipeline Stages", () => {
   it("setPipelineStage adds custom stage", async () => {
     vol.mkdirSync(path.join(DATA_DIR, ".agentic"), { recursive: true });
 
-    const { setPipelineStage, getPipelineStages } = await import(
-      "../../src/core/pipeline-stages.js"
-    );
+    const { setPipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     setPipelineStage(DATA_DIR, {
       id: "demo-booked",
       label: "Demo Booked",
@@ -606,9 +591,8 @@ describe("E2E: Custom Pipeline Stages", () => {
   it("deletePipelineStage removes it", async () => {
     vol.mkdirSync(path.join(DATA_DIR, ".agentic"), { recursive: true });
 
-    const { setPipelineStage, deletePipelineStage, getPipelineStages } = await import(
-      "../../src/core/pipeline-stages.js"
-    );
+    const { setPipelineStage, deletePipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     setPipelineStage(DATA_DIR, { id: "to-delete", label: "To Delete", order: 9, probability: 5 });
     deletePipelineStage(DATA_DIR, "to-delete");
 
@@ -627,9 +611,7 @@ describe("E2E: Custom Pipeline Stages", () => {
       probability: 55,
     });
 
-    const { handleGetPipelineStages } = await import(
-      "../../src/mcp/tools/get-pipeline-stages.js"
-    );
+    const { handleGetPipelineStages } = await import("../../src/mcp/tools/get-pipeline-stages.js");
     const result = await handleGetPipelineStages({}, DATA_DIR);
     const parsed = JSON.parse((result.content[0] as { text: string }).text) as {
       stages: Array<{ id: string }>;
@@ -699,18 +681,14 @@ describe("E2E: Field Encryption Round-Trip", () => {
 describe("E2E: Plugin System", () => {
   beforeEach(async () => {
     // Clear the plugin registry before each test by unregistering any leftover plugins
-    const { listPlugins, unregisterPlugin } = await import(
-      "../../src/core/plugin-registry.js"
-    );
+    const { listPlugins, unregisterPlugin } = await import("../../src/core/plugin-registry.js");
     for (const plugin of listPlugins()) {
       unregisterPlugin(plugin.name);
     }
   });
 
   it("registerPlugin stores and listPlugins returns it", async () => {
-    const { registerPlugin, listPlugins } = await import(
-      "../../src/core/plugin-registry.js"
-    );
+    const { registerPlugin, listPlugins } = await import("../../src/core/plugin-registry.js");
     registerPlugin({ name: "test-plugin", version: "1.0.0", description: "Test" });
     const plugins = listPlugins();
     expect(plugins.some((p) => p.name === "test-plugin")).toBe(true);
@@ -719,15 +697,14 @@ describe("E2E: Plugin System", () => {
   it("duplicate plugin registration throws", async () => {
     const { registerPlugin } = await import("../../src/core/plugin-registry.js");
     registerPlugin({ name: "dup-plugin", version: "1.0.0" });
-    expect(() =>
-      registerPlugin({ name: "dup-plugin", version: "1.0.0" })
-    ).toThrow(/already registered/i);
+    expect(() => registerPlugin({ name: "dup-plugin", version: "1.0.0" })).toThrow(
+      /already registered/i
+    );
   });
 
   it("unregisterPlugin removes it", async () => {
-    const { registerPlugin, unregisterPlugin, listPlugins } = await import(
-      "../../src/core/plugin-registry.js"
-    );
+    const { registerPlugin, unregisterPlugin, listPlugins } =
+      await import("../../src/core/plugin-registry.js");
     registerPlugin({ name: "removable-plugin", version: "1.0.0" });
     unregisterPlugin("removable-plugin");
     expect(listPlugins().some((p) => p.name === "removable-plugin")).toBe(false);
@@ -771,12 +748,17 @@ describe("E2E: dxcrm init — schema.json generation", () => {
     fs.mkdirSync(agenticDir, { recursive: true });
     const schemaPath = path.join(agenticDir, "schema.json");
     if (!fs.existsSync(schemaPath)) {
-      fs.writeFileSync(schemaPath, JSON.stringify({ version: 1, main_facts: { required: ["name"] } }, null, 2));
+      fs.writeFileSync(
+        schemaPath,
+        JSON.stringify({ version: 1, main_facts: { required: ["name"] } }, null, 2)
+      );
     }
 
     const { vol: v } = await import("memfs");
     expect(v.existsSync(schemaPath)).toBe(true);
-    const content = JSON.parse(v.readFileSync(schemaPath, "utf-8") as string) as { version: number };
+    const content = JSON.parse(v.readFileSync(schemaPath, "utf-8") as string) as {
+      version: number;
+    };
     expect(content.version).toBe(1);
   });
 });

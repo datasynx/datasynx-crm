@@ -7,13 +7,20 @@ export function kbDir(dataDir: string): string {
   return path.join(dataDir, ".agentic", "knowledge-base");
 }
 
-export function listKbArticles(dataDir: string, opts?: { category?: string; publicOnly?: boolean }): KbArticle[] {
+export function listKbArticles(
+  dataDir: string,
+  opts?: { category?: string; publicOnly?: boolean }
+): KbArticle[] {
   const dir = kbDir(dataDir);
   if (!fs.existsSync(dir)) return [];
 
   const results: KbArticle[] = [];
   const categories = fs.readdirSync(dir).filter((f) => {
-    try { return fs.statSync(path.join(dir, f)).isDirectory(); } catch { return false; }
+    try {
+      return fs.statSync(path.join(dir, f)).isDirectory();
+    } catch {
+      return false;
+    }
   });
 
   for (const cat of categories) {
@@ -60,7 +67,11 @@ export function deleteKbArticle(dataDir: string, id: string): boolean {
   return true;
 }
 
-export function searchKbSimple(dataDir: string, query: string, opts?: { publicOnly?: boolean }): KbArticle[] {
+export function searchKbSimple(
+  dataDir: string,
+  query: string,
+  opts?: { publicOnly?: boolean }
+): KbArticle[] {
   const all = listKbArticles(dataDir, opts?.publicOnly ? { publicOnly: true } : {});
   const lower = query.toLowerCase();
   return all.filter(

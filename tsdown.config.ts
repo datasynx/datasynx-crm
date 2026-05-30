@@ -1,15 +1,6 @@
 import { defineConfig } from "tsdown";
 
-export default defineConfig({
-  entry: {
-    index: "src/index.ts",
-    cli: "src/cli.ts",
-    mcp: "src/mcp/server.ts",
-    "daemon/worker": "src/daemon/worker.ts",
-  },
-  format: ["esm"],
-  dts: true,
-  clean: true,
+const shared = {
   sourcemap: true,
   external: [
     "@lancedb/lancedb",
@@ -17,7 +8,32 @@ export default defineConfig({
     "@huggingface/transformers",
     "googleapis",
   ],
-  banner: {
-    js: (ctx) => ctx.output.fileName.startsWith("cli") ? "#!/usr/bin/env node" : "",
+} as const;
+
+export default defineConfig([
+  // Library entries: Dual ESM + CJS for consumer compatibility
+  {
+    ...shared,
+    entry: {
+      index: "src/index.ts",
+      mcp: "src/mcp/server.ts",
+    },
+    format: ["esm", "cjs"],
+    dts: true,
+    clean: true,
   },
-});
+  // Binary + daemon: ESM only (executables don't need CJS)
+  {
+    ...shared,
+    entry: {
+      cli: "src/cli.ts",
+      "daemon/worker": "src/daemon/worker.ts",
+    },
+    format: ["esm"],
+    dts: false,
+    clean: false,
+    banner: {
+      js: "#!/usr/bin/env node",
+    },
+  },
+]);

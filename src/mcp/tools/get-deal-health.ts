@@ -40,11 +40,18 @@ export async function handleGetDealHealth(
     }
 
     return {
-      content: [{ type: "text", text: JSON.stringify({ slug: input.slug, deals: results }, null, 2) }],
+      content: [
+        { type: "text", text: JSON.stringify({ slug: input.slug, deals: results }, null, 2) },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }

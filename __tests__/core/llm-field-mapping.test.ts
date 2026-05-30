@@ -73,10 +73,7 @@ describe("mapCsvFieldsHeuristic (no-LLM fallback)", () => {
   });
 
   it("is case-insensitive", () => {
-    const result = mapCsvFieldsHeuristic(
-      ["NAME", "EMAIL", "DOMAIN"],
-      ["name", "email", "domain"]
-    );
+    const result = mapCsvFieldsHeuristic(["NAME", "EMAIL", "DOMAIN"], ["name", "email", "domain"]);
 
     expect(result.name).toBe("NAME");
     expect(result.email).toBe("EMAIL");
@@ -84,10 +81,7 @@ describe("mapCsvFieldsHeuristic (no-LLM fallback)", () => {
   });
 
   it("handles duplicate mappings by taking the first match", () => {
-    const result = mapCsvFieldsHeuristic(
-      ["Company", "Company Name", "Email"],
-      ["name", "email"]
-    );
+    const result = mapCsvFieldsHeuristic(["Company", "Company Name", "Email"], ["name", "email"]);
 
     // "Company" matches 'name' first, so it wins
     expect(result.name).toBeDefined();
@@ -109,7 +103,10 @@ describe("mapCsvFields — LLM path", () => {
 
   it("falls back to heuristic when no API key is set", async () => {
     const mapCsvFields = await getMapCsvFields();
-    const result = await mapCsvFields(["Company Name", "Email", "Website"], ["name", "email", "domain"]);
+    const result = await mapCsvFields(
+      ["Company Name", "Email", "Website"],
+      ["name", "email", "domain"]
+    );
     expect(result.name).toBe("Company Name");
     expect(result.email).toBe("Email");
     expect(result.domain).toBe("Website");
@@ -123,7 +120,10 @@ describe("mapCsvFields — LLM path", () => {
     });
 
     const mapCsvFields = await getMapCsvFields();
-    const result = await mapCsvFields(["Company", "Email Address", "Website"], ["name", "email", "domain"]);
+    const result = await mapCsvFields(
+      ["Company", "Email Address", "Website"],
+      ["name", "email", "domain"]
+    );
 
     expect(result.name).toBe("Company");
     expect(result.email).toBe("Email Address");
@@ -134,7 +134,9 @@ describe("mapCsvFields — LLM path", () => {
   it("strips markdown code fences from LLM response", async () => {
     process.env["ANTHROPIC_API_KEY"] = "test-key";
     mockMessagesCreate.mockResolvedValueOnce({
-      content: [{ type: "text", text: '```json\n{"name":"Company","email":null,"domain":null}\n```' }],
+      content: [
+        { type: "text", text: '```json\n{"name":"Company","email":null,"domain":null}\n```' },
+      ],
     });
 
     const mapCsvFields = await getMapCsvFields();

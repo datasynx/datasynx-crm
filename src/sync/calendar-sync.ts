@@ -13,7 +13,8 @@ export async function syncCalendar(
 ): Promise<{ synced: number; skipped: number }> {
   const calendar = google.calendar({ version: "v3", auth: opts.auth });
 
-  const timeMin = opts.since?.toISOString() ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+  const timeMin =
+    opts.since?.toISOString() ?? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   const listResp = await calendar.events.list({
     calendarId: "primary",
@@ -40,12 +41,14 @@ export async function syncCalendar(
       continue;
     }
 
-    const startDateTime =
-      event.start?.dateTime ?? event.start?.date ?? new Date().toISOString();
+    const startDateTime = event.start?.dateTime ?? event.start?.date ?? new Date().toISOString();
     const date = new Date(startDateTime).toISOString().slice(0, 10);
     const summary = event.summary ?? "(no title)";
     const description = event.description ?? "";
-    const attendees = (event.attendees ?? []).map((a) => a.email ?? "").filter(Boolean).join(", ");
+    const attendees = (event.attendees ?? [])
+      .map((a) => a.email ?? "")
+      .filter(Boolean)
+      .join(", ");
 
     await appendInteraction(opts.dataDir, opts.slug, {
       date,

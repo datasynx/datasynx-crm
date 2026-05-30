@@ -6,7 +6,11 @@ import fs from "fs";
 import path from "path";
 import { computeCustomerHealth, readHealth } from "../core/relationship-health.js";
 import { readPipeline } from "../fs/pipeline-writer.js";
-import { buildDailyBriefing, enqueueTask, type NotificationChannel } from "../core/proactive-agent.js";
+import {
+  buildDailyBriefing,
+  enqueueTask,
+  type NotificationChannel,
+} from "../core/proactive-agent.js";
 import { fetchSignalsForCustomer } from "../sync/external-signals.js";
 
 const MAX_CUSTOMERS_PER_CYCLE = 50;
@@ -33,9 +37,14 @@ export async function runDailyProactiveChecks(
 
   const customersDir = path.join(dataDir, "customers");
   const slugs = fs.existsSync(customersDir)
-    ? fs.readdirSync(customersDir)
+    ? fs
+        .readdirSync(customersDir)
         .filter((s) => {
-          try { return fs.statSync(path.join(customersDir, s)).isDirectory(); } catch { return false; }
+          try {
+            return fs.statSync(path.join(customersDir, s)).isDirectory();
+          } catch {
+            return false;
+          }
         })
         .slice(0, MAX_CUSTOMERS_PER_CYCLE)
     : [];
@@ -49,9 +58,7 @@ export async function runDailyProactiveChecks(
         const health = readHealth(dataDir, slug) ?? computeCustomerHealth(dataDir, slug, today);
 
         for (const contact of health.contacts) {
-          const isDecayed =
-            contact.riskFlags.includes("NO_CONTACT_30D") ||
-            contact.grade === "F";
+          const isDecayed = contact.riskFlags.includes("NO_CONTACT_30D") || contact.grade === "F";
 
           if (isDecayed) {
             await enqueueTask(dataDir, {
@@ -113,7 +120,13 @@ export async function runDailyProactiveChecks(
             const domain = domainMatch?.[1]?.trim();
             const companyName = nameMatch?.[1]?.trim() ?? slug;
             if (domain) {
-              const signals = await fetchSignalsForCustomer(dataDir, slug, domain, companyName, today);
+              const signals = await fetchSignalsForCustomer(
+                dataDir,
+                slug,
+                domain,
+                companyName,
+                today
+              );
               for (const signal of signals) {
                 if (signal.impact === "neutral") continue;
                 await enqueueTask(dataDir, {

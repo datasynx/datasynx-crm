@@ -65,10 +65,7 @@ describe("export_customer tool", () => {
       "/data/customers/acme-corp/pipeline.md": makePipeline(),
     });
 
-    const result = await handleExportCustomer(
-      { slug: "acme-corp", format: "markdown" },
-      "/data"
-    );
+    const result = await handleExportCustomer({ slug: "acme-corp", format: "markdown" }, "/data");
 
     const text = (result.content[0] as { type: string; text: string }).text;
     // Should contain markdown content, not raw JSON
@@ -120,7 +117,8 @@ describe("export_customer — RBAC enforcement", () => {
     });
     process.env["DXCRM_ACTOR"] = "alice";
 
-    const { handleExportCustomer: handler } = await import("../../../src/mcp/tools/export-customer.js");
+    const { handleExportCustomer: handler } =
+      await import("../../../src/mcp/tools/export-customer.js");
     await expect(handler({ slug: "acme-corp" }, "/data")).rejects.toThrow(/access denied/i);
   });
 
@@ -131,7 +129,8 @@ describe("export_customer — RBAC enforcement", () => {
     });
     process.env["DXCRM_ACTOR"] = "alice";
 
-    const { handleExportCustomer: handler } = await import("../../../src/mcp/tools/export-customer.js");
+    const { handleExportCustomer: handler } =
+      await import("../../../src/mcp/tools/export-customer.js");
     const result = await handler({ slug: "acme-corp" }, "/data");
     expect(result.isError).toBeFalsy();
   });
@@ -141,7 +140,8 @@ describe("export_customer — RBAC enforcement", () => {
       "/data/customers/acme-corp/main_facts.md": makeMainFacts("Acme Corp"),
     });
 
-    const { handleExportCustomer: handler } = await import("../../../src/mcp/tools/export-customer.js");
+    const { handleExportCustomer: handler } =
+      await import("../../../src/mcp/tools/export-customer.js");
     const result = await handler({ slug: "acme-corp" }, "/data");
     expect(result.isError).toBeFalsy();
   });

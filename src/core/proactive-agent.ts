@@ -82,7 +82,11 @@ export async function enqueueTask(
   return newTask;
 }
 
-export async function markTaskDone(dataDir: string, taskId: string, result?: string): Promise<void> {
+export async function markTaskDone(
+  dataDir: string,
+  taskId: string,
+  result?: string
+): Promise<void> {
   await withJsonFile<AgentTask[]>(queuePath(dataDir), (current) => {
     const tasks = Array.isArray(current) ? [...current] : [];
     const idx = tasks.findIndex((t) => t.id === taskId);
@@ -98,9 +102,9 @@ export async function markTaskDone(dataDir: string, taskId: string, result?: str
 export async function buildDailyBriefing(dataDir: string, today: string): Promise<DailyBriefing> {
   const customersDir = path.join(dataDir, "customers");
   const slugs = fs.existsSync(customersDir)
-    ? fs.readdirSync(customersDir).filter((d) =>
-        fs.statSync(path.join(customersDir, d)).isDirectory()
-      )
+    ? fs
+        .readdirSync(customersDir)
+        .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory())
     : [];
 
   const urgent: string[] = [];
@@ -170,7 +174,10 @@ export async function buildDailyBriefing(dataDir: string, today: string): Promis
   // Top action
   const topAction =
     urgent.length > 0
-      ? urgent[0]!.replace(/^[^:]+: /, "").split("—")[0]?.trim() ?? urgent[0]!
+      ? (urgent[0]!
+          .replace(/^[^:]+: /, "")
+          .split("—")[0]
+          ?.trim() ?? urgent[0]!)
       : "Review your pipeline and schedule next customer check-ins.";
 
   return {

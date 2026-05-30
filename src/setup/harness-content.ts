@@ -457,7 +457,11 @@ backup_now · list_backups
 }
 
 /** Grok Build: .grok/settings.json — project-level MCP config (array format) */
-export function buildGrokSettingsJson(config: { serverName: string; mcpServerPath: string; dataDir: string }): string {
+export function buildGrokSettingsJson(config: {
+  serverName: string;
+  mcpServerPath: string;
+  dataDir: string;
+}): string {
   const entry = {
     mcpServers: [
       {

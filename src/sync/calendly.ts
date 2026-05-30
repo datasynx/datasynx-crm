@@ -44,10 +44,15 @@ async function calendlyRequest<T>(apiKey: string, path: string): Promise<T> {
       { headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" } },
       (res) => {
         let data = "";
-        res.on("data", (chunk: Buffer) => { data += chunk.toString(); });
+        res.on("data", (chunk: Buffer) => {
+          data += chunk.toString();
+        });
         res.on("end", () => {
-          try { resolve(JSON.parse(data) as T); }
-          catch { reject(new Error(`Invalid JSON from Calendly API: ${data.slice(0, 200)}`)); }
+          try {
+            resolve(JSON.parse(data) as T);
+          } catch {
+            reject(new Error(`Invalid JSON from Calendly API: ${data.slice(0, 200)}`));
+          }
         });
       }
     );
@@ -84,7 +89,9 @@ export async function getSchedulingLink(
   prefill?: { name?: string; email?: string }
 ): Promise<string> {
   const eventTypes = await listEventTypes(apiKey);
-  const eventType = eventTypes.find((et) => et.slug === eventTypeSlug || et.name.toLowerCase().includes(eventTypeSlug.toLowerCase()));
+  const eventType = eventTypes.find(
+    (et) => et.slug === eventTypeSlug || et.name.toLowerCase().includes(eventTypeSlug.toLowerCase())
+  );
   if (!eventType) {
     throw new Error(`Event type '${eventTypeSlug}' not found in Calendly`);
   }

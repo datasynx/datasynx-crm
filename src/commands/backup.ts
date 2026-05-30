@@ -77,10 +77,17 @@ function countDir(dir: string): { files: number; bytes: number } {
         try {
           const stat = fs.statSync(full);
           if (stat.isDirectory()) walk(full);
-          else { files++; bytes += stat.size; }
-        } catch { /* skip */ }
+          else {
+            files++;
+            bytes += stat.size;
+          }
+        } catch {
+          /* skip */
+        }
       }
-    } catch { /* skip */ }
+    } catch {
+      /* skip */
+    }
   };
   walk(dir);
   return { files, bytes };
@@ -91,9 +98,15 @@ function countCustomers(dataDir: string): number {
   if (!fs.existsSync(dir)) return 0;
   try {
     return fs.readdirSync(dir).filter((f) => {
-      try { return fs.statSync(path.join(dir, f)).isDirectory(); } catch { return false; }
+      try {
+        return fs.statSync(path.join(dir, f)).isDirectory();
+      } catch {
+        return false;
+      }
     }).length;
-  } catch { return 0; }
+  } catch {
+    return 0;
+  }
 }
 
 function sha256File(filePath: string): string {
@@ -136,8 +149,11 @@ function appendBackupLog(dataDir: string, entry: BackupEntry): void {
   const logPath = path.join(dataDir, ".agentic", "backup-log.json");
   let entries: BackupEntry[] = [];
   if (fs.existsSync(logPath)) {
-    try { entries = JSON.parse(fs.readFileSync(logPath, "utf-8") as string) as BackupEntry[]; }
-    catch { entries = []; }
+    try {
+      entries = JSON.parse(fs.readFileSync(logPath, "utf-8") as string) as BackupEntry[];
+    } catch {
+      entries = [];
+    }
   }
   // Deduplicate by filename — update existing entry if same file backed up again
   entries = entries.filter((e) => e.filename !== entry.filename);
@@ -151,8 +167,11 @@ function appendBackupLog(dataDir: string, entry: BackupEntry): void {
 export function readBackupLog(dataDir: string): BackupEntry[] {
   const logPath = path.join(dataDir, ".agentic", "backup-log.json");
   if (!fs.existsSync(logPath)) return [];
-  try { return JSON.parse(fs.readFileSync(logPath, "utf-8") as string) as BackupEntry[]; }
-  catch { return []; }
+  try {
+    return JSON.parse(fs.readFileSync(logPath, "utf-8") as string) as BackupEntry[];
+  } catch {
+    return [];
+  }
 }
 
 // ─── runBackup ────────────────────────────────────────────────────────────────
@@ -188,7 +207,9 @@ export async function runBackup(
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2), "utf-8");
     try {
       execSync(`zip -j "${zipPath}" "${manifestPath}"`, { cwd: dir });
-    } catch { /* non-fatal */ }
+    } catch {
+      /* non-fatal */
+    }
     fs.unlinkSync(manifestPath);
 
     // Verify integrity
@@ -212,7 +233,11 @@ export async function runBackup(
     }
 
     console.log(success(`✓ Backup saved: ${zipPath}`));
-    console.log(info(`  Customers: ${manifest.customerCount}  Files: ${manifest.fileCount}  Size: ${(manifest.totalBytes / 1024 / 1024).toFixed(1)} MB`));
+    console.log(
+      info(
+        `  Customers: ${manifest.customerCount}  Files: ${manifest.fileCount}  Size: ${(manifest.totalBytes / 1024 / 1024).toFixed(1)} MB`
+      )
+    );
     if (!verified) console.log(info("  ⚠ Integrity check failed — backup may be incomplete"));
 
     return manifest;
@@ -261,10 +286,16 @@ export async function uploadBackup(localPath: string, remote: string): Promise<v
   if (remote.startsWith("s3://")) {
     // Requires AWS CLI or @aws-sdk/client-s3 to be installed
     try {
-      execSync(`aws s3 cp "${localPath}" "${remote}${path.basename(localPath)}"`, { stdio: "pipe" });
+      execSync(`aws s3 cp "${localPath}" "${remote}${path.basename(localPath)}"`, {
+        stdio: "pipe",
+      });
       console.log(info(`  ✓ Uploaded to ${remote}${path.basename(localPath)}`));
     } catch (err) {
-      console.error(error(`  ✗ S3 upload failed (install aws-cli or @aws-sdk/client-s3): ${(err as Error).message}`));
+      console.error(
+        error(
+          `  ✗ S3 upload failed (install aws-cli or @aws-sdk/client-s3): ${(err as Error).message}`
+        )
+      );
     }
   } else if (remote.startsWith("rsync://")) {
     const dest = remote.replace("rsync://", "");
@@ -292,7 +323,8 @@ export async function uploadBackup(localPath: string, remote: string): Promise<v
 export function listBackupsInDir(dir: string): BackupEntry[] {
   if (!fs.existsSync(dir)) return [];
   try {
-    return fs.readdirSync(dir)
+    return fs
+      .readdirSync(dir)
       .filter((f) => f.match(/^dxcrm-backup-.*\.(zip|dxbak)$/))
       .map((f) => {
         const fullPath = path.join(dir, f);
@@ -309,7 +341,9 @@ export function listBackupsInDir(dir: string): BackupEntry[] {
         } satisfies BackupEntry;
       })
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-  } catch { return []; }
+  } catch {
+    return [];
+  }
 }
 
 // ─── Retention Policy ─────────────────────────────────────────────────────────
@@ -321,7 +355,8 @@ export interface RetentionConfig {
 }
 
 export function pruneOldBackups(dir: string, keep: number, retention?: RetentionConfig): void {
-  const files = fs.readdirSync(dir)
+  const files = fs
+    .readdirSync(dir)
     .filter((f) => f.match(/^dxcrm-backup-\d{4}-\d{2}-\d{2}.*\.(zip|dxbak)$/))
     .sort();
 
@@ -329,7 +364,11 @@ export function pruneOldBackups(dir: string, keep: number, retention?: Retention
     // Legacy: keep last N
     const toDelete = files.slice(0, Math.max(0, files.length - keep));
     for (const f of toDelete) {
-      try { fs.unlinkSync(path.join(dir, f)); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(path.join(dir, f));
+      } catch {
+        /* ignore */
+      }
     }
     return;
   }
@@ -355,7 +394,9 @@ export function pruneOldBackups(dir: string, keep: number, retention?: Retention
       const week = `${d.getFullYear()}-W${String(Math.ceil((d.getDate() + new Date(d.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, "0")}`;
       byWeek.set(week, f); // last backup of the week wins
     }
-    Array.from(byWeek.values()).slice(-weekly).forEach((f) => kept.add(f));
+    Array.from(byWeek.values())
+      .slice(-weekly)
+      .forEach((f) => kept.add(f));
   }
 
   // Keep last backup of each month (up to 'monthly' months)
@@ -366,12 +407,18 @@ export function pruneOldBackups(dir: string, keep: number, retention?: Retention
       if (!dateMatch?.[1]) continue;
       byMonth.set(dateMatch[1], f); // last backup of the month wins
     }
-    Array.from(byMonth.values()).slice(-monthly).forEach((f) => kept.add(f));
+    Array.from(byMonth.values())
+      .slice(-monthly)
+      .forEach((f) => kept.add(f));
   }
 
   for (const f of files) {
     if (!kept.has(f)) {
-      try { fs.unlinkSync(path.join(dir, f)); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(path.join(dir, f));
+      } catch {
+        /* ignore */
+      }
     }
   }
 }
@@ -379,7 +426,15 @@ export function pruneOldBackups(dir: string, keep: number, retention?: Retention
 // ─── Schedule ─────────────────────────────────────────────────────────────────
 
 export async function runBackupSchedule(
-  opts: { every?: string; keep?: string; weekly?: string; monthly?: string; remote?: string; status?: boolean; clear?: boolean },
+  opts: {
+    every?: string;
+    keep?: string;
+    weekly?: string;
+    monthly?: string;
+    remote?: string;
+    status?: boolean;
+    clear?: boolean;
+  },
   dataDir?: string
 ): Promise<void> {
   const dir = dataDir ?? process.cwd();
@@ -411,7 +466,11 @@ export async function runBackupSchedule(
     };
     writeAgenticConfig(dir, config);
     if (!opts.status) {
-      console.log(success(`✓ Backup schedule set: every ${opts.every}, keep ${keep} daily${opts.weekly ? ` / ${opts.weekly} weekly` : ""}${opts.monthly ? ` / ${opts.monthly} monthly` : ""}.`));
+      console.log(
+        success(
+          `✓ Backup schedule set: every ${opts.every}, keep ${keep} daily${opts.weekly ? ` / ${opts.weekly} weekly` : ""}${opts.monthly ? ` / ${opts.monthly} monthly` : ""}.`
+        )
+      );
     }
   }
 
@@ -457,7 +516,7 @@ export async function runScheduledBackupIfDue(dataDir: string): Promise<void> {
     execSync(`zip -r "${zipPath}" ${includeDirs.join(" ")}`, { cwd: dataDir });
 
     const retention: RetentionConfig | undefined =
-      sched.weekly ?? sched.monthly
+      (sched.weekly ?? sched.monthly)
         ? {
             daily: sched.keep,
             ...(sched.weekly ? { weekly: sched.weekly } : {}),
@@ -467,7 +526,9 @@ export async function runScheduledBackupIfDue(dataDir: string): Promise<void> {
     pruneOldBackups(dataDir, sched.keep, retention);
 
     if (sched.remote) {
-      await uploadBackup(zipPath, sched.remote).catch(() => { /* non-fatal */ });
+      await uploadBackup(zipPath, sched.remote).catch(() => {
+        /* non-fatal */
+      });
     }
 
     config.backupSchedule!.lastBackup = new Date().toISOString();
@@ -509,21 +570,22 @@ const verifySubCommand = new Command("verify")
   .description("Verify backup integrity (SHA-256 + zip test)")
   .action((zipPath: string) => runVerify(zipPath));
 
-const listSubCommand = new Command("list")
-  .description("List available backups")
-  .action(() => {
-    const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-    const entries = readBackupLog(dir);
-    const fileEntries = listBackupsInDir(dir);
-    const combined = entries.length > 0 ? entries : fileEntries;
-    if (combined.length === 0) { console.log(info("No backups found.")); return; }
-    for (const e of combined) {
-      const enc = e.encrypted ? " [encrypted]" : "";
-      const ver = e.verified ? " ✓" : "";
-      const mb = e.sizeBytes > 0 ? ` ${(e.sizeBytes / 1024 / 1024).toFixed(1)} MB` : "";
-      console.log(`  ${bold(e.filename)}${enc}${ver}${mb}  ${e.createdAt.slice(0, 10)}`);
-    }
-  });
+const listSubCommand = new Command("list").description("List available backups").action(() => {
+  const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+  const entries = readBackupLog(dir);
+  const fileEntries = listBackupsInDir(dir);
+  const combined = entries.length > 0 ? entries : fileEntries;
+  if (combined.length === 0) {
+    console.log(info("No backups found."));
+    return;
+  }
+  for (const e of combined) {
+    const enc = e.encrypted ? " [encrypted]" : "";
+    const ver = e.verified ? " ✓" : "";
+    const mb = e.sizeBytes > 0 ? ` ${(e.sizeBytes / 1024 / 1024).toFixed(1)} MB` : "";
+    console.log(`  ${bold(e.filename)}${enc}${ver}${mb}  ${e.createdAt.slice(0, 10)}`);
+  }
+});
 
 export const backupCommand = new Command("backup")
   .argument("[output]", "Output path for backup zip")

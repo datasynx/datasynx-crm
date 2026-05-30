@@ -87,8 +87,6 @@ describe("authenticateWithCode", () => {
     );
 
     const { authenticateWithCode } = await import("../../src/core/sso.js");
-    await expect(
-      authenticateWithCode("bad_code", "sk_live_key")
-    ).rejects.toThrow(/401/);
+    await expect(authenticateWithCode("bad_code", "sk_live_key")).rejects.toThrow(/401/);
   });
 });

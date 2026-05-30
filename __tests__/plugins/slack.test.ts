@@ -29,7 +29,9 @@ describe("createSlackPlugin", () => {
         webhookUrl: "https://hooks.slack.com/test",
         notifyOn: ["new_interaction"],
       });
-      await (plugin as { afterLogInteraction(slug: string, summary: string): Promise<void> }).afterLogInteraction("acme-corp", "Had a great call");
+      await (
+        plugin as { afterLogInteraction(slug: string, summary: string): Promise<void> }
+      ).afterLogInteraction("acme-corp", "Had a great call");
       expect(fetchMock).toHaveBeenCalledTimes(1);
       expect(fetchMock.mock.calls[0]![0]).toBe("https://hooks.slack.com/test");
     });
@@ -40,7 +42,9 @@ describe("createSlackPlugin", () => {
         webhookUrl: "https://hooks.slack.com/test",
         notifyOn: ["deal_won"],
       });
-      await (plugin as { afterLogInteraction(slug: string, summary: string): Promise<void> }).afterLogInteraction("acme-corp", "Had a great call");
+      await (
+        plugin as { afterLogInteraction(slug: string, summary: string): Promise<void> }
+      ).afterLogInteraction("acme-corp", "Had a great call");
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });
@@ -52,7 +56,9 @@ describe("createSlackPlugin", () => {
         webhookUrl: "https://hooks.slack.com/test",
         notifyOn: ["deal_won"],
       });
-      await (plugin as { afterDealUpdate(slug: string, dealName: string, stage: string): Promise<void> }).afterDealUpdate("acme-corp", "Enterprise Deal", "won");
+      await (
+        plugin as { afterDealUpdate(slug: string, dealName: string, stage: string): Promise<void> }
+      ).afterDealUpdate("acme-corp", "Enterprise Deal", "won");
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const body = JSON.parse(fetchMock.mock.calls[0]![1].body as string) as { text: string };
       expect(body.text).toContain("WON");
@@ -64,7 +70,9 @@ describe("createSlackPlugin", () => {
         webhookUrl: "https://hooks.slack.com/test",
         notifyOn: ["deal_lost"],
       });
-      await (plugin as { afterDealUpdate(slug: string, dealName: string, stage: string): Promise<void> }).afterDealUpdate("acme-corp", "Enterprise Deal", "lost");
+      await (
+        plugin as { afterDealUpdate(slug: string, dealName: string, stage: string): Promise<void> }
+      ).afterDealUpdate("acme-corp", "Enterprise Deal", "lost");
       expect(fetchMock).toHaveBeenCalledTimes(1);
       const body = JSON.parse(fetchMock.mock.calls[0]![1].body as string) as { text: string };
       expect(body.text).toContain("LOST");
@@ -76,7 +84,9 @@ describe("createSlackPlugin", () => {
         webhookUrl: "https://hooks.slack.com/test",
         notifyOn: ["deal_won", "deal_lost"],
       });
-      await (plugin as { afterDealUpdate(slug: string, dealName: string, stage: string): Promise<void> }).afterDealUpdate("acme-corp", "Enterprise Deal", "qualified");
+      await (
+        plugin as { afterDealUpdate(slug: string, dealName: string, stage: string): Promise<void> }
+      ).afterDealUpdate("acme-corp", "Enterprise Deal", "qualified");
       expect(fetchMock).not.toHaveBeenCalled();
     });
   });

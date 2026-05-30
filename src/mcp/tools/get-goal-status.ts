@@ -16,7 +16,16 @@ export async function handleGetGoalStatus(
 
     if (input.goalId && allGoals.length === 0) {
       return {
-        content: [{ type: "text", text: JSON.stringify({ success: false, error: `Goal '${input.goalId}' not found` }, null, 2) }],
+        content: [
+          {
+            type: "text",
+            text: JSON.stringify(
+              { success: false, error: `Goal '${input.goalId}' not found` },
+              null,
+              2
+            ),
+          },
+        ],
       };
     }
 
@@ -41,14 +50,25 @@ export async function handleGetGoalStatus(
     const completed = allGoals.filter((g) => g.status === "completed");
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({ goals, activeCount: active.length, completedCount: completed.length }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            { goals, activeCount: active.length, completedCount: completed.length },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }

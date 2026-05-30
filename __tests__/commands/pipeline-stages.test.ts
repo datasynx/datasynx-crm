@@ -78,7 +78,15 @@ describe("stagesCommand set", () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const { stagesCommand } = await import("../../src/commands/pipeline-stages.js");
     await stagesCommand.parseAsync([
-      "node", "dxcrm", "set", "demo", "Demo Booked", "--order", "3", "--probability", "40",
+      "node",
+      "dxcrm",
+      "set",
+      "demo",
+      "Demo Booked",
+      "--order",
+      "3",
+      "--probability",
+      "40",
     ]);
     expect(mockSet).toHaveBeenCalledWith(
       expect.any(String),
@@ -93,7 +101,14 @@ describe("stagesCommand set", () => {
     const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
     const { stagesCommand } = await import("../../src/commands/pipeline-stages.js");
     await stagesCommand.parseAsync([
-      "node", "dxcrm", "set", "closed-won", "Closed Won", "--order", "10", "--final",
+      "node",
+      "dxcrm",
+      "set",
+      "closed-won",
+      "Closed Won",
+      "--order",
+      "10",
+      "--final",
     ]);
     expect(mockSet).toHaveBeenCalledWith(
       expect.any(String),
@@ -113,11 +128,17 @@ describe("stagesCommand delete", () => {
   });
 
   it("exits with error when stage not found", async () => {
-    mockGet.mockReturnValue([{ id: "won", label: "Won", order: 5, isFinal: true, probability: 100 }]);
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => { throw new Error("exit"); });
+    mockGet.mockReturnValue([
+      { id: "won", label: "Won", order: 5, isFinal: true, probability: 100 },
+    ]);
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
     const errSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const { stagesCommand } = await import("../../src/commands/pipeline-stages.js");
-    await expect(stagesCommand.parseAsync(["node", "dxcrm", "delete", "missing"])).rejects.toThrow("exit");
+    await expect(stagesCommand.parseAsync(["node", "dxcrm", "delete", "missing"])).rejects.toThrow(
+      "exit"
+    );
     exitSpy.mockRestore();
     errSpy.mockRestore();
   });

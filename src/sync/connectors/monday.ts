@@ -39,9 +39,7 @@ export const MondayConnector: CrmConnector = {
           next_items_page?: MondayPage;
         };
       };
-      const page = cursor
-        ? data.data?.next_items_page
-        : data.data?.boards?.[0]?.items_page;
+      const page = cursor ? data.data?.next_items_page : data.data?.boards?.[0]?.items_page;
 
       if (!page?.items?.length) break;
 

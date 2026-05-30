@@ -3,9 +3,23 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { initOAuthFromDisk } from "../core/oauth-store.js";
-import { decodeGmailPubSubPayload, verifyGmailPubSubSignature, handleGmailPushEvent } from "../sync/gmail-webhook-handler.js";
-import { handleMicrosoftValidationRequest, verifyMicrosoftGraphSignature, handleMicrosoftPushEvent, type MicrosoftGraphNotification } from "../sync/microsoft-webhook-handler.js";
-import { verifySlackSignature, handleSlackUrlVerification, handleSlackPushEvent, type SlackEvent } from "../sync/slack-webhook-handler.js";
+import {
+  decodeGmailPubSubPayload,
+  verifyGmailPubSubSignature,
+  handleGmailPushEvent,
+} from "../sync/gmail-webhook-handler.js";
+import {
+  handleMicrosoftValidationRequest,
+  verifyMicrosoftGraphSignature,
+  handleMicrosoftPushEvent,
+  type MicrosoftGraphNotification,
+} from "../sync/microsoft-webhook-handler.js";
+import {
+  verifySlackSignature,
+  handleSlackUrlVerification,
+  handleSlackPushEvent,
+  type SlackEvent,
+} from "../sync/slack-webhook-handler.js";
 import { registerGetCapabilities } from "./tools/get-capabilities.js";
 import { registerGetActiveSession } from "./tools/get-active-session.js";
 import { registerGetCustomerContext } from "./tools/get-customer-context.js";
@@ -150,8 +164,12 @@ export async function startHttp(port = 3847): Promise<void> {
   app.post("/mcp", async (req, res) => {
     const transport = new StreamableHTTPServerTransport({ enableJsonResponse: true });
     // Ensure onclose is always a function (required by Transport interface with exactOptionalPropertyTypes)
-    transport.onclose = () => { /* no-op */ };
-    res.on("close", () => { void transport.close(); });
+    transport.onclose = () => {
+      /* no-op */
+    };
+    res.on("close", () => {
+      void transport.close();
+    });
     await server.connect(transport as unknown as Transport);
     await transport.handleRequest(req, res, req.body as Record<string, unknown>);
   });
@@ -180,8 +198,14 @@ export async function startHttp(port = 3847): Promise<void> {
       return;
     }
     const payload = decodeGmailPubSubPayload(req.body);
-    if (!payload) { res.status(400).json({ error: "invalid_payload" }); return; }
-    const result = await handleGmailPushEvent(dataDir, payload, "").catch(() => ({ processed: 0, slug: null }));
+    if (!payload) {
+      res.status(400).json({ error: "invalid_payload" });
+      return;
+    }
+    const result = await handleGmailPushEvent(dataDir, payload, "").catch(() => ({
+      processed: 0,
+      slug: null,
+    }));
     res.json({ ok: true, processed: result.processed });
   });
 
@@ -199,7 +223,10 @@ export async function startHttp(port = 3847): Promise<void> {
       res.status(401).json({ error: "unauthorized" });
       return;
     }
-    const result = await handleMicrosoftPushEvent(dataDir, body.value ?? [], "").catch(() => ({ processed: 0, skipped: 0 }));
+    const result = await handleMicrosoftPushEvent(dataDir, body.value ?? [], "").catch(() => ({
+      processed: 0,
+      skipped: 0,
+    }));
     res.json({ ok: true, ...result });
   });
 
@@ -207,17 +234,36 @@ export async function startHttp(port = 3847): Promise<void> {
   app.post("/webhooks/slack", express.text({ type: "*/*" }), async (req, res) => {
     const rawBody = req.body as string;
     const signingSecret = process.env["SLACK_SIGNING_SECRET"] ?? "";
-    if (!verifySlackSignature(rawBody, req.headers as { "x-slack-signature"?: string; "x-slack-request-timestamp"?: string }, signingSecret)) {
+    if (
+      !verifySlackSignature(
+        rawBody,
+        req.headers as { "x-slack-signature"?: string; "x-slack-request-timestamp"?: string },
+        signingSecret
+      )
+    ) {
       res.status(401).json({ error: "unauthorized" });
       return;
     }
     let parsed: { type?: string; challenge?: string; event?: SlackEvent; team_id?: string };
-    try { parsed = JSON.parse(rawBody) as typeof parsed; } catch { res.status(400).json({ error: "invalid_json" }); return; }
+    try {
+      parsed = JSON.parse(rawBody) as typeof parsed;
+    } catch {
+      res.status(400).json({ error: "invalid_json" });
+      return;
+    }
     const verification = handleSlackUrlVerification(parsed);
-    if (verification.isVerification) { res.json({ challenge: verification.challenge }); return; }
-    if (!parsed.event) { res.json({ ok: true, processed: 0 }); return; }
+    if (verification.isVerification) {
+      res.json({ challenge: verification.challenge });
+      return;
+    }
+    if (!parsed.event) {
+      res.json({ ok: true, processed: 0 });
+      return;
+    }
     const botToken = process.env["SLACK_BOT_TOKEN"] ?? "";
-    const result = await handleSlackPushEvent(dataDir, parsed.event, botToken, { ...(parsed.team_id !== undefined ? { teamId: parsed.team_id } : {}) }).catch(() => ({ processed: 0, skipped: 1 }));
+    const result = await handleSlackPushEvent(dataDir, parsed.event, botToken, {
+      ...(parsed.team_id !== undefined ? { teamId: parsed.team_id } : {}),
+    }).catch(() => ({ processed: 0, skipped: 1 }));
     res.json({ ok: true, ...result });
   });
 
@@ -227,7 +273,10 @@ export async function startHttp(port = 3847): Promise<void> {
   // POST /survey/respond                           → record comment + thank-you page
   app.get("/survey/respond", async (req, res) => {
     const { token, score, comment } = req.query as Record<string, string | undefined>;
-    if (!token) { res.status(400).send("<h2>Invalid survey link.</h2>"); return; }
+    if (!token) {
+      res.status(400).send("<h2>Invalid survey link.</h2>");
+      return;
+    }
 
     if (comment === "true") {
       res.setHeader("content-type", "text/html");
@@ -260,14 +309,21 @@ button{margin-top:12px;padding:12px 28px;background:#1a1a2e;color:#fff;border:no
 
   app.post("/survey/respond", express.urlencoded({ extended: false }), async (req, res) => {
     const { token, score, comment: commentText } = req.body as Record<string, string | undefined>;
-    if (!token) { res.status(400).send("<h2>Invalid survey link.</h2>"); return; }
+    if (!token) {
+      res.status(400).send("<h2>Invalid survey link.</h2>");
+      return;
+    }
     const numScore = score !== undefined ? parseInt(score, 10) : NaN;
     if (isNaN(numScore) || numScore < 0 || numScore > 10) {
-      res.status(400).send("<h2>Invalid score. Please go back and enter a number between 0 and 10.</h2>");
+      res
+        .status(400)
+        .send("<h2>Invalid score. Please go back and enter a number between 0 and 10.</h2>");
       return;
     }
     const { recordSurveyResponse } = await import("../core/survey-engine.js");
-    await recordSurveyResponse(dataDir, token, numScore, commentText || undefined).catch(() => null);
+    await recordSurveyResponse(dataDir, token, numScore, commentText || undefined).catch(
+      () => null
+    );
     res.setHeader("content-type", "text/html");
     res.send(surveyThankYouPage(numScore, commentText));
   });

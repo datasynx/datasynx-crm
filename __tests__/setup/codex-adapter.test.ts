@@ -96,10 +96,7 @@ describe("CodexAdapter", () => {
     await adapter.install(TEST_CONFIG);
 
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(
-      path.join(TEST_CONFIG.dataDir, "AGENTS.md"),
-      "utf-8"
-    ) as string;
+    const content = fs.readFileSync(path.join(TEST_CONFIG.dataDir, "AGENTS.md"), "utf-8") as string;
     // Should not duplicate since it already contains "DatasynxOpenCRM"
     const matches = content.match(/DatasynxOpenCRM/g);
     expect(matches?.length).toBe(1);
@@ -116,10 +113,7 @@ describe("CodexAdapter", () => {
     await adapter.install(TEST_CONFIG);
 
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(
-      path.join(TEST_CONFIG.dataDir, "AGENTS.md"),
-      "utf-8"
-    ) as string;
+    const content = fs.readFileSync(path.join(TEST_CONFIG.dataDir, "AGENTS.md"), "utf-8") as string;
     expect(content).toContain("My Custom Agents");
     expect(content).toContain("DatasynxOpenCRM");
   });
@@ -137,10 +131,10 @@ describe("CodexAdapter", () => {
   it("uninstall() removes only the datasynx-opencrm block", async () => {
     const initialContent = [
       "[other_server]",
-      "command = \"other\"",
+      'command = "other"',
       "",
       "[mcp_servers.datasynx-opencrm]",
-      "command = \"/usr/bin/node\"",
+      'command = "/usr/bin/node"',
       "enabled = true",
       "",
     ].join("\n");

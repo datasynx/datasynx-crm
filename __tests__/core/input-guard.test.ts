@@ -19,7 +19,9 @@ describe("guardString", () => {
 
   it("throws when string exceeds maxLen", async () => {
     const { guardString } = await import("../../src/core/input-guard.js");
-    expect(() => guardString("a".repeat(101), "bio", { maxLen: 100 })).toThrow("bio: exceeds max length 100");
+    expect(() => guardString("a".repeat(101), "bio", { maxLen: 100 })).toThrow(
+      "bio: exceeds max length 100"
+    );
   });
 
   it("accepts string within maxLen", async () => {
@@ -29,8 +31,12 @@ describe("guardString", () => {
 
   it("validates against pattern", async () => {
     const { guardString } = await import("../../src/core/input-guard.js");
-    expect(() => guardString("not-a-date", "deadline", { pattern: /^\d{4}-\d{2}-\d{2}$/ })).toThrow("deadline: invalid format");
-    expect(guardString("2026-09-30", "deadline", { pattern: /^\d{4}-\d{2}-\d{2}$/ })).toBe("2026-09-30");
+    expect(() => guardString("not-a-date", "deadline", { pattern: /^\d{4}-\d{2}-\d{2}$/ })).toThrow(
+      "deadline: invalid format"
+    );
+    expect(guardString("2026-09-30", "deadline", { pattern: /^\d{4}-\d{2}-\d{2}$/ })).toBe(
+      "2026-09-30"
+    );
   });
 
   it("trims whitespace by default", async () => {
@@ -60,7 +66,9 @@ describe("guardNumber", () => {
 
   it("throws when number above max", async () => {
     const { guardNumber } = await import("../../src/core/input-guard.js");
-    expect(() => guardNumber(100_001, "iterations", { max: 100_000 })).toThrow("iterations: must be <= 100000");
+    expect(() => guardNumber(100_001, "iterations", { max: 100_000 })).toThrow(
+      "iterations: must be <= 100000"
+    );
   });
 
   it("accepts value exactly at min and max boundaries", async () => {
@@ -122,7 +130,9 @@ describe("guardLlmResponse", () => {
 
   it("throws when response is not a string", async () => {
     const { guardLlmResponse } = await import("../../src/core/input-guard.js");
-    expect(() => guardLlmResponse(null as unknown as string)).toThrow("LLM response: expected string");
+    expect(() => guardLlmResponse(null as unknown as string)).toThrow(
+      "LLM response: expected string"
+    );
   });
 });
 

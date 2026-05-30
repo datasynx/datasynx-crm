@@ -31,7 +31,9 @@ function triggerOnQuerySync(dataDir: string, slug: string): void {
     void import("../../sync/gmail-sync.js")
       .then(({ syncGmail }) =>
         syncGmail({ slug, dataDir, auth, query })
-          .then(() => updateSlugSyncState(dataDir, slug, { lastGmailSync: new Date().toISOString() }))
+          .then(() =>
+            updateSlugSyncState(dataDir, slug, { lastGmailSync: new Date().toISOString() })
+          )
           .catch(() => {})
       )
       .catch(() => {});
@@ -65,7 +67,9 @@ export async function handleGetCustomerContext(
   const actor = process.env["DXCRM_ACTOR"] ?? "system";
   if (!canSeeCustomer(dataDir, actor, targetSlug)) {
     return {
-      content: [{ type: "text", text: `Access denied: '${actor}' cannot view customer '${targetSlug}'.` }],
+      content: [
+        { type: "text", text: `Access denied: '${actor}' cannot view customer '${targetSlug}'.` },
+      ],
       isError: true,
     };
   }
@@ -111,12 +115,9 @@ Performance: <3 seconds. Token budget: <3000.`,
         slug: z
           .string()
           .optional()
-          .describe(
-            "Customer slug (e.g. 'acme-corp'). Leave empty for active session customer."
-          ),
+          .describe("Customer slug (e.g. 'acme-corp'). Leave empty for active session customer."),
       }),
     },
-    async ({ slug }) =>
-      handleGetCustomerContext({ ...(slug !== undefined ? { slug } : {}) })
+    async ({ slug }) => handleGetCustomerContext({ ...(slug !== undefined ? { slug } : {}) })
   );
 }

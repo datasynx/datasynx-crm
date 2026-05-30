@@ -11,7 +11,11 @@ describe("session-store", () => {
   });
 
   it("returns session after setSession", () => {
-    const s = { customerSlug: "acme-corp", customerName: "Acme Corp", startedAt: "2026-05-30T10:00:00Z" };
+    const s = {
+      customerSlug: "acme-corp",
+      customerName: "Acme Corp",
+      startedAt: "2026-05-30T10:00:00Z",
+    };
     setSession(s);
     expect(getSession()).toEqual(s);
   });
@@ -24,12 +28,21 @@ describe("session-store", () => {
 
   it("overwrites previous session on setSession", () => {
     setSession({ customerSlug: "acme", customerName: "Acme", startedAt: "2026-05-30T09:00:00Z" });
-    setSession({ customerSlug: "beta", customerName: "Beta Corp", startedAt: "2026-05-30T10:00:00Z" });
+    setSession({
+      customerSlug: "beta",
+      customerName: "Beta Corp",
+      startedAt: "2026-05-30T10:00:00Z",
+    });
     expect(getSession()?.customerSlug).toBe("beta");
   });
 
   it("stores optional owner field", () => {
-    setSession({ customerSlug: "acme", customerName: "Acme", startedAt: "2026-05-30T10:00:00Z", owner: "alice" });
+    setSession({
+      customerSlug: "acme",
+      customerName: "Acme",
+      startedAt: "2026-05-30T10:00:00Z",
+      owner: "alice",
+    });
     expect(getSession()?.owner).toBe("alice");
   });
 });

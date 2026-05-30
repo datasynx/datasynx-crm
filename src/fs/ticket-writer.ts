@@ -25,9 +25,15 @@ function parseTicketsFromMarkdown(content: string): Ticket[] {
       continue;
     }
     if (!inTable) continue;
-    if (!line.startsWith("|")) { inTable = false; continue; }
+    if (!line.startsWith("|")) {
+      inTable = false;
+      continue;
+    }
 
-    const cols = line.split("|").slice(1, -1).map((c) => c.trim());
+    const cols = line
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.trim());
     if (cols.length < 8) continue;
     const [id, title, status, priority, assignee, created, slaDue, resolved] = cols;
     if (!id || !title || id === "ID") continue;
@@ -50,8 +56,9 @@ function parseTicketsFromMarkdown(content: string): Ticket[] {
 }
 
 function serializeTickets(tickets: Ticket[]): string {
-  const rows = tickets.map((t) =>
-    `| ${t.id} | ${escapeMd(t.title)} | ${t.status} | ${t.priority} | ${t.assignee ?? ""} | ${t.created} | ${t.slaDue ?? ""} | ${t.resolved ?? ""} |`
+  const rows = tickets.map(
+    (t) =>
+      `| ${t.id} | ${escapeMd(t.title)} | ${t.status} | ${t.priority} | ${t.assignee ?? ""} | ${t.created} | ${t.slaDue ?? ""} | ${t.resolved ?? ""} |`
   );
   return `${TICKET_HEADER}${TABLE_HEADER}\n${rows.join("\n")}\n`;
 }
@@ -75,9 +82,7 @@ export async function upsertTicket(dataDir: string, slug: string, ticket: Ticket
 }
 
 export function nextTicketId(tickets: Ticket[]): string {
-  const nums = tickets
-    .map((t) => parseInt(t.id.replace("T-", ""), 10))
-    .filter((n) => !isNaN(n));
+  const nums = tickets.map((t) => parseInt(t.id.replace("T-", ""), 10)).filter((n) => !isNaN(n));
   const max = nums.length > 0 ? Math.max(...nums) : 0;
   return `T-${String(max + 1).padStart(3, "0")}`;
 }
@@ -92,7 +97,11 @@ export async function listAllTickets(
   const slugs = filter?.slug
     ? [filter.slug]
     : fs.readdirSync(customersDir).filter((s) => {
-        try { return fs.statSync(path.join(customersDir, s)).isDirectory(); } catch { return false; }
+        try {
+          return fs.statSync(path.join(customersDir, s)).isDirectory();
+        } catch {
+          return false;
+        }
       });
 
   const results: Array<{ slug: string; ticket: Ticket }> = [];

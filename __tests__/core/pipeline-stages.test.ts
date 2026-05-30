@@ -34,7 +34,8 @@ describe("getPipelineStages", () => {
 describe("setPipelineStage", () => {
   it("creates a new stage", async () => {
     vol.fromJSON({ [`${DATA_DIR}/.agentic/`]: null });
-    const { setPipelineStage, getPipelineStages } = await import("../../src/core/pipeline-stages.js");
+    const { setPipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     const newStage = { id: "discovery", label: "Discovery", order: 1, probability: 20 };
     setPipelineStage(DATA_DIR, newStage);
     const stages = getPipelineStages(DATA_DIR);
@@ -46,7 +47,8 @@ describe("setPipelineStage", () => {
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/pipeline-stages.json`]: JSON.stringify(existing),
     });
-    const { setPipelineStage, getPipelineStages } = await import("../../src/core/pipeline-stages.js");
+    const { setPipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     setPipelineStage(DATA_DIR, { id: "lead", label: "Lead Updated", order: 1, probability: 15 });
     const stages = getPipelineStages(DATA_DIR);
     const lead = stages.find((s) => s.id === "lead");
@@ -62,7 +64,8 @@ describe("setPipelineStage", () => {
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/pipeline-stages.json`]: JSON.stringify(existing),
     });
-    const { setPipelineStage, getPipelineStages } = await import("../../src/core/pipeline-stages.js");
+    const { setPipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     setPipelineStage(DATA_DIR, { id: "qualified", label: "Qualified", order: 2, probability: 30 });
     const stages = getPipelineStages(DATA_DIR);
     expect(stages[0]!.id).toBe("lead");
@@ -80,7 +83,8 @@ describe("deletePipelineStage", () => {
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/pipeline-stages.json`]: JSON.stringify(existing),
     });
-    const { deletePipelineStage, getPipelineStages } = await import("../../src/core/pipeline-stages.js");
+    const { deletePipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     deletePipelineStage(DATA_DIR, "lead");
     const stages = getPipelineStages(DATA_DIR);
     expect(stages.find((s) => s.id === "lead")).toBeUndefined();
@@ -92,7 +96,8 @@ describe("deletePipelineStage", () => {
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/pipeline-stages.json`]: JSON.stringify(existing),
     });
-    const { deletePipelineStage, getPipelineStages } = await import("../../src/core/pipeline-stages.js");
+    const { deletePipelineStage, getPipelineStages } =
+      await import("../../src/core/pipeline-stages.js");
     deletePipelineStage(DATA_DIR, "nonexistent");
     const stages = getPipelineStages(DATA_DIR);
     expect(stages).toHaveLength(1);
@@ -105,7 +110,8 @@ describe("resetToDefaults", () => {
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/pipeline-stages.json`]: JSON.stringify(custom),
     });
-    const { resetToDefaults, getPipelineStages, DEFAULT_STAGES } = await import("../../src/core/pipeline-stages.js");
+    const { resetToDefaults, getPipelineStages, DEFAULT_STAGES } =
+      await import("../../src/core/pipeline-stages.js");
     resetToDefaults(DATA_DIR);
     const stages = getPipelineStages(DATA_DIR);
     expect(stages).toEqual(DEFAULT_STAGES);

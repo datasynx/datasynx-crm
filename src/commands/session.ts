@@ -9,9 +9,15 @@ function sessionsDir(dataDir: string): string {
   return path.join(dataDir, ".agentic", "sessions");
 }
 
-export function persistSession(dataDir: string, session: {
-  customerSlug: string; customerName: string; startedAt: string; owner?: string;
-}): void {
+export function persistSession(
+  dataDir: string,
+  session: {
+    customerSlug: string;
+    customerName: string;
+    startedAt: string;
+    owner?: string;
+  }
+): void {
   const dir = sessionsDir(dataDir);
   fs.mkdirSync(dir, { recursive: true });
   const key = (session.owner ?? `pid-${process.pid}`).replace(/[^a-zA-Z0-9_-]/g, "_");
@@ -30,19 +36,33 @@ export function clearPersistedSession(dataDir: string, owner?: string): void {
   // No specific owner — clear all session files
   try {
     for (const f of fs.readdirSync(dir).filter((n) => n.endsWith(".json"))) {
-      try { fs.unlinkSync(path.join(dir, f)); } catch { /* ignore */ }
+      try {
+        fs.unlinkSync(path.join(dir, f));
+      } catch {
+        /* ignore */
+      }
     }
-  } catch { /* ignore */ }
+  } catch {
+    /* ignore */
+  }
 }
 
-export function readAllSessions(dataDir: string): Array<{ customerSlug: string; customerName: string; startedAt: string; owner?: string }> {
+export function readAllSessions(
+  dataDir: string
+): Array<{ customerSlug: string; customerName: string; startedAt: string; owner?: string }> {
   const dir = sessionsDir(dataDir);
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
+  return fs
+    .readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
     .map((f) => {
       try {
-        return JSON.parse(fs.readFileSync(path.join(dir, f), "utf-8")) as { customerSlug: string; customerName: string; startedAt: string; owner?: string };
+        return JSON.parse(fs.readFileSync(path.join(dir, f), "utf-8")) as {
+          customerSlug: string;
+          customerName: string;
+          startedAt: string;
+          owner?: string;
+        };
       } catch {
         return null;
       }

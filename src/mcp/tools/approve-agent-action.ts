@@ -104,7 +104,6 @@ Returns: { success, actionId, status }`,
         approved: z.boolean(),
       }),
     },
-    async ({ slug, actionId, approved }) =>
-      handleApproveAgentAction({ slug, actionId, approved })
+    async ({ slug, actionId, approved }) => handleApproveAgentAction({ slug, actionId, approved })
   );
 }

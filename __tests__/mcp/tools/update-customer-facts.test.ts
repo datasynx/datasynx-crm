@@ -67,7 +67,7 @@ describe("update_customer_facts tool", () => {
     const [, , written] = vi.mocked(mockWrite).mock.calls[0] as [
       string,
       string,
-      { primary_contact: string; phone: string; name: string }
+      { primary_contact: string; phone: string; name: string },
     ];
     expect(written.primary_contact).toBe("Bob Jones");
     expect(written.phone).toBe("+1 555 0100");
@@ -80,36 +80,30 @@ describe("update_customer_facts tool", () => {
     const [, , written] = vi.mocked(mockWrite).mock.calls[0] as [
       string,
       string,
-      { updated: string }
+      { updated: string },
     ];
     expect(written.updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(written.updated).toBe(new Date().toISOString().slice(0, 10));
   });
 
   it("can update relationship_stage", async () => {
-    await handleUpdateCustomerFacts(
-      { slug: "acme-corp", relationshipStage: "churned" },
-      "/data"
-    );
+    await handleUpdateCustomerFacts({ slug: "acme-corp", relationshipStage: "churned" }, "/data");
 
     const [, , written] = vi.mocked(mockWrite).mock.calls[0] as [
       string,
       string,
-      { relationship_stage: string }
+      { relationship_stage: string },
     ];
     expect(written.relationship_stage).toBe("churned");
   });
 
   it("can update tags", async () => {
-    await handleUpdateCustomerFacts(
-      { slug: "acme-corp", tags: ["enterprise", "pilot"] },
-      "/data"
-    );
+    await handleUpdateCustomerFacts({ slug: "acme-corp", tags: ["enterprise", "pilot"] }, "/data");
 
     const [, , written] = vi.mocked(mockWrite).mock.calls[0] as [
       string,
       string,
-      { tags: string[] }
+      { tags: string[] },
     ];
     expect(written.tags).toEqual(["enterprise", "pilot"]);
   });
@@ -120,7 +114,7 @@ describe("update_customer_facts tool", () => {
     expect(vi.mocked(writeAuditEntry)).toHaveBeenCalledOnce();
     const [, entry] = vi.mocked(writeAuditEntry).mock.calls[0] as [
       string,
-      { tool: string; slug: string }
+      { tool: string; slug: string },
     ];
     expect(entry.tool).toBe("update_customer_facts");
     expect(entry.slug).toBe("acme-corp");

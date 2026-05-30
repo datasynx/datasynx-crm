@@ -52,7 +52,9 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
     const subject = headers.find((h) => h.name === "Subject")?.value ?? "(no subject)";
     const from = headers.find((h) => h.name === "From")?.value ?? "";
     const dateStr = headers.find((h) => h.name === "Date")?.value;
-    const date = dateStr ? new Date(dateStr).toISOString().slice(0, 10) : new Date().toISOString().slice(0, 10);
+    const date = dateStr
+      ? new Date(dateStr).toISOString().slice(0, 10)
+      : new Date().toISOString().slice(0, 10);
     const snippet = detail.data.snippet ?? "";
 
     // LLM summary — non-blocking fallback to raw snippet if no API key or error
@@ -89,7 +91,7 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
   return { synced, skipped };
 }
 
-function detectDirection(from: string): "inbound" | "outbound" {
+function detectDirection(_from: string): "inbound" | "outbound" {
   return "inbound";
 }
 

@@ -45,12 +45,15 @@ export async function handleGetBookingLink(
 
   if (!apiKey) {
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          error: "Calendly API key not configured. Set CALENDLY_API_KEY env var or configure .agentic/integrations/calendly.yaml",
-        }),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({
+            error:
+              "Calendly API key not configured. Set CALENDLY_API_KEY env var or configure .agentic/integrations/calendly.yaml",
+          }),
+        },
+      ],
     };
   }
 
@@ -62,18 +65,27 @@ export async function handleGetBookingLink(
     const bookingUrl = await getSchedulingLink(apiKey, eventTypeSlug, prefill);
 
     const eventTypes = await listEventTypes(apiKey);
-    const eventType = eventTypes.find((et) => et.slug === eventTypeSlug || et.name.toLowerCase().includes(eventTypeSlug.toLowerCase()));
+    const eventType = eventTypes.find(
+      (et) =>
+        et.slug === eventTypeSlug || et.name.toLowerCase().includes(eventTypeSlug.toLowerCase())
+    );
 
     return {
-      content: [{
-        type: "text",
-        text: JSON.stringify({
-          bookingUrl,
-          eventType: eventType?.name ?? eventTypeSlug,
-          duration: eventType?.duration ?? 30,
-          slug: input.slug,
-        }, null, 2),
-      }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify(
+            {
+              bookingUrl,
+              eventType: eventType?.name ?? eventTypeSlug,
+              duration: eventType?.duration ?? 30,
+              slug: input.slug,
+            },
+            null,
+            2
+          ),
+        },
+      ],
     };
   } catch (err) {
     return {
@@ -91,8 +103,16 @@ Requires CALENDLY_API_KEY env var or .agentic/integrations/calendly.yaml config.
 Returns: { bookingUrl, eventType, duration }`,
       inputSchema: z.object({
         slug: z.string().describe("Customer slug"),
-        eventType: z.string().optional().describe("Calendly event type slug (e.g. '30min', '60min'). Uses default if not specified."),
-        prefillName: z.boolean().optional().describe("Pre-fill customer name and email in the booking link"),
+        eventType: z
+          .string()
+          .optional()
+          .describe(
+            "Calendly event type slug (e.g. '30min', '60min'). Uses default if not specified."
+          ),
+        prefillName: z
+          .boolean()
+          .optional()
+          .describe("Pre-fill customer name and email in the booking link"),
       }),
     },
     ({ slug, eventType, prefillName }) =>

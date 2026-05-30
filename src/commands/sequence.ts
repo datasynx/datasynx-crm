@@ -136,7 +136,11 @@ sequenceCommand
     }
 
     const result = await runSequenceCycle(dataDir, today);
-    console.log(success(`✓ Cycle complete: ${result.sent} sent, ${result.completed} completed, ${result.errors.length} errors`));
+    console.log(
+      success(
+        `✓ Cycle complete: ${result.sent} sent, ${result.completed} completed, ${result.errors.length} errors`
+      )
+    );
     if (result.errors.length > 0) {
       for (const e of result.errors) {
         console.error(error(`  Error: ${e}`));

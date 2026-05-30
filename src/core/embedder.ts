@@ -3,8 +3,7 @@ import path from "path";
 import os from "os";
 
 env.cacheDir =
-  process.env["HF_CACHE_DIR"] ??
-  path.join(os.homedir(), ".cache", "datasynx-opencrm", "models");
+  process.env["HF_CACHE_DIR"] ?? path.join(os.homedir(), ".cache", "datasynx-opencrm", "models");
 
 class EmbeddingPipeline {
   private static instance: Promise<FeatureExtractionPipeline> | null = null;

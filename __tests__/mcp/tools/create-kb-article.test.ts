@@ -21,7 +21,10 @@ describe("handleCreateKbArticle", () => {
       DATA_DIR
     );
     const parsed = JSON.parse(result.content[0].text) as {
-      id: string; title: string; category: string; path: string;
+      id: string;
+      title: string;
+      category: string;
+      path: string;
     };
     expect(parsed.id).toBe("my-article");
     expect(parsed.category).toBe("general");
@@ -47,11 +50,18 @@ describe("handleCreateKbArticle", () => {
     vol.fromJSON({});
     const { handleCreateKbArticle } = await import("../../../src/mcp/tools/create-kb-article.js");
     await handleCreateKbArticle(
-      { id: "troubleshoot-api", title: "API Troubleshooting", body: "Steps...", category: "troubleshooting" },
+      {
+        id: "troubleshoot-api",
+        title: "API Troubleshooting",
+        body: "Steps...",
+        category: "troubleshooting",
+      },
       DATA_DIR
     );
     const { fs } = await import("memfs");
-    expect(fs.existsSync(`${DATA_DIR}/.agentic/knowledge-base/troubleshooting/troubleshoot-api.md`)).toBe(true);
+    expect(
+      fs.existsSync(`${DATA_DIR}/.agentic/knowledge-base/troubleshooting/troubleshoot-api.md`)
+    ).toBe(true);
   });
 
   it("returns error if article already exists", async () => {
@@ -87,7 +97,10 @@ describe("handleCreateKbArticle", () => {
       DATA_DIR
     );
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(`${DATA_DIR}/.agentic/knowledge-base/general/ticket-kb.md`, "utf-8") as string;
+    const content = fs.readFileSync(
+      `${DATA_DIR}/.agentic/knowledge-base/general/ticket-kb.md`,
+      "utf-8"
+    ) as string;
     expect(content).toContain("T-042");
   });
 
@@ -99,7 +112,10 @@ describe("handleCreateKbArticle", () => {
       DATA_DIR
     );
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(`${DATA_DIR}/.agentic/knowledge-base/general/pub-article.md`, "utf-8") as string;
+    const content = fs.readFileSync(
+      `${DATA_DIR}/.agentic/knowledge-base/general/pub-article.md`,
+      "utf-8"
+    ) as string;
     expect(content).toContain("public: true");
   });
 });

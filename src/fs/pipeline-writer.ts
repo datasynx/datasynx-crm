@@ -91,11 +91,7 @@ export async function readPipeline(dataDir: string, slug: string): Promise<Pipel
   return parseDealsFromMarkdown(content);
 }
 
-export async function upsertDeal(
-  dataDir: string,
-  slug: string,
-  deal: PipelineDeal
-): Promise<void> {
+export async function upsertDeal(dataDir: string, slug: string, deal: PipelineDeal): Promise<void> {
   const filePath = path.join(dataDir, "customers", slug, "pipeline.md");
   const existing = await readPipeline(dataDir, slug);
 

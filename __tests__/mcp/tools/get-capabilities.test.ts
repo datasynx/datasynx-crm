@@ -31,8 +31,6 @@ describe("get_capabilities tool", () => {
   it("does not throw on repeated calls", async () => {
     const a = await handleGetCapabilities();
     const b = await handleGetCapabilities();
-    expect((a.content[0] as { text: string }).text).toBe(
-      (b.content[0] as { text: string }).text
-    );
+    expect((a.content[0] as { text: string }).text).toBe((b.content[0] as { text: string }).text);
   });
 });

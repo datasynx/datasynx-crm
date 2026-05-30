@@ -45,11 +45,25 @@ function getCustomerSlugs(dataDir: string): string[] {
   }
 }
 
-async function fetchTeamSessions(serverUrl: string): Promise<Array<{ customerSlug: string; customerName: string; owner?: string; startedAt: string }> | null> {
+async function fetchTeamSessions(serverUrl: string): Promise<Array<{
+  customerSlug: string;
+  customerName: string;
+  owner?: string;
+  startedAt: string;
+}> | null> {
   try {
-    const res = await fetch(`${serverUrl.replace(/\/$/, "")}/sessions`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${serverUrl.replace(/\/$/, "")}/sessions`, {
+      signal: AbortSignal.timeout(3000),
+    });
     if (!res.ok) return null;
-    const data = (await res.json()) as { sessions?: Array<{ customerSlug: string; customerName: string; owner?: string; startedAt: string }> };
+    const data = (await res.json()) as {
+      sessions?: Array<{
+        customerSlug: string;
+        customerName: string;
+        owner?: string;
+        startedAt: string;
+      }>;
+    };
     return data.sessions ?? null;
   } catch {
     return null;
@@ -72,9 +86,7 @@ export async function runStatus(
       console.log(info(" No unmatched transcripts."));
     } else {
       for (const entry of unmatched) {
-        console.log(
-          ` ${entry.filePath}  ${entry.reason}  ${entry.addedAt}`
-        );
+        console.log(` ${entry.filePath}  ${entry.reason}  ${entry.addedAt}`);
       }
     }
     console.log(sep);
@@ -92,9 +104,7 @@ export async function runStatus(
   console.log(sep);
 
   // Daemon line
-  const daemonLine = daemon.running
-    ? success(`running (PID ${daemon.pid})`)
-    : error("not running");
+  const daemonLine = daemon.running ? success(`running (PID ${daemon.pid})`) : error("not running");
   console.log(` Daemon:     ${daemonLine}`);
 
   // Customer count

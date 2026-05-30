@@ -31,9 +31,9 @@ vi.mock("@lancedb/lancedb", () => ({
 }));
 
 vi.mock("@huggingface/transformers", () => ({
-  pipeline: vi.fn().mockResolvedValue(
-    vi.fn().mockResolvedValue([{ data: new Float32Array(384).fill(0.1) }])
-  ),
+  pipeline: vi
+    .fn()
+    .mockResolvedValue(vi.fn().mockResolvedValue([{ data: new Float32Array(384).fill(0.1) }])),
   env: { cacheDir: "" },
 }));
 

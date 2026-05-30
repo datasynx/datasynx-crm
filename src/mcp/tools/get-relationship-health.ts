@@ -1,10 +1,6 @@
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import {
-  readHealth,
-  computeCustomerHealth,
-  writeHealth,
-} from "../../core/relationship-health.js";
+import { readHealth, computeCustomerHealth, writeHealth } from "../../core/relationship-health.js";
 
 const DATA_DIR = process.cwd();
 const MAX_HEALTH_AGE_MS = 60 * 60 * 1000; // 1 hour
@@ -15,10 +11,7 @@ export async function handleGetRelationshipHealth(
 ): Promise<{ content: Array<{ type: "text"; text: string }> }> {
   try {
     let health = readHealth(dataDir, input.slug);
-    if (
-      health === null ||
-      Date.now() - new Date(health.updatedAt).getTime() > MAX_HEALTH_AGE_MS
-    ) {
+    if (health === null || Date.now() - new Date(health.updatedAt).getTime() > MAX_HEALTH_AGE_MS) {
       health = computeCustomerHealth(dataDir, input.slug);
       writeHealth(dataDir, input.slug, health);
     }

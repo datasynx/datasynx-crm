@@ -24,29 +24,47 @@ describe("verifySlackSignature", () => {
     const body = JSON.stringify({ type: "event_callback" });
     const timestamp = String(Math.floor(Date.now() / 1000));
     const sig = makeSlackSignature("my-signing-secret", timestamp, body);
-    expect(verifySlackSignature(body, {
-      "x-slack-signature": sig,
-      "x-slack-request-timestamp": timestamp,
-    }, "my-signing-secret")).toBe(true);
+    expect(
+      verifySlackSignature(
+        body,
+        {
+          "x-slack-signature": sig,
+          "x-slack-request-timestamp": timestamp,
+        },
+        "my-signing-secret"
+      )
+    ).toBe(true);
   });
 
   it("returns false for invalid signature", async () => {
     const { verifySlackSignature } = await import("../../src/sync/slack-webhook-handler.js");
     const body = JSON.stringify({ type: "event_callback" });
     const timestamp = String(Math.floor(Date.now() / 1000));
-    expect(verifySlackSignature(body, {
-      "x-slack-signature": "v0=badhash",
-      "x-slack-request-timestamp": timestamp,
-    }, "my-signing-secret")).toBe(false);
+    expect(
+      verifySlackSignature(
+        body,
+        {
+          "x-slack-signature": "v0=badhash",
+          "x-slack-request-timestamp": timestamp,
+        },
+        "my-signing-secret"
+      )
+    ).toBe(false);
   });
 
   it("returns false for missing X-Slack-Signature header", async () => {
     const { verifySlackSignature } = await import("../../src/sync/slack-webhook-handler.js");
     const body = JSON.stringify({ type: "event_callback" });
     const timestamp = String(Math.floor(Date.now() / 1000));
-    expect(verifySlackSignature(body, {
-      "x-slack-request-timestamp": timestamp,
-    }, "my-signing-secret")).toBe(false);
+    expect(
+      verifySlackSignature(
+        body,
+        {
+          "x-slack-request-timestamp": timestamp,
+        },
+        "my-signing-secret"
+      )
+    ).toBe(false);
   });
 
   it("returns false for timestamp > 5 minutes old (replay protection)", async () => {
@@ -54,10 +72,16 @@ describe("verifySlackSignature", () => {
     const body = JSON.stringify({ type: "event_callback" });
     const oldTimestamp = String(Math.floor(Date.now() / 1000) - 6 * 60); // 6 minutes ago
     const sig = makeSlackSignature("my-signing-secret", oldTimestamp, body);
-    expect(verifySlackSignature(body, {
-      "x-slack-signature": sig,
-      "x-slack-request-timestamp": oldTimestamp,
-    }, "my-signing-secret")).toBe(false);
+    expect(
+      verifySlackSignature(
+        body,
+        {
+          "x-slack-signature": sig,
+          "x-slack-request-timestamp": oldTimestamp,
+        },
+        "my-signing-secret"
+      )
+    ).toBe(false);
   });
 });
 
@@ -70,7 +94,10 @@ describe("handleSlackUrlVerification", () => {
 
   it("returns challenge string for url_verification", async () => {
     const { handleSlackUrlVerification } = await import("../../src/sync/slack-webhook-handler.js");
-    const result = handleSlackUrlVerification({ type: "url_verification", challenge: "my-challenge-xyz" });
+    const result = handleSlackUrlVerification({
+      type: "url_verification",
+      challenge: "my-challenge-xyz",
+    });
     expect(result.challenge).toBe("my-challenge-xyz");
   });
 
@@ -111,12 +138,20 @@ describe("handleSlackPushEvent", () => {
 
     const { handleSlackPushEvent } = await import("../../src/sync/slack-webhook-handler.js");
 
-    const event = { type: "message", user: "U123", text: "Hey, let's sync this week", channel: "C456", ts: "1716892800.000000" };
+    const event = {
+      type: "message",
+      user: "U123",
+      text: "Hey, let's sync this week",
+      channel: "C456",
+      ts: "1716892800.000000",
+    };
     const appendInteractionFn = vi.fn().mockResolvedValue(undefined);
     const fetchUserInfoFn = vi.fn().mockResolvedValue({ email: "alice@acme.com", name: "Alice" });
 
     const result = await handleSlackPushEvent("/data", event, "xoxb-fake", {
-      appendInteractionFn, fetchUserInfoFn, teamId: "T123",
+      appendInteractionFn,
+      fetchUserInfoFn,
+      teamId: "T123",
     });
 
     expect(result.processed).toBe(1);
@@ -175,7 +210,8 @@ describe("handleSlackPushEvent", () => {
     const appendInteractionFn = vi.fn();
 
     const result = await handleSlackPushEvent("/data", event, "xoxb-fake", {
-      appendInteractionFn, teamId: "T-UNKNOWN",
+      appendInteractionFn,
+      teamId: "T-UNKNOWN",
     });
 
     expect(result.processed).toBe(0);

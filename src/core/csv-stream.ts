@@ -12,8 +12,12 @@ function parseCSVLine(line: string, delimiter = ","): string[] {
   for (let i = 0; i < line.length; i++) {
     const ch = line[i]!;
     if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
-      else { inQuotes = !inQuotes; }
+      if (inQuotes && line[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if (ch === delimiter && !inQuotes) {
       result.push(current.trim());
       current = "";
@@ -45,7 +49,9 @@ export async function* streamCSV(
       continue;
     }
     const row: Record<string, string> = {};
-    headers.forEach((h, i) => { row[h] = values[i] ?? ""; });
+    headers.forEach((h, i) => {
+      row[h] = values[i] ?? "";
+    });
     yield row;
   }
 }
@@ -58,7 +64,9 @@ export function parseCSVSync(content: string, delimiter = ","): Array<Record<str
   return lines.slice(1).map((line) => {
     const values = parseCSVLine(line, delimiter);
     const row: Record<string, string> = {};
-    headers.forEach((h, i) => { row[h] = values[i] ?? ""; });
+    headers.forEach((h, i) => {
+      row[h] = values[i] ?? "";
+    });
     return row;
   });
 }

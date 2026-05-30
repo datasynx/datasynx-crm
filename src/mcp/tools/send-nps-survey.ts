@@ -1,6 +1,11 @@
 import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { getSurvey, generateSurveyToken, buildSurveyEmail, savePendingSurvey } from "../../core/survey-engine.js";
+import {
+  getSurvey,
+  generateSurveyToken,
+  buildSurveyEmail,
+  savePendingSurvey,
+} from "../../core/survey-engine.js";
 
 const DATA_DIR = process.cwd();
 
@@ -11,7 +16,9 @@ export async function handleSendNpsSurvey(
   const survey = getSurvey(dataDir, input.surveyId);
   if (!survey) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ error: `Survey '${input.surveyId}' not found` }) }],
+      content: [
+        { type: "text", text: JSON.stringify({ error: `Survey '${input.surveyId}' not found` }) },
+      ],
     };
   }
 
@@ -22,16 +29,22 @@ export async function handleSendNpsSurvey(
   await savePendingSurvey(dataDir, input.surveyId, input.slug, input.contactEmail, token);
 
   return {
-    content: [{
-      type: "text",
-      text: JSON.stringify({
-        token,
-        subject: email.subject,
-        body: email.body,
-        surveyUrl: `${serverUrl}/survey/respond?token=${token}`,
-        note: "Email draft ready. Use draft_email or Gmail to send.",
-      }, null, 2),
-    }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          {
+            token,
+            subject: email.subject,
+            body: email.body,
+            surveyUrl: `${serverUrl}/survey/respond?token=${token}`,
+            note: "Email draft ready. Use draft_email or Gmail to send.",
+          },
+          null,
+          2
+        ),
+      },
+    ],
   };
 }
 
@@ -46,7 +59,12 @@ Returns: { token, subject, body, surveyUrl }`,
         slug: z.string().describe("Customer slug"),
         contactEmail: z.string().email().describe("Contact email to send survey to"),
         surveyId: z.string().describe("Survey definition ID from .agentic/surveys/"),
-        serverUrl: z.string().optional().describe("Server URL for response links (default: DXCRM_SERVER_URL env var or localhost:3456)"),
+        serverUrl: z
+          .string()
+          .optional()
+          .describe(
+            "Server URL for response links (default: DXCRM_SERVER_URL env var or localhost:3456)"
+          ),
       }),
     },
     ({ slug, contactEmail, surveyId, serverUrl }) =>

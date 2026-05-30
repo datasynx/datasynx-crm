@@ -51,11 +51,21 @@ export async function handleSummarizeMeeting(
     });
 
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: true, summary, nextSteps, sourceRef }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: true, summary, nextSteps, sourceRef }, null, 2),
+        },
+      ],
     };
   } catch (err) {
     return {
-      content: [{ type: "text", text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2) }],
+      content: [
+        {
+          type: "text",
+          text: JSON.stringify({ success: false, error: (err as Error).message }, null, 2),
+        },
+      ],
     };
   }
 }
@@ -78,7 +88,11 @@ Returns: { success, summary, nextSteps, sourceRef }`,
         slug: z.string().describe("Customer slug"),
         transcript: z.string().min(1).describe("Full meeting transcript"),
         with: z.string().optional().describe("Participant names"),
-        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().describe("Meeting date"),
+        date: z
+          .string()
+          .regex(/^\d{4}-\d{2}-\d{2}$/)
+          .optional()
+          .describe("Meeting date"),
       }),
     },
     async ({ slug, transcript, with: withStr, date }) =>

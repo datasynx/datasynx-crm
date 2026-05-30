@@ -49,7 +49,12 @@ describe("session store", () => {
     });
 
     it("stores owner when provided", () => {
-      setSession({ customerSlug: "acme", customerName: "Acme", startedAt: "2026-01-01", owner: "alice" });
+      setSession({
+        customerSlug: "acme",
+        customerName: "Acme",
+        startedAt: "2026-01-01",
+        owner: "alice",
+      });
       expect(getSession()?.owner).toBe("alice");
     });
 
@@ -59,8 +64,18 @@ describe("session store", () => {
     });
 
     it("owner can be overwritten in a new session", () => {
-      setSession({ customerSlug: "acme", customerName: "Acme", startedAt: "2026-01-01", owner: "alice" });
-      setSession({ customerSlug: "acme", customerName: "Acme", startedAt: "2026-01-02", owner: "bob" });
+      setSession({
+        customerSlug: "acme",
+        customerName: "Acme",
+        startedAt: "2026-01-01",
+        owner: "alice",
+      });
+      setSession({
+        customerSlug: "acme",
+        customerName: "Acme",
+        startedAt: "2026-01-02",
+        owner: "bob",
+      });
       expect(getSession()?.owner).toBe("bob");
     });
   });
@@ -89,16 +104,32 @@ describe("persistSession + readAllSessions", () => {
   it("multiple sessions accumulate", async () => {
     vol.fromJSON({});
     const { persistSession, readAllSessions } = await import("../../src/commands/session.js");
-    persistSession("/data", { customerSlug: "acme", customerName: "Acme", startedAt: "2026-05-28T10:00:00Z", owner: "alice" });
-    persistSession("/data", { customerSlug: "beta", customerName: "Beta", startedAt: "2026-05-28T11:00:00Z", owner: "bob" });
+    persistSession("/data", {
+      customerSlug: "acme",
+      customerName: "Acme",
+      startedAt: "2026-05-28T10:00:00Z",
+      owner: "alice",
+    });
+    persistSession("/data", {
+      customerSlug: "beta",
+      customerName: "Beta",
+      startedAt: "2026-05-28T11:00:00Z",
+      owner: "bob",
+    });
     const sessions = readAllSessions("/data");
     expect(sessions.length).toBe(2);
   });
 
   it("clearPersistedSession removes the file", async () => {
     vol.fromJSON({});
-    const { persistSession, clearPersistedSession, readAllSessions } = await import("../../src/commands/session.js");
-    persistSession("/data", { customerSlug: "acme", customerName: "Acme", startedAt: "2026-05-28T10:00:00Z", owner: "alice" });
+    const { persistSession, clearPersistedSession, readAllSessions } =
+      await import("../../src/commands/session.js");
+    persistSession("/data", {
+      customerSlug: "acme",
+      customerName: "Acme",
+      startedAt: "2026-05-28T10:00:00Z",
+      owner: "alice",
+    });
     clearPersistedSession("/data", "alice");
     const sessions = readAllSessions("/data");
     expect(sessions.length).toBe(0);

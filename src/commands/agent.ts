@@ -21,7 +21,9 @@ export async function runAgentSpawn(
   const customerDir = path.join(dir, "customers", slug);
 
   if (!fs.existsSync(customerDir)) {
-    console.error(error(`✗ Customer '${slug}' not found. Run 'dxcrm list' to see available customers.`));
+    console.error(
+      error(`✗ Customer '${slug}' not found. Run 'dxcrm list' to see available customers.`)
+    );
     process.exit(1);
   }
 
@@ -46,7 +48,11 @@ export async function runAgentSpawn(
   console.log(info(`  Config:   .agentic/agents/${slug}.agent.json`));
 
   if (channel === "telegram" && !process.env["TELEGRAM_BOT_TOKEN"]) {
-    console.log(info(`\n  Note: Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars to enable Telegram messages.`));
+    console.log(
+      info(
+        `\n  Note: Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID env vars to enable Telegram messages.`
+      )
+    );
   }
 }
 
@@ -70,11 +76,15 @@ export async function runAgentStatus(dataDir?: string): Promise<void> {
 
   for (const file of files) {
     try {
-      const raw = JSON.parse(fs.readFileSync(path.join(dir2, file), "utf-8") as string) as AgentConfig;
+      const raw = JSON.parse(
+        fs.readFileSync(path.join(dir2, file), "utf-8") as string
+      ) as AgentConfig;
       const lastWake = raw.lastWake
         ? `last wake: ${new Date(raw.lastWake).toLocaleString()}`
         : "never woken";
-      console.log(info(`  ${bold(raw.slug)} — ${raw.channel} · ${raw.wakeOn.join("+")} · ${lastWake}`));
+      console.log(
+        info(`  ${bold(raw.slug)} — ${raw.channel} · ${raw.wakeOn.join("+")} · ${lastWake}`)
+      );
     } catch {
       console.log(info(`  ${file} (malformed)`));
     }

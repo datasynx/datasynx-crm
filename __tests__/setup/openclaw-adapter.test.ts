@@ -90,10 +90,7 @@ describe("OpenClawAdapter", () => {
     await adapter.install(TEST_CONFIG);
 
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(
-      path.join(OPENCLAW_WORKSPACE, "SOUL.md"),
-      "utf-8"
-    ) as string;
+    const content = fs.readFileSync(path.join(OPENCLAW_WORKSPACE, "SOUL.md"), "utf-8") as string;
     expect(content).toContain("My Soul");
     expect(content).toContain("DatasynxOpenCRM");
   });
@@ -108,10 +105,7 @@ describe("OpenClawAdapter", () => {
     await adapter.install(TEST_CONFIG);
 
     const { fs } = await import("memfs");
-    const content = fs.readFileSync(
-      path.join(OPENCLAW_WORKSPACE, "SOUL.md"),
-      "utf-8"
-    ) as string;
+    const content = fs.readFileSync(path.join(OPENCLAW_WORKSPACE, "SOUL.md"), "utf-8") as string;
     // Should not append again
     const matches = content.match(/DatasynxOpenCRM/g);
     expect(matches?.length).toBe(1);

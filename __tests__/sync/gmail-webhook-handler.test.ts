@@ -16,7 +16,10 @@ describe("decodeGmailPubSubPayload", () => {
     const { decodeGmailPubSubPayload } = await import("../../src/sync/gmail-webhook-handler.js");
     const inner = JSON.stringify({ emailAddress: "alice@example.com", historyId: "12345" });
     const encoded = Buffer.from(inner).toString("base64");
-    const body = { message: { data: encoded, messageId: "m1", publishTime: "2026-05-28T06:00:00Z" }, subscription: "projects/x/subscriptions/y" };
+    const body = {
+      message: { data: encoded, messageId: "m1", publishTime: "2026-05-28T06:00:00Z" },
+      subscription: "projects/x/subscriptions/y",
+    };
     const result = decodeGmailPubSubPayload(body);
     expect(result).not.toBeNull();
     expect(result!.emailAddress).toBe("alice@example.com");
@@ -94,15 +97,21 @@ describe("handleGmailPushEvent", () => {
         subscriptions: [makeSubscription()],
         updatedAt: new Date().toISOString(),
       }),
-      "/data/.agentic/sync-state.json": JSON.stringify({ "acme-corp": { lastGmailPushHistoryId: "9999" } }),
+      "/data/.agentic/sync-state.json": JSON.stringify({
+        "acme-corp": { lastGmailPushHistoryId: "9999" },
+      }),
     });
 
     const { handleGmailPushEvent } = await import("../../src/sync/gmail-webhook-handler.js");
 
     const fetchHistoryFn = vi.fn().mockResolvedValue([{ id: "msg1", threadId: "t1" }]);
     const fetchMessageFn = vi.fn().mockResolvedValue({
-      id: "msg1", threadId: "t1", subject: "Test Email", from: "contact@acme.com",
-      date: "Mon, 28 May 2026 10:00:00 +0000", body: "Hello",
+      id: "msg1",
+      threadId: "t1",
+      subject: "Test Email",
+      from: "contact@acme.com",
+      date: "Mon, 28 May 2026 10:00:00 +0000",
+      body: "Hello",
     });
     const appendInteractionFn = vi.fn().mockResolvedValue(undefined);
 
@@ -156,8 +165,12 @@ describe("handleGmailPushEvent", () => {
 
     const fetchHistoryFn = vi.fn().mockResolvedValue([{ id: "msg2", threadId: "t2" }]);
     const fetchMessageFn = vi.fn().mockResolvedValue({
-      id: "msg2", threadId: "t2", subject: "S", from: "f@example.com",
-      date: "Mon, 28 May 2026 10:00:00 +0000", body: "",
+      id: "msg2",
+      threadId: "t2",
+      subject: "S",
+      from: "f@example.com",
+      date: "Mon, 28 May 2026 10:00:00 +0000",
+      body: "",
     });
     const appendInteractionFn = vi.fn().mockResolvedValue(undefined);
 
@@ -177,10 +190,16 @@ describe("handleGmailPushEvent", () => {
     vol.fromJSON({
       "/data/customers/acme-corp/interactions.md": "# Interactions\n",
       "/data/.agentic/push-subscriptions.json": JSON.stringify({
-        subscriptions: [makeSubscription({ providerData: { gmailEmailAddress: "alice@acme.com", gmailHistoryId: "10005" } })],
+        subscriptions: [
+          makeSubscription({
+            providerData: { gmailEmailAddress: "alice@acme.com", gmailHistoryId: "10005" },
+          }),
+        ],
         updatedAt: new Date().toISOString(),
       }),
-      "/data/.agentic/sync-state.json": JSON.stringify({ "acme-corp": { lastGmailPushHistoryId: "10005" } }),
+      "/data/.agentic/sync-state.json": JSON.stringify({
+        "acme-corp": { lastGmailPushHistoryId: "10005" },
+      }),
     });
 
     const { handleGmailPushEvent } = await import("../../src/sync/gmail-webhook-handler.js");
@@ -232,11 +251,16 @@ describe("handleGmailPushEvent", () => {
       "/data/.agentic/sync-state.json": JSON.stringify({}),
     });
 
-    const { handleGmailPushEvent, readSubscriptions } = await import("../../src/sync/gmail-webhook-handler.js");
+    const { handleGmailPushEvent, readSubscriptions } =
+      await import("../../src/sync/gmail-webhook-handler.js");
     const fetchHistoryFn = vi.fn().mockResolvedValue([{ id: "m3", threadId: "t3" }]);
     const fetchMessageFn = vi.fn().mockResolvedValue({
-      id: "m3", threadId: "t3", subject: "S", from: "f@x.com",
-      date: "Mon, 28 May 2026 10:00:00 +0000", body: "",
+      id: "m3",
+      threadId: "t3",
+      subject: "S",
+      from: "f@x.com",
+      date: "Mon, 28 May 2026 10:00:00 +0000",
+      body: "",
     });
     const appendInteractionFn = vi.fn().mockResolvedValue(undefined);
 
@@ -264,12 +288,17 @@ describe("buildGmailRenewFn", () => {
 
     const renewFn = buildGmailRenewFn("fake-token", "projects/x/topics/y", mockRegister);
     const sub = {
-      id: "psub_1", provider: "gmail" as const, slug: "acme-corp",
+      id: "psub_1",
+      provider: "gmail" as const,
+      slug: "acme-corp",
       webhookUrl: "https://x.com/webhooks/gmail",
-      expiresAt: new Date().toISOString(), renewedAt: null,
+      expiresAt: new Date().toISOString(),
+      renewedAt: null,
       createdAt: new Date().toISOString(),
       providerData: { gmailTopicName: "projects/x/topics/y" },
-      status: "active" as const, lastEventAt: null, eventsProcessed: 0,
+      status: "active" as const,
+      lastEventAt: null,
+      eventsProcessed: 0,
     };
 
     const result = await renewFn(sub);
@@ -288,12 +317,17 @@ describe("buildGmailRenewFn", () => {
 
     const renewFn = buildGmailRenewFn("token-abc", "projects/p/topics/t", mockRegister);
     const sub = {
-      id: "psub_2", provider: "gmail" as const, slug: "widget-co",
+      id: "psub_2",
+      provider: "gmail" as const,
+      slug: "widget-co",
       webhookUrl: "https://x.com/webhooks/gmail",
-      expiresAt: new Date().toISOString(), renewedAt: null,
+      expiresAt: new Date().toISOString(),
+      renewedAt: null,
       createdAt: new Date().toISOString(),
       providerData: { gmailTopicName: "projects/p/topics/t", gmailHistoryId: "60000" },
-      status: "active" as const, lastEventAt: null, eventsProcessed: 0,
+      status: "active" as const,
+      lastEventAt: null,
+      eventsProcessed: 0,
     };
 
     const result = await renewFn(sub);

@@ -34,7 +34,9 @@ describe("handleGetBookingLink", () => {
   it("returns booking URL when API key set via env", async () => {
     process.env["CALENDLY_API_KEY"] = "test-key";
     mockGetSchedulingLink.mockResolvedValue("https://calendly.com/test/30min?name=Acme");
-    mockListEventTypes.mockResolvedValue([{ slug: "30min", name: "30 Minute Meeting", duration: 30 }]);
+    mockListEventTypes.mockResolvedValue([
+      { slug: "30min", name: "30 Minute Meeting", duration: 30 },
+    ]);
     vol.fromJSON({});
 
     const { handleGetBookingLink } = await import("../../../src/mcp/tools/get-booking-link.js");
@@ -58,10 +60,13 @@ describe("handleGetBookingLink", () => {
 
   it("reads API key from calendly.yaml config", async () => {
     vol.fromJSON({
-      [`${DATA_DIR}/.agentic/integrations/calendly.yaml`]: "apiKey: yaml-key\ndefaultEventType: 60min\n",
+      [`${DATA_DIR}/.agentic/integrations/calendly.yaml`]:
+        "apiKey: yaml-key\ndefaultEventType: 60min\n",
     });
     mockGetSchedulingLink.mockResolvedValue("https://calendly.com/test/60min");
-    mockListEventTypes.mockResolvedValue([{ slug: "60min", name: "60 Minute Meeting", duration: 60 }]);
+    mockListEventTypes.mockResolvedValue([
+      { slug: "60min", name: "60 Minute Meeting", duration: 60 },
+    ]);
 
     const { handleGetBookingLink } = await import("../../../src/mcp/tools/get-booking-link.js");
     const result = await handleGetBookingLink({ slug: "acme" }, DATA_DIR);

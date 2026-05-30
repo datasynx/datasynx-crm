@@ -59,19 +59,21 @@ describe("runPushStatus", () => {
   it("lists active subscriptions", async () => {
     vol.fromJSON({
       "/data/.agentic/push-subscriptions.json": JSON.stringify({
-        subscriptions: [{
-          id: "psub_1_abc",
-          provider: "gmail",
-          slug: "acme-corp",
-          webhookUrl: "https://example.com/webhooks/gmail",
-          expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          renewedAt: null,
-          createdAt: new Date().toISOString(),
-          providerData: {},
-          status: "active",
-          lastEventAt: null,
-          eventsProcessed: 42,
-        }],
+        subscriptions: [
+          {
+            id: "psub_1_abc",
+            provider: "gmail",
+            slug: "acme-corp",
+            webhookUrl: "https://example.com/webhooks/gmail",
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            renewedAt: null,
+            createdAt: new Date().toISOString(),
+            providerData: {},
+            status: "active",
+            lastEventAt: null,
+            eventsProcessed: 42,
+          },
+        ],
         updatedAt: new Date().toISOString(),
       }),
     });
@@ -93,7 +95,9 @@ describe("runPushRevoke", () => {
     vol.fromJSON({ "/data/.agentic/.keep": "" });
     vi.spyOn(process, "cwd").mockReturnValue("/data");
     const consoleErrSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => { throw new Error("exit"); });
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => {
+      throw new Error("exit");
+    });
 
     const { runPushRevoke } = await import("../../src/commands/push.js");
     await expect(runPushRevoke("psub_nonexistent")).rejects.toThrow("exit");
@@ -106,19 +110,21 @@ describe("runPushRevoke", () => {
   it("marks subscription as revoked", async () => {
     vol.fromJSON({
       "/data/.agentic/push-subscriptions.json": JSON.stringify({
-        subscriptions: [{
-          id: "psub_revoke_me",
-          provider: "gmail",
-          slug: "acme-corp",
-          webhookUrl: "https://example.com",
-          expiresAt: null,
-          renewedAt: null,
-          createdAt: new Date().toISOString(),
-          providerData: {},
-          status: "active",
-          lastEventAt: null,
-          eventsProcessed: 0,
-        }],
+        subscriptions: [
+          {
+            id: "psub_revoke_me",
+            provider: "gmail",
+            slug: "acme-corp",
+            webhookUrl: "https://example.com",
+            expiresAt: null,
+            renewedAt: null,
+            createdAt: new Date().toISOString(),
+            providerData: {},
+            status: "active",
+            lastEventAt: null,
+            eventsProcessed: 0,
+          },
+        ],
         updatedAt: new Date().toISOString(),
       }),
     });

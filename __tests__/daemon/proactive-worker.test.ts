@@ -6,7 +6,9 @@ import type { AgentTask } from "../../src/core/proactive-agent.js";
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 const mockReadHealth = vi.hoisted(() => vi.fn<[string, string], HealthSnapshot | null>());
-const mockComputeCustomerHealth = vi.hoisted(() => vi.fn<[string, string, string], HealthSnapshot>());
+const mockComputeCustomerHealth = vi.hoisted(() =>
+  vi.fn<[string, string, string], HealthSnapshot>()
+);
 const mockReadPipeline = vi.hoisted(() => vi.fn<[string, string], Promise<unknown[]>>());
 const mockBuildDailyBriefing = vi.hoisted(() => vi.fn<[string, string], Promise<unknown>>());
 const mockEnqueueTask = vi.hoisted(() => vi.fn<[string, unknown], Promise<AgentTask>>());
@@ -37,7 +39,10 @@ vi.mock("fs", async () => {
 const DATA_DIR = "/data";
 const TODAY = "2026-05-28";
 
-function makeHealthSnapshot(slug: string, overrides: Partial<HealthSnapshot["contacts"][number]> = {}): HealthSnapshot {
+function makeHealthSnapshot(
+  slug: string,
+  overrides: Partial<HealthSnapshot["contacts"][number]> = {}
+): HealthSnapshot {
   return {
     schemaVersion: "1",
     slug,
@@ -93,7 +98,13 @@ describe("runDailyProactiveChecks", () => {
     vi.clearAllMocks();
     vi.resetModules();
 
-    mockBuildDailyBriefing.mockResolvedValue({ date: TODAY, urgent: [], opportunities: [], forecast: "", topAction: "" });
+    mockBuildDailyBriefing.mockResolvedValue({
+      date: TODAY,
+      urgent: [],
+      opportunities: [],
+      forecast: "",
+      topAction: "",
+    });
     mockEnqueueTask.mockResolvedValue({ id: "task_1", status: "pending" } as AgentTask);
     mockReadPipeline.mockResolvedValue([]);
 
@@ -153,7 +164,11 @@ describe("runDailyProactiveChecks", () => {
 
   it("enqueues relationship_decay_alert for NO_CONTACT_30D (non-F grade)", async () => {
     mockReadHealth.mockReturnValue(
-      makeHealthSnapshot("acme", { grade: "C", riskFlags: ["NO_CONTACT_30D"], daysSinceContact: 31 })
+      makeHealthSnapshot("acme", {
+        grade: "C",
+        riskFlags: ["NO_CONTACT_30D"],
+        daysSinceContact: 31,
+      })
     );
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/.keep`]: "" });
 
@@ -277,7 +292,9 @@ describe("runDailyProactiveChecks", () => {
 
   it("records per-customer error without aborting other customers", async () => {
     mockReadHealth.mockReturnValue(null);
-    mockComputeCustomerHealth.mockImplementationOnce(() => { throw new Error("corrupt health"); });
+    mockComputeCustomerHealth.mockImplementationOnce(() => {
+      throw new Error("corrupt health");
+    });
     const snapshot = makeHealthSnapshot("beta");
     mockComputeCustomerHealth.mockReturnValueOnce(snapshot);
     vol.fromJSON({
@@ -318,7 +335,9 @@ describe("runDailyProactiveChecks", () => {
 
   it("includes daysToClose in deal risk payload", async () => {
     mockReadHealth.mockReturnValue(makeHealthSnapshot("acme"));
-    const closeDate = new Date(new Date(`${TODAY}T00:00:00Z`).getTime() + 3 * 86_400_000).toISOString().slice(0, 10);
+    const closeDate = new Date(new Date(`${TODAY}T00:00:00Z`).getTime() + 3 * 86_400_000)
+      .toISOString()
+      .slice(0, 10);
     mockReadPipeline.mockResolvedValue([makeDeal({ close_date: closeDate, stage: "negotiation" })]);
     vol.fromJSON({ [`${DATA_DIR}/customers/acme/.keep`]: "" });
 

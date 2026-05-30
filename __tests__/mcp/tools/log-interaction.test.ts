@@ -52,7 +52,11 @@ describe("log_interaction tool", () => {
     );
 
     expect(mockAppend).toHaveBeenCalledOnce();
-    const [calledDataDir, calledSlug, calledEntry] = mockAppend.mock.calls[0] as [string, string, { type: string; summary: string }];
+    const [calledDataDir, calledSlug, calledEntry] = mockAppend.mock.calls[0] as [
+      string,
+      string,
+      { type: string; summary: string },
+    ];
     expect(calledDataDir).toBe("/data");
     expect(calledSlug).toBe("acme-corp");
     expect(calledEntry.type).toBe("Meeting");
@@ -75,7 +79,16 @@ describe("log_interaction tool", () => {
   });
 
   it("accepts all valid interaction types", async () => {
-    const types = ["Email", "Call", "Meeting", "Note", "Demo", "Proposal", "Contract", "Other"] as const;
+    const types = [
+      "Email",
+      "Call",
+      "Meeting",
+      "Note",
+      "Demo",
+      "Proposal",
+      "Contract",
+      "Other",
+    ] as const;
 
     for (const type of types) {
       vi.clearAllMocks();

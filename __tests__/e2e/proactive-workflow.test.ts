@@ -84,7 +84,11 @@ describe("Proactive workflow — buildDailyBriefing", () => {
     const briefing = await buildDailyBriefing(DATA_DIR, TODAY);
 
     // At least one urgent entry about the deal
-    expect(briefing.urgent.some((u) => u.toLowerCase().includes("acme") || u.toLowerCase().includes("enterprise"))).toBe(true);
+    expect(
+      briefing.urgent.some(
+        (u) => u.toLowerCase().includes("acme") || u.toLowerCase().includes("enterprise")
+      )
+    ).toBe(true);
   });
 });
 
@@ -118,8 +122,21 @@ describe("Proactive workflow — enqueueTask + readQueue", () => {
     const { enqueueTask, readQueue } = await import("../../src/core/proactive-agent.js");
 
     await Promise.all([
-      enqueueTask(DATA_DIR, { type: "daily_briefing", priority: "normal", payload: {}, scheduledFor: new Date().toISOString(), channel: "mcp_tool_response" }),
-      enqueueTask(DATA_DIR, { type: "relationship_decay_alert", slug: "acme", priority: "urgent", payload: {}, scheduledFor: new Date().toISOString(), channel: "mcp_tool_response" }),
+      enqueueTask(DATA_DIR, {
+        type: "daily_briefing",
+        priority: "normal",
+        payload: {},
+        scheduledFor: new Date().toISOString(),
+        channel: "mcp_tool_response",
+      }),
+      enqueueTask(DATA_DIR, {
+        type: "relationship_decay_alert",
+        slug: "acme",
+        priority: "urgent",
+        payload: {},
+        scheduledFor: new Date().toISOString(),
+        channel: "mcp_tool_response",
+      }),
     ]);
 
     expect(readQueue(DATA_DIR)).toHaveLength(2);
@@ -195,10 +212,17 @@ describe("Proactive workflow — drainProactiveQueue", () => {
 
   it("skips already-done tasks", async () => {
     vol.fromJSON({ [`${DATA_DIR}/.agentic/.keep`]: "" });
-    const { enqueueTask, markTaskDone, readQueue } = await import("../../src/core/proactive-agent.js");
+    const { enqueueTask, markTaskDone, readQueue } =
+      await import("../../src/core/proactive-agent.js");
     const { drainProactiveQueue } = await import("../../src/core/notification-dispatcher.js");
 
-    await enqueueTask(DATA_DIR, { type: "daily_briefing", priority: "normal", payload: {}, scheduledFor: new Date().toISOString(), channel: "mcp_tool_response" });
+    await enqueueTask(DATA_DIR, {
+      type: "daily_briefing",
+      priority: "normal",
+      payload: {},
+      scheduledFor: new Date().toISOString(),
+      channel: "mcp_tool_response",
+    });
     const task = readQueue(DATA_DIR)[0]!;
     await markTaskDone(DATA_DIR, task.id);
 
@@ -233,22 +257,24 @@ describe("Proactive workflow — runDailyProactiveChecks integration", () => {
       slug: "acme",
       overallHealth: 10,
       updatedAt: new Date().toISOString(),
-      contacts: [{
-        contactId: "c1",
-        name: "Alice",
-        email: "alice@acme.com",
-        score: 5,
-        grade: "F",
-        trend: "cold",
-        daysSinceContact: 45,
-        avgCadenceDays: 14,
-        sentimentTrend: -2,
-        riskFlags: ["NO_CONTACT_30D"],
-        lastContact: "2026-04-01",
-        interactionCount30d: 0,
-        recommendation: "Re-engage immediately",
-        updatedAt: new Date().toISOString(),
-      }],
+      contacts: [
+        {
+          contactId: "c1",
+          name: "Alice",
+          email: "alice@acme.com",
+          score: 5,
+          grade: "F",
+          trend: "cold",
+          daysSinceContact: 45,
+          avgCadenceDays: 14,
+          sentimentTrend: -2,
+          riskFlags: ["NO_CONTACT_30D"],
+          lastContact: "2026-04-01",
+          interactionCount30d: 0,
+          recommendation: "Re-engage immediately",
+          updatedAt: new Date().toISOString(),
+        },
+      ],
     };
     vol.fromJSON({
       [`${DATA_DIR}/.agentic/.keep`]: "",

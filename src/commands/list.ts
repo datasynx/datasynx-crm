@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { readMainFacts } from "../fs/customer-dir.js";
 import { renderCustomerTable } from "../ui/table.js";
+import type { MainFacts } from "../schemas/main-facts.js";
 
 export const listCommand = new Command("list")
   .option("--filter <query>", "Filter by name or slug")
@@ -11,7 +12,7 @@ export const listCommand = new Command("list")
     const customersDir = path.join(dataDir, "customers");
 
     if (!fs.existsSync(customersDir)) {
-      console.log("No customers yet. Run: dxcrm create \"Customer Name\"");
+      console.log('No customers yet. Run: dxcrm create "Customer Name"');
       return;
     }
 
@@ -21,7 +22,7 @@ export const listCommand = new Command("list")
 
     const customers: Array<{
       slug: string;
-      facts: import("../schemas/main-facts.js").MainFacts;
+      facts: MainFacts;
     }> = [];
 
     for (const slug of slugs) {
@@ -33,7 +34,8 @@ export const listCommand = new Command("list")
             !facts.name.toLowerCase().includes(q) &&
             !slug.includes(q) &&
             !(facts.relationship_stage ?? "").toLowerCase().includes(q)
-          ) continue;
+          )
+            continue;
         }
         customers.push({ slug, facts });
       } catch {
@@ -42,9 +44,7 @@ export const listCommand = new Command("list")
     }
 
     if (customers.length === 0) {
-      console.log(
-        opts.filter ? `No customers matching "${opts.filter}"` : "No customers yet."
-      );
+      console.log(opts.filter ? `No customers matching "${opts.filter}"` : "No customers yet.");
       return;
     }
 
