@@ -3,7 +3,7 @@ import { pursueGoal, getActiveGoals, updateGoalProgress, cancelGoal } from "../c
 import { success, error, info, bold } from "../ui/colors.js";
 
 export async function runGoalSet(description: string, options: { deadline: string }): Promise<void> {
-  const dir = process.cwd();
+  const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   const goal = await pursueGoal(dir, { description, deadline: options.deadline });
   console.log(success(`✓ Goal created: ${bold(goal.id)}`));
   console.log(info(`  Description : ${goal.description}`));
@@ -21,7 +21,7 @@ export async function runGoalSet(description: string, options: { deadline: strin
 }
 
 export async function runGoalStatus(): Promise<void> {
-  const dir = process.cwd();
+  const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   const goals = getActiveGoals(dir);
   if (goals.length === 0) {
     console.log(info("No active goals. Use `dxcrm goal set` to create one."));
@@ -40,7 +40,7 @@ export async function runGoalStatus(): Promise<void> {
 }
 
 export async function runGoalUpdate(goalId: string, options: { progress: string }): Promise<void> {
-  const dir = process.cwd();
+  const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   const progress = parseInt(options.progress, 10);
   if (isNaN(progress) || progress < 0 || progress > 100) {
     console.error(error("✗ --progress must be a number 0–100"));
@@ -55,7 +55,7 @@ export async function runGoalUpdate(goalId: string, options: { progress: string 
 }
 
 export async function runGoalCancel(goalId: string): Promise<void> {
-  const dir = process.cwd();
+  const dir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   const cancelled = await cancelGoal(dir, goalId);
   if (!cancelled) {
     console.error(error(`✗ Goal '${goalId}' not found`));

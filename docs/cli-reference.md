@@ -11,15 +11,15 @@ dxcrm init
 **What it does:**
 1. Detects all installed AI frameworks (Claude Code, Codex, Cursor, Claude Desktop, ...)
 2. Registers the MCP server in each detected framework
-3. Writes v2 harness files (CLAUDE.md, AGENTS.md, SOUL.md, ...) with all 30 MCP tools and proactive usage patterns
+3. Writes v2 harness files (CLAUDE.md, AGENTS.md, SOUL.md, ...) with all 50 MCP tools and proactive usage patterns
 4. Creates `.agentic/` directory with `config.json` + `sources.json`
 5. Starts background daemon for automatic sync
 
 **Harness files written (v2):**
-- `CLAUDE.md` — all 30 tools, proactive patterns (`get_proactive_briefing` at session start, `open_deal_room` before deals)
+- `CLAUDE.md` — all 50 tools, proactive patterns (`get_proactive_briefing` at session start, `open_deal_room` before deals)
 - `AGENTS.md` — for Codex / OpenClaw / Antigravity
 - `SOUL.md` — identity + v2 autonomy boundaries for Hermes / OpenClaw
-- `.cursor/rules/datasynx-crm.mdc` — Cursor rules with all 30 tools
+- `.cursor/rules/datasynx-crm.mdc` — Cursor rules with all 50 tools
 - `.grok/settings.json` — Grok Build MCP config
 
 ---
@@ -325,7 +325,7 @@ Manage per-actor permissions. Roles are enforced at MCP tool call time.
 ```bash
 dxcrm rbac set alice admin        # Assign role: admin | manager | rep
 dxcrm rbac set bob rep
-dxcrm rbac show                   # List all configured roles
+dxcrm rbac show                   # List all configured roles (alias: rbac list)
 dxcrm rbac check alice update_deal  # Exit 0 = allowed, exit 1 = denied
 ```
 
@@ -621,8 +621,8 @@ Manage support tickets.
 ```bash
 dxcrm ticket list [--slug <slug>] [--status open] [--priority urgent]
 dxcrm ticket create <slug> --title <title> [--priority high] [--assignee <email>]
-dxcrm ticket update <slug> <ticketId> --status in-progress
-dxcrm ticket close <slug> <ticketId> [--resolution "Fixed in v2.1"]
+dxcrm ticket update <ticketId> --slug <slug> [--status in-progress] [--assignee <email>]
+dxcrm ticket close <ticketId> --slug <slug> [--resolution "Fixed in v2.1"]
 ```
 
 **Priority levels:** urgent → high → normal → low
@@ -636,6 +636,7 @@ dxcrm ticket close <slug> <ticketId> [--resolution "Fixed in v2.1"]
 Manage NPS/CSAT surveys.
 
 ```bash
+dxcrm survey list
 dxcrm survey create <id> [--type nps|csat|ces] [--question <q>]
 dxcrm survey send <surveyId> --slug <slug> --email <email> [--server <url>]
 dxcrm survey results <surveyId> [--slug <slug>]
@@ -667,7 +668,59 @@ dxcrm kb delete <id>
 **Example workflow:**
 ```bash
 # After closing a ticket, create a KB article
-dxcrm ticket close acme-corp T-042 --resolution "Increased rate limits"
+dxcrm ticket close T-042 --slug acme-corp --resolution "Increased rate limits"
 dxcrm kb create api-rate-limits --title "API Rate Limits FAQ" --category technical --ticket T-042
 # Edit .agentic/knowledge-base/technical/api-rate-limits.md
 ```
+
+---
+
+## dxcrm push
+
+Manage real-time push subscriptions (Gmail Pub/Sub, Microsoft Graph, Slack Events).
+
+```bash
+dxcrm push register --provider gmail --slug acme-corp --callback https://crm.example.com/webhooks/gmail
+dxcrm push status [--slug <slug>] [--provider <provider>]
+dxcrm push revoke <id>                   # Revoke a push subscription
+dxcrm push renew [--all] [--id <id>]     # Renew expiring subscriptions
+```
+
+**Providers:** `gmail` · `microsoft` · `slack`
+
+**Storage:** `.agentic/push-subscriptions.json`
+
+---
+
+## dxcrm attach
+
+Attach a file to a customer record. Copies the file to `customers/<slug>/attachments/`.
+
+```bash
+dxcrm attach <slug> <file>
+
+# Example
+dxcrm attach acme-corp ./proposals/acme-q2-2026.pdf
+# → copies to customers/acme-corp/attachments/acme-q2-2026.pdf
+```
+
+Returns the list of all attachments for the customer after attaching.
+
+---
+
+## dxcrm template
+
+Manage email templates stored in `.agentic/templates/`.
+
+```bash
+dxcrm template list [--category <cat>]          # List all templates
+dxcrm template get <id>                          # Show a template
+dxcrm template create <id> --subject <s> --body <b> [--category <cat>] [--lang <lang>]
+dxcrm template delete <id>                       # Delete a template
+dxcrm template render <id> --slug <slug>         # Render template with customer data
+```
+
+**Storage:** `.agentic/templates/<category>/<id>.md`
+
+**Variables:** `{{customerName}}`, `{{contactEmail}}`, `{{dealValue}}`, `{{stage}}`, `{{ownerName}}`
+

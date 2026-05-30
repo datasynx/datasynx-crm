@@ -32,6 +32,17 @@ export function writeSurvey(dataDir: string, survey: SurveyDefinition): void {
   fs.writeFileSync(path.join(dir, `${survey.id}.yaml`), yaml.dump(survey), "utf-8");
 }
 
+export function listSurveys(dataDir: string): SurveyDefinition[] {
+  const dir = surveysDir(dataDir);
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((f) => f.endsWith(".yaml"))
+    .flatMap((f) => {
+      const s = getSurvey(dataDir, f.replace(/\.yaml$/, ""));
+      return s ? [s] : [];
+    });
+}
+
 export function generateSurveyToken(slug: string, contactEmail: string, surveyId: string): string {
   return createHmac("sha256", SURVEY_SECRET)
     .update(`${slug}:${contactEmail}:${surveyId}`)

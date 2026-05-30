@@ -1,9 +1,24 @@
 import { Command } from "commander";
 import { success, error, info, bold } from "../ui/colors.js";
-import { getSurvey, writeSurvey, loadSurveyResponses, calcNpsScore, generateSurveyToken, savePendingSurvey } from "../core/survey-engine.js";
+import { getSurvey, writeSurvey, listSurveys, loadSurveyResponses, calcNpsScore, generateSurveyToken, savePendingSurvey } from "../core/survey-engine.js";
 import type { SurveyDefinition } from "../schemas/survey.js";
 
 export const surveyCommand = new Command("survey").description("Manage NPS/CSAT surveys");
+
+surveyCommand
+  .command("list")
+  .description("List all survey definitions")
+  .action(() => {
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+    const surveys = listSurveys(dataDir);
+    if (surveys.length === 0) {
+      console.log(info("No surveys found."));
+      return;
+    }
+    for (const s of surveys) {
+      console.log(`  ${bold(s.id)}  [${s.type}]  ${s.question.slice(0, 60)}`);
+    }
+  });
 
 surveyCommand
   .command("create <id>")

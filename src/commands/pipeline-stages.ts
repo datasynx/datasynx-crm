@@ -37,7 +37,7 @@ stagesCommand
   .command("list")
   .description("List all configured pipeline stages")
   .action(() => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const stages = getPipelineStages(dataDir);
     printStagesTable(stages);
   });
@@ -50,7 +50,7 @@ stagesCommand
   .option("--color <hex>", "Hex color code (e.g. #3B82F6)")
   .option("--final", "Mark as final stage (won/lost)")
   .action((id: string, label: string, opts: { order: string; probability?: string; color?: string; final?: boolean }) => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const stage: PipelineStage = {
       id,
       label,
@@ -67,7 +67,7 @@ stagesCommand
   .command("delete <id>")
   .description("Delete a pipeline stage by ID")
   .action((id: string) => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const existing = getPipelineStages(dataDir);
     if (!existing.find((s) => s.id === id)) {
       console.error(error(`✗ Stage '${id}' not found`));
@@ -81,7 +81,7 @@ stagesCommand
   .command("reset")
   .description("Reset pipeline stages to defaults")
   .action(() => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     resetToDefaults(dataDir);
     console.log(success("✓ Pipeline stages reset to defaults"));
   });

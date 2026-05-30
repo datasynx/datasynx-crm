@@ -20,9 +20,19 @@ export function persistSession(dataDir: string, session: {
 
 export function clearPersistedSession(dataDir: string, owner?: string): void {
   const dir = sessionsDir(dataDir);
-  const key = (owner ?? `pid-${process.pid}`).replace(/[^a-zA-Z0-9_-]/g, "_");
-  const file = path.join(dir, `${key}.json`);
-  if (fs.existsSync(file)) fs.unlinkSync(file);
+  if (!fs.existsSync(dir)) return;
+  if (owner !== undefined) {
+    const key = owner.replace(/[^a-zA-Z0-9_-]/g, "_");
+    const file = path.join(dir, `${key}.json`);
+    if (fs.existsSync(file)) fs.unlinkSync(file);
+    return;
+  }
+  // No specific owner — clear all session files
+  try {
+    for (const f of fs.readdirSync(dir).filter((n) => n.endsWith(".json"))) {
+      try { fs.unlinkSync(path.join(dir, f)); } catch { /* ignore */ }
+    }
+  } catch { /* ignore */ }
 }
 
 export function readAllSessions(dataDir: string): Array<{ customerSlug: string; customerName: string; startedAt: string; owner?: string }> {
@@ -46,7 +56,7 @@ sessionCommand
   .command("open <slug>")
   .option("--owner <owner>", "Set the owner of this session")
   .action(async (slug: string, opts: { owner?: string }) => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     if (!customerExists(dataDir, slug)) {
       console.error(error(`✗ Customer not found: ${slug}`));
       process.exit(1);
@@ -65,8 +75,8 @@ sessionCommand
   });
 
 sessionCommand.command("close").action(() => {
-  const dataDir = process.cwd();
-  const s = getSession();
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+  const s = getSession() ?? readAllSessions(dataDir)[0] ?? null;
   clearSession();
   clearPersistedSession(dataDir, s?.owner);
   console.log(success("✓ Session closed."));

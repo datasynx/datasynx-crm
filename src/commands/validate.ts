@@ -105,7 +105,7 @@ export async function runValidate(opts: { fix?: boolean }, dataDir: string): Pro
 export const validateCommand = new Command("validate")
   .option("--fix", "Auto-fix recoverable issues")
   .action(async (opts: { fix?: boolean }) => {
-    await runValidate(opts, process.cwd());
+    await runValidate(opts, process.env["DXCRM_DATA_DIR"] ?? process.cwd());
   });
 
 

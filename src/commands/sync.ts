@@ -11,7 +11,7 @@ export const syncCommand = new Command("sync")
   .option("--transcripts", "Sync transcripts only")
   .option("--provider <provider>", "Sync provider: gmail | microsoft | transcripts")
   .action(async (slug: string, opts: { since?: string; gmail?: boolean; transcripts?: boolean; provider?: string }) => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const customerDir = path.join(dataDir, "customers", slug);
 
     if (!fs.existsSync(customerDir)) {

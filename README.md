@@ -126,6 +126,16 @@ dxcrm create "Acme Corp" --domain acme.com --email ceo@acme.com
 | `dxcrm push revoke <id>` | Revoke a subscription |
 | `dxcrm push renew --all` | Manually renew expiring subscriptions |
 
+### File Attachments
+
+| Command | Description |
+|---|---|
+| `dxcrm attach <slug> <file>` | Attach a file to a customer (copies to `customers/<slug>/attachments/`) |
+
+```bash
+dxcrm attach acme-corp ./proposals/acme-q2-2026.pdf
+```
+
 ### Pipeline Stages
 
 | Command | Description |

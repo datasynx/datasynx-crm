@@ -7,7 +7,7 @@ import { renderCustomerTable } from "../ui/table.js";
 export const listCommand = new Command("list")
   .option("--filter <query>", "Filter by name or slug")
   .action(async (opts: { filter?: string }) => {
-    const dataDir = process.cwd();
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
     const customersDir = path.join(dataDir, "customers");
 
     if (!fs.existsSync(customersDir)) {

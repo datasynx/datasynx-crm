@@ -143,9 +143,9 @@ gdprCommand
   .command("erase <slug>")
   .description("Permanently erase all data for a customer (Art. 17 right to erasure)")
   .option("--confirm", "Confirm permanent deletion (required)")
-  .action((slug: string, opts: { confirm?: boolean }) => runGdprErase(slug, opts));
+  .action((slug: string, opts: { confirm?: boolean }) => runGdprErase(slug, opts, process.env["DXCRM_DATA_DIR"]));
 
 gdprCommand
   .command("list-erasures")
   .description("Show history of GDPR erasures")
-  .action(() => runGdprListErasures());
+  .action(() => runGdprListErasures(process.env["DXCRM_DATA_DIR"]));

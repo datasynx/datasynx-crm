@@ -15,7 +15,7 @@ export async function runPushRegister(
     channelId?: string;
   }
 ): Promise<void> {
-  const dataDir = process.cwd();
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   const providerData: Record<string, string> = {};
   if (options.topicName) providerData["gmailTopicName"] = options.topicName;
   if (options.clientState) providerData["microsoftClientState"] = options.clientState;
@@ -41,7 +41,7 @@ export async function runPushRegister(
 }
 
 export async function runPushStatus(options: { slug?: string; provider?: string }): Promise<void> {
-  const dataDir = process.cwd();
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   let subs = await readSubscriptions(dataDir);
 
   if (options.slug) subs = subs.filter((s) => s.slug === options.slug);
@@ -70,7 +70,7 @@ export async function runPushStatus(options: { slug?: string; provider?: string 
 }
 
 export async function runPushRevoke(id: string): Promise<void> {
-  const dataDir = process.cwd();
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   try {
     await revoke(dataDir, id);
     console.log(success(`✓ Subscription ${bold(id)} revoked`));
@@ -81,7 +81,7 @@ export async function runPushRevoke(id: string): Promise<void> {
 }
 
 export async function runPushRenew(options: { all?: boolean; id?: string }): Promise<void> {
-  const dataDir = process.cwd();
+  const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
   if (options.id) {
     const subs = await readSubscriptions(dataDir);
     const sub = subs.find((s) => s.id === options.id);

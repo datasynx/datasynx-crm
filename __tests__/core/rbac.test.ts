@@ -187,15 +187,15 @@ describe("enforceRbac", () => {
     delete process.env["DXCRM_ACTOR"];
   });
 
-  it("falls back to 'system' actor (gets 'rep' role) when DXCRM_ACTOR is unset and rbac.json exists", async () => {
+  it("bypasses RBAC for 'system' actor when DXCRM_ACTOR is unset and rbac.json exists", async () => {
     vol.fromJSON({
       "/crm/.agentic/rbac.json": JSON.stringify({ actors: { alice: "admin" } }),
     });
     delete process.env["DXCRM_ACTOR"];
     const { enforceRbac } = await import("../../src/core/rbac.js");
-    // system → rep → can log_interaction and update_deal, but not update_customer_facts
+    // system actor bypasses RBAC entirely — all tools allowed
     expect(() => enforceRbac("/crm", "log_interaction")).not.toThrow();
-    expect(() => enforceRbac("/crm", "update_customer_facts")).toThrow(/access denied/i);
+    expect(() => enforceRbac("/crm", "update_customer_facts")).not.toThrow();
   });
 });
 

@@ -103,4 +103,4 @@ export async function runSecurityReport(
 export const securityReportCommand = new Command("security-report")
   .description("Generate security questionnaire answer document for enterprise reviews")
   .option("--output <file>", "Write report to file instead of stdout")
-  .action((opts: { output?: string }) => runSecurityReport(opts));
+  .action((opts: { output?: string }) => runSecurityReport(opts, process.env["DXCRM_DATA_DIR"]));

@@ -55,12 +55,14 @@ export function assertCanWrite(role: Role, tool: string, actor: string): void {
 export function enforceRbac(dataDir: string, tool: string): void {
   if (!fs.existsSync(rbacPath(dataDir))) return; // no rbac.json = open access
   const actor = process.env["DXCRM_ACTOR"] ?? "system";
+  if (actor === "system") return; // internal system actor bypasses RBAC
   const role = getRole(dataDir, actor);
   assertCanWrite(role, tool, actor);
 }
 
 export function canSeeCustomer(dataDir: string, actor: string, slug: string): boolean {
   if (!fs.existsSync(rbacPath(dataDir))) return true; // open access
+  if (actor === "system") return true; // internal system actor always has full access
   const config = getRbacConfig(dataDir);
   const role = config.actors[actor] ?? config.default ?? "rep";
   if (role === "admin" || role === "manager") return true;

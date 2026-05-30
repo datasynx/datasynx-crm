@@ -139,6 +139,8 @@ function appendBackupLog(dataDir: string, entry: BackupEntry): void {
     try { entries = JSON.parse(fs.readFileSync(logPath, "utf-8") as string) as BackupEntry[]; }
     catch { entries = []; }
   }
+  // Deduplicate by filename — update existing entry if same file backed up again
+  entries = entries.filter((e) => e.filename !== entry.filename);
   entries.unshift(entry);
   // Keep last 100 entries
   if (entries.length > 100) entries = entries.slice(0, 100);
@@ -390,6 +392,29 @@ export async function runBackupSchedule(
     return;
   }
 
+  if (!opts.every && !opts.status) {
+    console.error(error("✗ --every is required (e.g. --every day)"));
+    process.exit(1);
+    return;
+  }
+
+  if (opts.every) {
+    const keep = opts.keep ? parseInt(opts.keep, 10) : 7;
+    const config = readAgenticConfig(dir);
+    config.backupSchedule = {
+      every: opts.every,
+      keep,
+      ...(opts.weekly ? { weekly: parseInt(opts.weekly, 10) } : {}),
+      ...(opts.monthly ? { monthly: parseInt(opts.monthly, 10) } : {}),
+      ...(opts.remote ? { remote: opts.remote } : {}),
+      lastBackup: null,
+    };
+    writeAgenticConfig(dir, config);
+    if (!opts.status) {
+      console.log(success(`✓ Backup schedule set: every ${opts.every}, keep ${keep} daily${opts.weekly ? ` / ${opts.weekly} weekly` : ""}${opts.monthly ? ` / ${opts.monthly} monthly` : ""}.`));
+    }
+  }
+
   if (opts.status) {
     const config = readAgenticConfig(dir);
     const sched = config.backupSchedule;
@@ -404,27 +429,7 @@ export async function runBackupSchedule(
       if (sched.remote) console.log(`  remote:     ${sched.remote}`);
       console.log(`  lastBackup: ${sched.lastBackup ?? "never"}`);
     }
-    return;
   }
-
-  if (!opts.every) {
-    console.error(error("✗ --every is required (e.g. --every day)"));
-    process.exit(1);
-    return;
-  }
-
-  const keep = opts.keep ? parseInt(opts.keep, 10) : 7;
-  const config = readAgenticConfig(dir);
-  config.backupSchedule = {
-    every: opts.every,
-    keep,
-    ...(opts.weekly ? { weekly: parseInt(opts.weekly, 10) } : {}),
-    ...(opts.monthly ? { monthly: parseInt(opts.monthly, 10) } : {}),
-    ...(opts.remote ? { remote: opts.remote } : {}),
-    lastBackup: null,
-  };
-  writeAgenticConfig(dir, config);
-  console.log(success(`✓ Backup schedule set: every ${opts.every}, keep ${keep} daily${opts.weekly ? ` / ${opts.weekly} weekly` : ""}${opts.monthly ? ` / ${opts.monthly} monthly` : ""}.`));
 }
 
 export function shouldRunScheduledBackup(dataDir: string): boolean {

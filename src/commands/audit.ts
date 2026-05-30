@@ -54,5 +54,5 @@ export const auditCommand = new Command("audit")
   .option("--limit <n>", "Number of entries to show (default: 20)", parseInt)
   .option("--tail", "Show all new entries (simplified: shows current entries)")
   .action((opts: { slug?: string; actor?: string; limit?: number; tail?: boolean }) =>
-    runAudit(opts)
+    runAudit(opts, process.env["DXCRM_DATA_DIR"])
   );

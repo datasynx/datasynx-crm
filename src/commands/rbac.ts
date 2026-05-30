@@ -51,14 +51,15 @@ export const rbacCommand = new Command("rbac").description("Manage role-based ac
 rbacCommand
   .command("set <actor> <role>")
   .description(`Assign role to actor (roles: ${ROLES.join(", ")})`)
-  .action((actor: string, role: string) => runRbacSet(actor, role));
+  .action((actor: string, role: string) => runRbacSet(actor, role, process.env["DXCRM_DATA_DIR"]));
 
 rbacCommand
   .command("show")
+  .alias("list")
   .description("List all RBAC role assignments")
-  .action(() => runRbacShow());
+  .action(() => runRbacShow(process.env["DXCRM_DATA_DIR"]));
 
 rbacCommand
   .command("check <actor> <tool>")
   .description("Check if an actor can use a specific tool")
-  .action((actor: string, tool: string) => runRbacCheck(actor, tool));
+  .action((actor: string, tool: string) => runRbacCheck(actor, tool, process.env["DXCRM_DATA_DIR"]));

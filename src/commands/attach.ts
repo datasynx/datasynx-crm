@@ -67,5 +67,5 @@ export const attachCommand = new Command("attach")
   .argument("<slug>", "Customer slug")
   .argument("<file>", "Path to the file to attach")
   .action(async (slug: string, file: string) => {
-    await runAttach(slug, file);
+    await runAttach(slug, file, process.env["DXCRM_DATA_DIR"]);
   });
