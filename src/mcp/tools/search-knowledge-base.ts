@@ -2,7 +2,7 @@ import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { searchKbSimple, getKbMetaForExport } from "../../fs/knowledge-base.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleSearchKnowledgeBase(
   input: { query: string; category?: string; publicOnly?: boolean; limit?: number },

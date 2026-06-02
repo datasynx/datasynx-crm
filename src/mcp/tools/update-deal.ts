@@ -5,7 +5,7 @@ import type { PipelineDeal } from "../../schemas/pipeline.js";
 import { writeAuditEntry, getActor } from "../../fs/audit-log.js";
 import { enforceRbac } from "../../core/rbac.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleUpdateDeal(
   input: {

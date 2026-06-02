@@ -3,7 +3,7 @@ import { z } from "zod";
 import { readEnrollments } from "../../fs/sequence-store.js";
 import type { SequenceEnrollment } from "../../schemas/sequence.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleListSequenceEnrollments(
   input: { slug?: string; status?: "active" | "paused" | "completed" },

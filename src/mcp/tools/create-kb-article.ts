@@ -3,7 +3,7 @@ import { z } from "zod";
 import { writeKbArticle, getKbArticle } from "../../fs/knowledge-base.js";
 import type { KbArticle } from "../../schemas/kb-article.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleCreateKbArticle(
   input: {

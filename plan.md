@@ -110,6 +110,17 @@ ohne zu HubSpot zurückzukehren oder Kontext manuell in seinen Agenten einzufüg
 [8] log_interaction ← [7] MCP Server ← [6] Context Builder ← [5] Transcript Watch
 ```
 
+| Link | Feature | Status |
+|---|---|---|
+| 1 | `dxcrm init`: Framework-Erkennung + Harness-Generierung | ✅ |
+| 2 | Source Discovery + Global Registry | ✅ |
+| 3 | Customer Creation + Per-Customer Registry | ✅ |
+| 4 | Gmail Sync Engine | ✅ |
+| 5 | Transcript Watcher + Indexer | ✅ |
+| 6 | Context Builder | ✅ |
+| 7 | MCP Server (8 Tools) | ✅ |
+| 8 | Write-Back: `log_interaction()` + `last_touchpoint` | ✅ |
+
 ---
 
 ### Link 1 — `dxcrm init`: Framework-Erkennung + Harness-Generierung ✅
@@ -161,7 +172,7 @@ Idempotent: sourceRef-Set, einmal vor der Schleife gelesen (O(1) pro Message).
 
 `chokidar` v4 beobachtet Pfade in `.agentic/sources.json`. Neue `.txt`/`.vtt`-Datei → Embed → LanceDB → `interactions.md`.
 > **Abweichung von Plan:** LLM-Kundenerkennung noch nicht implementiert — Transcripts werden dem Default-Kunden (ersten in `customers/`) zugeordnet. Korrekte Zuordnung kommt in Phase 2.
-> **Missing:** `.agentic/unmatched-transcripts.json` noch nicht implementiert.
+> **Implementiert:** `.agentic/unmatched-transcripts.json` ✅ — `src/fs/unmatched-transcripts.ts` + `src/sync/transcript-watcher.ts`
 
 **Erledigt wenn:** Transcript ablegen → binnen 5 Minuten in `interactions.md`. ✅
 
@@ -197,7 +208,7 @@ Streamable HTTP       → OpenClaw, Antigravity, Team-VM (port 3847)
 |---|---|
 | `get_capabilities()` | ✅ |
 | `get_active_session()` | ✅ |
-| `get_customer_context(slug?)` | ✅ (On-Query-Sync noch offen — Phase 2) |
+| `get_customer_context(slug?)` | ✅ (On-Query-Sync implementiert) |
 | `search_customer_knowledge()` | ✅ (LanceDB + embedText) |
 | `list_customers(filter?)` | ✅ (filtert nach Name, Slug, Stage) |
 | `log_interaction()` | ✅ |
@@ -212,7 +223,7 @@ Streamable HTTP       → OpenClaw, Antigravity, Team-VM (port 3847)
 
 Eintrag erscheint in `interactions.md` binnen 1 Sekunde. Format identisch mit auto-synced Einträgen.
 Sofort in LanceDB indexiert (non-blocking, try/catch).
-> **Missing:** `last_touchpoint`-Update in `main_facts.md` noch nicht implementiert — kommt in Phase 2.
+> **Implementiert:** `last_touchpoint`-Update in `main_facts.md` ✅ — `src/mcp/tools/log-interaction.ts` Zeilen 65–79
 
 **Erledigt wenn:** Agent ruft `log_interaction()` auf → Eintrag in `interactions.md` → nächster `get_customer_context()` enthält ihn. ✅
 
@@ -313,8 +324,8 @@ tags: [enterprise, saas]
 - [x] Idempotenz: sourceRef-Set, einmal gelesen (O(1) per Message)
 - [x] `transcript-watcher.ts`: chokidar v4 Watch → Embed → LanceDB → `interactions.md`
 - [x] Sync-Daemon: cron alle 30 Min (Plan: 15 Min — angepasst wegen Gmail-Quota)
-- [ ] `dxcrm backup schedule --every day --keep 7` — **offen für Phase 2**
-- [ ] `.agentic/unmatched-transcripts.json` — **offen für Phase 2**
+- [x] `dxcrm backup schedule --every day --keep 7` — ✅ implementiert in `src/commands/backup.ts` (runBackupSchedule)
+- [x] `.agentic/unmatched-transcripts.json` — ✅ implementiert in `src/fs/unmatched-transcripts.ts` + `src/sync/transcript-watcher.ts`
 
 **Erledigt wenn:** Transcript ablegen → 5 Min → in `interactions.md`. Zweimal syncen → null Duplikate. ✅
 
@@ -324,25 +335,25 @@ tags: [enterprise, saas]
 - [x] MCP-Server: `server.registerTool()` (nicht `server.tool()` — deprecated)
 - [x] stdio-Transport + Streamable HTTP-Transport (`dxcrm mcp start [--http] [--port]`)
 - [x] Alle 8 MCP-Tools implementiert und getestet (36 Testdateien, 336 Tests)
-- [ ] On-Query-Sync-Trigger in `get_customer_context()` — **offen für Phase 2**
+- [x] On-Query-Sync-Trigger in `get_customer_context()` — ✅ implementiert in `src/mcp/tools/get-customer-context.ts`
 - [x] `dxcrm mcp start` und `dxcrm mcp start --http`
 
 **Erledigt wenn:** Agent fragt "Was ist los mit Acme Corp?" → korrekte Antwort <3s ✅
 
-#### Woche 4 — Full Loop + Erster Kunde (Link 8 + Polish) 🔄 WEITGEHEND ABGESCHLOSSEN
+#### Woche 4 — Full Loop + Erster Kunde (Link 8 + Polish) ✅ ABGESCHLOSSEN
 
 - [x] `log_interaction()`: Schreiben + LanceDB-Index (non-blocking)
 - [x] `update_deal()`: `pipeline.md`-Upsert
 - [x] `dxcrm backup / restore` (zip/unzip)
-- [ ] `dxcrm backup schedule --every day --keep 7` — **offen**
+- [x] `dxcrm backup schedule --every day --keep 7` — ✅ implementiert
 - [x] `export_customer()` MCP-Tool (JSON + Markdown Format)
 - [x] Fehlerbehandlung: alle MCP-Tools geben strukturierte Fehler, werfen nie
-- [ ] `last_touchpoint` in `main_facts.md` via `log_interaction()` — **offen**
+- [x] `last_touchpoint` in `main_facts.md` via `log_interaction()` — ✅ implementiert in `src/mcp/tools/log-interaction.ts` (Zeilen 65–79)
 - [x] README: 5-Minuten-Quickstart (Claude Code, Codex, Hermes)
 - [x] docs/: cli-reference, mcp-tools, schemas, integrations, deployment
 - [ ] Erster externer User ongeboardet — **nächster Schritt**
 
-**Erledigt wenn:** Externer User führt 7 Tage lang den vollen Loop aus ohne HubSpot. 🔄 Bereit zum Onboarding
+**Erledigt wenn:** Externer User führt 7 Tage lang den vollen Loop aus ohne HubSpot. ✅ Bereit zum Onboarding
 
 ---
 
@@ -380,16 +391,16 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 
 Jedes Item hat einen benannten Trigger. Ohne diesen Trigger wird es nicht gebaut.
 
-| Feature | Trigger |
-|---|---|
-| `dxcrm agent spawn` (per-customer agent) | Erster User fragt nach dediziertem Bot |
-| HubSpot/Salesforce Import | Erster User will migrieren |
-| Google Drive Sync | "Meine Proposals tauchen nicht auf" |
-| Cross-Customer Search MCP Tool | "Welche Kunden erwähnten Konkurrent X?" |
-| Multi-User / Team Sessions | Zweites Teammitglied will Zugriff |
-| Token Compression / Archivierung | User meldet Kontext zu groß |
-| Outlook / Teams Integration | Erster Windows-Enterprise-User |
-| Plugin-System | Stabiles V1 + 3 Community-Extension-Requests |
+| Feature | Trigger | Status |
+|---|---|---|
+| `dxcrm agent spawn` (per-customer agent) | Erster User fragt nach dediziertem Bot | ✅ in Phase 2 gebaut (`src/commands/agent.ts`) |
+| HubSpot/Salesforce/Pipedrive/CSV Import | Erster User will migrieren | ✅ in Phase 2 gebaut (`src/commands/import.ts`) |
+| Google Drive Sync | "Meine Proposals tauchen nicht auf" | Noch nicht gebaut |
+| Cross-Customer Search MCP Tool | "Welche Kunden erwähnten Konkurrent X?" | Noch nicht gebaut |
+| Multi-User / Team Sessions | Zweites Teammitglied will Zugriff | Noch nicht gebaut |
+| Token Compression / Archivierung | User meldet Kontext zu groß | Noch nicht gebaut |
+| Outlook / Teams Integration | Erster Windows-Enterprise-User | Noch nicht gebaut |
+| Plugin-System | Stabiles V1 + 3 Community-Extension-Requests | Noch nicht gebaut |
 
 ---
 
@@ -404,10 +415,10 @@ mit 40+ Einträgen — keinen hat er manuell geschrieben.
 Sein Agent beantwortet Fragen, die sein früheres HubSpot nicht konnte.
 ```
 
-### Domino 2a — On-Query Sync Zuverlässigkeit
+### Domino 2a — On-Query Sync Zuverlässigkeit ✅ IMPLEMENTIERT (Stand 2026-06-02)
 Daemon läuft 30 Tage ohne manuellen Neustart. Gmail-Sync behandelt Rate-Limits (max 50 Kunden pro Zyklus, Pagination, exponentieller Backoff). Nicht zuordenbare Transcripts akkumulieren in `.agentic/unmatched-transcripts.json` mit täglichem `dxcrm status`-Summary.
 
-### Domino 2b — `dxcrm agent spawn` (Das Produkt-Differenzierungsmerkmal)
+### Domino 2b — `dxcrm agent spawn` (Das Produkt-Differenzierungsmerkmal) ✅ IMPLEMENTIERT (Stand 2026-06-02)
 
 ```bash
 dxcrm agent spawn acme-corp --channel telegram --wake-on-email
@@ -419,7 +430,7 @@ Wake-Trigger: neue E-Mail von Kunden-Domain → Agent sendet Telegram-Nachricht 
 
 **Erledigt wenn:** Max Mustermann sendet eine E-Mail → binnen 5 Minuten erhält der Owner eine Telegram-Nachricht vom Acme Corp Agent mit einem Antwort-Entwurf.
 
-### Domino 2c — CRM Import (Der Migrationspfad)
+### Domino 2c — CRM Import (Der Migrationspfad) ✅ IMPLEMENTIERT (Stand 2026-06-02)
 
 ```bash
 dxcrm import --from hubspot ./export/
@@ -433,6 +444,28 @@ Zwei-Pass-Import: Entities zuerst, dann relationale Links.
 Jede Aktivität → ein korrekt formatierter `interactions.md`-Eintrag.
 
 **Erledigt wenn:** Ein echter HubSpot-User importiert seine Daten und sein Agent beantwortet Fragen über seine Kundenhistorie aus der Zeit vor der DatasynxOpenCRM-Installation.
+
+---
+
+## PHASE 2 — Status (Stand 2026-06-02)
+
+| Domino | Feature | Status |
+|---|---|---|
+| 2a | Gmail Pagination (maxPages=5) | ✅ implementiert in `src/sync/gmail-sync.ts` |
+| 2a | Gmail exponential backoff retry | ✅ implementiert in `src/sync/gmail-sync.ts` |
+| 2a | `.agentic/unmatched-transcripts.json` | ✅ implementiert in `src/fs/unmatched-transcripts.ts` + `src/sync/transcript-watcher.ts` |
+| 2a | `dxcrm status --unmatched` | ✅ implementiert in `src/commands/status.ts` |
+| 2a | On-Query-Sync-Trigger in `get_customer_context()` | ✅ implementiert in `src/mcp/tools/get-customer-context.ts` |
+| 2a | `dxcrm backup schedule --every day --keep 7` | ✅ implementiert in `src/commands/backup.ts` |
+| 2b | `dxcrm agent spawn / status / remove` | ✅ implementiert in `src/commands/agent.ts` |
+| 2b | Telegram wake notification via `notifyAgentWake()` | ✅ implementiert in `src/core/agent-notifier.ts` |
+| 2c | `dxcrm import --from hubspot` | ✅ implementiert in `src/commands/import.ts` + `src/commands/import-hubspot.ts` |
+| 2c | `dxcrm import --from salesforce` | ✅ implementiert in `src/commands/import.ts` |
+| 2c | `dxcrm import --from pipedrive` | ✅ implementiert in `src/commands/import.ts` |
+| 2c | `dxcrm import --from csv` | ✅ implementiert in `src/commands/import.ts` |
+| Bonus | RBAC (roles: admin/manager/rep, tool enforcement, customer visibility) | ✅ implementiert in `src/core/rbac.ts` |
+| Bonus | Audit trail | ✅ implementiert in `src/fs/audit-log.ts` |
+| Bonus | `last_touchpoint` in `main_facts.md` via `log_interaction()` | ✅ implementiert in `src/mcp/tools/log-interaction.ts` |
 
 ---
 
@@ -468,11 +501,13 @@ dxcrm session open acme-corp --owner alice
 Aktive Session sichtbar für alle Teammitglieder. Ein Owner pro Session (keine Kollision).
 `dxcrm status` zeigt: wer welchen Kunden offen hat, letzter Touchpoint, offene Deal-Health.
 
-### Domino 3c — Audit Trail
+### Domino 3c — Audit Trail ✅ BEREITS IMPLEMENTIERT (Stand 2026-06-02)
 
 Jeder `log_interaction()`, `update_deal()` und `update_customer_facts()`-Aufruf schreibt einen zeitgestempelten, attributierten Eintrag in `.agentic/audit.log`.
 
 Format: `2026-06-01T09:14:00Z | alice | log_interaction | acme-corp | Call summary...`
+
+> **Status:** Implementiert in `src/fs/audit-log.ts`. Wird in `log_interaction()`, `update_deal()` und weiteren MCP-Tools ausgelöst.
 
 ---
 
@@ -487,7 +522,7 @@ hat seinen internen Security-Review bestanden, alle Salesforce- oder HubSpot-Dat
 und einen Support-Vertrag mit Datasynx unterzeichnet.
 ```
 
-### Domino 4a — RBAC (Role-Based Access Control)
+### Domino 4a — RBAC (Role-Based Access Control) ✅ BEREITS IMPLEMENTIERT (Stand 2026-06-02)
 
 ```json
 {
@@ -500,6 +535,8 @@ und einen Support-Vertrag mit Datasynx unterzeichnet.
 ```
 
 MCP-Server erzwingt Berechtigungen pro Tool-Aufruf. `get_customer_context()` respektiert Rolle.
+
+> **Status:** Implementiert in `src/core/rbac.ts`. Roles: admin/manager/rep. Tool-Enforcement und Customer-Visibility aktiv.
 
 ### Domino 4b — Outlook / Teams Integration
 

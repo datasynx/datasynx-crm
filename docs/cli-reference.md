@@ -84,6 +84,16 @@ dxcrm sync --provider google-meet         # Google Meet transcripts
 - `.agentic/gmail-token.json` — OAuth2 access token (run `dxcrm sync --setup-gmail` to generate)
 - `customers/<slug>/sources.json` — Gmail query configured
 
+**Prerequisites for Microsoft Outlook:**
+- Write access token to `.agentic/microsoft-token.json`:
+  ```json
+  { "accessToken": "ey..." }
+  ```
+- Token supports both `accessToken` (camelCase) and `access_token` (snake_case)
+- `sourceRef` format: `microsoft://message/<message-id>`
+
+**Gmail pagination and retry:** Gmail sync fetches up to 5 pages of results per sync cycle and uses exponential backoff on transient API errors.
+
 ---
 
 ## dxcrm session
@@ -267,6 +277,42 @@ hubspot-export/
 - HubSpot engagement: `hubspot://engagement/<Record ID>`
 - CSV: `csv://row/<sha256-of-row>`
 
+**HubSpot v4 API import** (`--from hubspot --mode api`):
+
+```bash
+dxcrm import --from hubspot --mode api --token $HUBSPOT_TOKEN
+```
+
+- Contacts → customers (email as primary ID, company name as customer name)
+- Associated notes, calls, emails, meetings → interactions (via v4 Associations API)
+- Deduplication by `hubspot://contact/<id>` sourceRef
+- Env var: `HUBSPOT_TOKEN` — HubSpot private app token
+
+**Salesforce API import** (`--from salesforce --mode api`):
+
+```bash
+dxcrm import --from salesforce --mode api \
+  --token $SFDC_TOKEN \
+  --url https://myco.salesforce.com
+```
+
+- Pass 1: fetches contacts → creates customer records (slug from email domain or Name)
+- Pass 2: fetches tasks → creates interactions (linked via `WhoId`)
+- `sourceRef` format: `salesforce://task/<task-id>`
+- API version: v58.0 (SOQL via `/services/data/v58.0/query`)
+- Env vars: `SFDC_TOKEN`, `SFDC_URL`
+
+**Pipedrive API import** (`--from pipedrive --mode api`):
+
+```bash
+dxcrm import --from pipedrive --mode api --token $PIPEDRIVE_TOKEN
+```
+
+- Fetches persons → customers (org_name or name as company)
+- Fetches activities → interactions
+- `sourceRef` format: `pipedrive://activity/<activity-id>`
+- Env vars: `PIPEDRIVE_TOKEN`, `PIPEDRIVE_URL`
+
 ---
 
 ## dxcrm server (Phase 3 — Team Setup)
@@ -382,51 +428,6 @@ dxcrm security-report --output sec-report.md   # Write to file
 
 **Options:**
 - `--output <file>` — Write report to file instead of stdout
-
----
-
-## dxcrm sync (Phase 1 + Phase 4)
-
-Sync emails from Gmail or Microsoft Outlook.
-
-```bash
-dxcrm sync                                # Gmail sync (default)
-dxcrm sync --provider gmail               # Explicit Gmail
-dxcrm sync --provider microsoft           # Outlook via Microsoft Graph API
-dxcrm sync --provider transcripts        # Unmatched transcripts
-```
-
-**Microsoft sync prerequisites:**
-- Write access token to `.agentic/microsoft-token.json`:
-  ```json
-  { "accessToken": "ey..." }
-  ```
-- Token supports both `accessToken` (camelCase) and `access_token` (snake_case)
-
-**sourceRef format**: `microsoft://message/<message-id>`
-
----
-
-## dxcrm import (Phase 2 + Phase 4)
-
-```bash
-dxcrm import --from csv --file contacts.csv          # CSV import
-dxcrm import --from transcripts --dir ./recordings   # Transcript import
-dxcrm import --from salesforce --mode api \
-  --token <access-token> \
-  --url https://myco.salesforce.com                   # Salesforce REST API
-```
-
-**Pipedrive API import** (`--from pipedrive --mode api`):
-- Fetches persons → customers (org_name or name as company), activities → interactions
-- **sourceRef format**: `pipedrive://activity/<activity-id>`
-- Env vars: `PIPEDRIVE_TOKEN`, `PIPEDRIVE_URL`
-
-**Salesforce API import** (`--from salesforce --mode api`):
-- Pass 1: fetches contacts → creates customer records (slug from email domain or Name)
-- Pass 2: fetches tasks → creates interactions (linked via `WhoId`)
-- **sourceRef format**: `salesforce://task/<task-id>`
-- API version: v58.0 (SOQL via `/services/data/v58.0/query`)
 
 ---
 
@@ -559,32 +560,6 @@ dxcrm goal cancel goal-2026-001                                    # Cancel a go
 - `cancel <goalId>` — Remove goal from active list
 
 **See also:** `pursue_goal` / `get_goal_status` MCP tools for agent-driven goal tracking.
-
----
-
-## dxcrm import (HubSpot v4 API)
-
-Import contacts and activities directly from the HubSpot API (v4 Associations).
-
-```bash
-dxcrm import --from hubspot --mode api \
-  --token $HUBSPOT_TOKEN
-```
-
-**What it imports:**
-- Contacts → customers (email as primary ID, company name as customer name)
-- Associated notes, calls, emails, meetings → interactions (fetched via v4 Associations API)
-- Deduplication by `hubspot://contact/<id>` sourceRef
-
-**Environment variables:**
-- `HUBSPOT_TOKEN` — HubSpot private app token (or use `--token`)
-
-**sourceRef formats:**
-- Contacts: `hubspot://contact/<contact-id>`
-- Notes: `hubspot://note/<engagement-id>`
-- Calls: `hubspot://call/<engagement-id>`
-- Emails: `hubspot://email/<engagement-id>`
-- Meetings: `hubspot://meeting/<engagement-id>`
 
 ---
 

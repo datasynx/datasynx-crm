@@ -536,6 +536,50 @@ Two-pass: persons → customers, activities → interactions.
 
 ---
 
+## Agent Wake Notifications
+
+Per-customer wake agents send a Telegram message whenever a new email arrives from that customer's domain. The daemon detects the new email during its sync cycle and calls `notifyAgentWake()` for all customers that have an agent configured.
+
+### Setup
+
+```bash
+# 1. Export your Telegram credentials
+export TELEGRAM_BOT_TOKEN=123456789:AAxxxxx
+export TELEGRAM_CHAT_ID=987654321
+
+# 2. Spawn a wake agent for a customer
+dxcrm agent spawn acme-corp --channel telegram
+
+# 3. (Optional) Use a different chat ID per customer
+dxcrm agent spawn beta-gmbh --channel telegram --chat-id 111222333
+
+# 4. Check all configured agents
+dxcrm agent status
+
+# 5. Remove an agent
+dxcrm agent remove acme-corp
+```
+
+### How it works
+
+1. The background daemon syncs Gmail every 30 minutes (configurable via `DXCRM_DAEMON_INTERVAL`).
+2. On a new email from a customer domain, `notifyAgentWake()` is called.
+3. If an agent config exists for that customer (`.agentic/agents/<slug>.agent.json`), a Telegram message is sent to the configured `chatId` (or `TELEGRAM_CHAT_ID` env var).
+4. The message contains customer name, email subject, and a link to open the deal room.
+
+### Environment variables
+
+| Variable | Required | Description |
+|---|---|---|
+| `TELEGRAM_BOT_TOKEN` | Yes (for agents) | Bot token from @BotFather |
+| `TELEGRAM_CHAT_ID` | Yes (for agents) | Default chat ID for all agents |
+| `DXCRM_DATA_DIR` | No | Override data directory (default: `~/.dxcrm`) |
+| `DXCRM_ACTOR` | No | Set RBAC actor identity for audit trail |
+| `DXCRM_SURVEY_SECRET` | No | HMAC secret for tamper-proof survey tokens |
+| `ANTHROPIC_API_KEY` | No | Enables LLM features (summarize_meeting, distill_playbook, run_deal_agent). Falls back gracefully to rule-based analysis. |
+
+---
+
 ## Team Setup
 
 Run on a shared VM — all team members share one data directory:

@@ -2,7 +2,7 @@ import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { readSubscriptions, type PushProvider, type PushStatus } from "../../sync/push-manager.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleGetPushStatus(
   input: { slug?: string; provider?: PushProvider },

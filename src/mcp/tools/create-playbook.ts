@@ -3,7 +3,7 @@ import { z } from "zod";
 import { writePlaybook, playbooksDir, toKebabCase } from "../../core/playbooks.js";
 import path from "path";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleCreatePlaybook(
   input: {

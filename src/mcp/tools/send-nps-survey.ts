@@ -7,7 +7,7 @@ import {
   savePendingSurvey,
 } from "../../core/survey-engine.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleSendNpsSurvey(
   input: { slug: string; contactEmail: string; surveyId: string; serverUrl?: string },

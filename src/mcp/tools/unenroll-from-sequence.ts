@@ -2,7 +2,7 @@ import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { updateEnrollment } from "../../fs/sequence-store.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleUnenrollFromSequence(
   input: { enrollmentId: string },

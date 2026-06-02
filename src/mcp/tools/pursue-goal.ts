@@ -4,7 +4,7 @@ import { pursueGoal, type BuildInputFn } from "../../core/goal-engine.js";
 import { enforceRbac } from "../../core/rbac.js";
 import { getActor } from "../../fs/audit-log.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handlePursueGoal(
   input: { goal: string; deadline: string; context?: string },

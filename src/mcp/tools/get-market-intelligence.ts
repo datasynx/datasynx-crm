@@ -4,7 +4,7 @@ import { searchAcrossCustomers, type CrossCustomerResult } from "../../core/cros
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleGetMarketIntelligence(
   input: { query: string; excludeCurrentCustomer?: boolean; slug?: string },

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getSequence, writeEnrollment } from "../../fs/sequence-store.js";
 import { getTemplate } from "../../fs/template-store.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleEnrollInSequence(
   input: { slug: string; contactEmail: string; sequenceId: string },

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { readPipeline } from "../../fs/pipeline-writer.js";
 import { enforceRbac } from "../../core/rbac.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 function countInteractions(content: string): number {
   // Count ## YYYY-MM-DD headings

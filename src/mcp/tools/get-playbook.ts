@@ -3,7 +3,7 @@ import { z } from "zod";
 import { listPlaybooks, matchPlaybooks } from "../../core/playbooks.js";
 import type { DealSnapshot } from "../../core/revenue-simulation.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleGetPlaybook(
   input: {

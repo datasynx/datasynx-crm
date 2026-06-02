@@ -4,7 +4,7 @@ import { getTemplate } from "../../fs/template-store.js";
 import { interpolate, buildVariablesFromCustomer } from "../../core/template-engine.js";
 import { readMainFacts } from "../../fs/customer-dir.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleDraftEmail(
   input: { slug: string; templateId: string; overrides?: Record<string, string> },

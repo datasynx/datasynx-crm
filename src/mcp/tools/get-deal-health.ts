@@ -4,7 +4,7 @@ import { readPipeline } from "../../fs/pipeline-writer.js";
 import { scoreDeal } from "../../core/deal-health.js";
 import type { DealHealthScore } from "../../core/deal-health.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleGetDealHealth(
   input: { slug: string },

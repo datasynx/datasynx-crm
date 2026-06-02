@@ -3,7 +3,7 @@ import { z } from "zod";
 import { appendInteraction } from "../../fs/interactions-writer.js";
 import { writeAuditEntry, getActor } from "../../fs/audit-log.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleSummarizeMeeting(
   input: {

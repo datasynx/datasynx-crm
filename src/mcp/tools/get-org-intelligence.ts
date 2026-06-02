@@ -2,7 +2,7 @@ import { type McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { buildStakeholderMap } from "../../core/org-intelligence.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleGetOrgIntelligence(
   input: { slug: string; dealName?: string },

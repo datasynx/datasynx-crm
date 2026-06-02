@@ -4,7 +4,7 @@ import { readAgentQueue, writeAgentQueue, executeAction } from "../../agents/dea
 
 export { readAgentQueue } from "../../agents/deal-agent.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleApproveAgentAction(
   input: { slug: string; actionId: string; approved: boolean },

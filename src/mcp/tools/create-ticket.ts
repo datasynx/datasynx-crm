@@ -4,7 +4,7 @@ import { readTickets, upsertTicket, nextTicketId } from "../../fs/ticket-writer.
 import { calcSlaDue, loadSlaRules } from "../../core/sla-engine.js";
 import type { Ticket } from "../../schemas/ticket.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleCreateTicket(
   input: {

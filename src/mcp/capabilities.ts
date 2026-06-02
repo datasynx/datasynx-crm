@@ -9,60 +9,92 @@ export const CAPABILITIES_TEXT = `
 DatasynxOpenCRM is a local-first, MCP-native CRM. All customer data lives in markdown
 files on your machine. No cloud, no HubSpot, no per-seat pricing.
 
+## Agent Wake (Telegram Notifications)
+\`dxcrm agent spawn\` enables a wake-triggered agent for a customer. When new emails arrive,
+the agent sends a Telegram notification so you never miss an inbound message.
+\`\`\`
+dxcrm agent spawn acme-corp --channel telegram
+\`\`\`
+Requires: \`TELEGRAM_BOT_TOKEN\` + \`TELEGRAM_CHAT_ID\` env vars.
+
+## Golden Path — Agent Session Workflow
+
+The recommended sequence for a productive agent session:
+
+1. \`get_capabilities()\` — understand available tools (this guide)
+2. \`get_active_session()\` — check for an active customer session
+3. \`get_customer_context({ slug })\` — load full briefing for the customer
+4. \`search_customer_knowledge({ slug, query })\` — find specific historical information
+5. \`log_interaction()\` / \`update_deal()\` — write back what happened
+
+## RBAC — Role-Based Access Control
+
+Tools enforce the \`DXCRM_ACTOR\` environment variable for identity. Configure roles with \`dxcrm rbac set\`.
+
+| Role | Permissions |
+|---|---|
+| admin | All tools, all customers |
+| manager | log_interaction, update_deal, pursue_goal + all read tools |
+| rep | log_interaction, update_deal (own customers only) + all read tools |
+
+Default role: rep (when DXCRM_ACTOR is not set or has no assigned role).
+
+Config: \`.agentic/rbac.json\` | Actor: \`DXCRM_ACTOR\` env var
+
 ## Available Tools
 
-| Tool | Purpose | When to Use |
+| Tool | Purpose | RBAC |
 |---|---|---|
-| get_capabilities | Returns this guide | First call in a session |
-| get_active_session | Check active customer session | Before assuming context |
-| get_customer_context | Full briefing for a customer | Before any customer conversation |
-| search_customer_knowledge | Semantic/FTS search across emails & transcripts | "What did they say about X?" |
-| list_customers | List all customers with pipeline health | Morning briefing, pipeline overview |
-| log_interaction | Write a new interaction entry | After every call/meeting/email |
-| update_deal | Update deal stage, value, probability | After pipeline discussions |
-| update_customer_facts | Update customer profile (domain, contact, stage, tags) | After learning new info |
-| export_customer | Export all customer data as JSON or Markdown | Reporting, backup |
-| get_deal_health | Score deal health (A–F grade, 0–100) | any |
-| get_pipeline_forecast | Aggregate weighted pipeline revenue | any |
-| summarize_meeting | Summarize transcript + log interaction | rep+ |
-| get_pipeline_stages | List all configured pipeline stages | any |
-| get_market_intelligence | Search across all customers for patterns | any |
-| get_relationship_graph | Stakeholder map + knowledge graph for a customer | Before deal strategy |
-| get_relationship_health | Health-Scores per contact, decay detection, recommendations | any |
-| run_deal_agent | Analyze deal + generate action plan (observe/suggest/act) | rep+ |
-| approve_agent_action | Approve/reject queued agent action | rep+ |
-| simulate_revenue | Monte Carlo pipeline forecast (P10/P50/P90, sensitivity) | any |
-| get_playbook | Retrieve matching playbooks for a deal situation | any |
-| create_playbook | Create or update a playbook with trigger DSL | rep+ |
-| list_playbooks | List all playbooks for a customer | any |
-| distill_playbook | LLM-extract playbook from won/lost deal history | rep+ |
-| pursue_goal | Set goal + get decomposed action plan (pipeline analysis) | manager+ |
-| get_goal_status | Get active goals, progress, and sub-goal breakdown | any |
-| register_push_subscription | Register real-time push subscription (Gmail/MS Graph/Slack) | admin |
-| get_push_status | Show all push subscriptions, expiry, events processed | any |
-| get_org_intelligence | Stakeholder map: champions, buyers, blockers, health scores, risk flags, recommendation | any |
+| get_capabilities | Returns this guide — understand what the CRM can do | any |
+| get_active_session | Check which customer session is currently active | any |
+| get_customer_context | Full LLM-ready briefing for a customer (last 10 interactions, pipeline, contacts) | any (rep: own only) |
+| search_customer_knowledge | Hybrid vector + full-text search across emails and transcripts for a customer | any |
+| list_customers | List all customers with stage, last interaction date, and deal value | any (rep: own only) |
+| log_interaction | Write a new interaction entry (call, email, meeting, note) — immediately searchable | rep+ |
+| update_deal | Create or update a deal in pipeline.md — upserts by deal name | rep+ |
+| update_customer_facts | Update fields in customer profile (domain, contact, stage, tags) | admin |
+| export_customer | Export all customer data as JSON or Markdown | admin |
+| get_deal_health | Score deal health 0–100 (A–F grade) based on activity, velocity, close date, probability | any |
+| get_pipeline_forecast | Aggregate weighted pipeline revenue across all customers grouped by stage | any |
+| get_pipeline_stages | List all configured pipeline stages (defaults: lead, qualified, proposal, negotiation, won, lost) | any |
+| summarize_meeting | LLM-summarize a transcript and log it as a Meeting interaction | rep+ |
+| get_market_intelligence | Semantic search across all customers for patterns and common topics | any |
+| get_relationship_graph | Stakeholder map: champions, blockers, economic buyers, warm intro paths | any |
+| get_relationship_health | Health scores (0–100, A–F, trend) per contact with decay detection and risk flags | any |
+| run_deal_agent | Analyze deal and generate prioritized action plan (observe/suggest/act autonomy levels) | rep+ |
+| approve_agent_action | Approve or reject a pending action from the deal agent queue | rep+ |
+| simulate_revenue | Monte Carlo pipeline forecast — P10/P50/P90, sensitivity map, at-risk revenue | any |
+| get_playbook | Retrieve playbooks matching current deal situation (trigger-matched, sorted by success rate) | any |
+| create_playbook | Create or update a playbook with trigger DSL encoding proven tactics | rep+ |
+| list_playbooks | List all playbooks for a customer (metadata only, no body) | any |
+| distill_playbook | LLM-extract a reusable playbook from a won or lost deal's interaction history | rep+ |
+| pursue_goal | Set a revenue/pipeline goal and get an AI-decomposed action plan with sub-goals | manager+ |
+| get_goal_status | Get all active goals or a specific goal with progress, days remaining, sub-goals | any |
+| register_push_subscription | Register real-time push subscription (Gmail Pub/Sub, MS Graph, Slack Events) | admin |
+| get_push_status | Show all push subscriptions: expiry, events processed, renewal needs | any |
+| get_org_intelligence | Stakeholder map with champions, buyers, blockers, health scores, risk flags, recommendation | any |
 | open_deal_room | Multi-agent deal brief: graph + health + deal health + simulation + playbook in one call | any |
 | get_proactive_briefing | Daily briefing: urgent alerts, opportunities, P50/P90 forecast, top action | any |
-| list_email_templates | List all saved email templates with category and subject | any |
-| get_email_template | Retrieve a single email template by ID | any |
-| draft_email | Draft a personalized email from a template for a customer | rep+ |
+| list_email_templates | List all saved email templates with id, name, category, subject | any |
+| get_email_template | Retrieve a single email template with full body and detected variables | any |
+| draft_email | Draft a personalized email from a template with auto-filled customer variables | rep+ |
 | enroll_in_sequence | Enroll a contact in a multi-step email sequence | rep+ |
-| list_sequence_enrollments | List active sequence enrollments (optionally filtered) | any |
-| unenroll_from_sequence | Remove a contact from an active sequence | rep+ |
-| list_sequences | List all defined email sequences | any |
-| generate_quote | Generate a structured quote document for a deal | rep+ |
-| get_quote_status | Retrieve a generated quote with full line items | any |
-| get_booking_link | Get a scheduling/Calendly link for a meeting | rep+ |
-| create_ticket | Create a support ticket for a customer with SLA due date | rep+ |
-| update_ticket | Update ticket status or assignee | rep+ |
-| list_tickets | List open/closed tickets filtered by customer, status, or priority | any |
-| close_ticket | Close a ticket and optionally log resolution note | rep+ |
-| send_nps_survey | Generate NPS/CSAT survey token + HTML email body | rep+ |
-| get_survey_results | NPS score, promoter/passive/detractor breakdown, all responses | any |
-| search_knowledge_base | Full-text search across all KB articles (title, body, tags) | any |
-| create_kb_article | Create or update a knowledge base article | rep+ |
-| backup_now | Trigger immediate backup of customers/ + .agentic/ with integrity check | admin |
-| list_backups | List available backups with date, size, verification status | any |
+| list_sequence_enrollments | List active sequence enrollments filtered by customer or status | any |
+| unenroll_from_sequence | Pause (soft-unenroll) a contact from an active sequence | rep+ |
+| list_sequences | List all defined email sequences with step count and enrollment count | any |
+| generate_quote | Generate a professional HTML quote with line items, VAT, subtotal, total | rep+ |
+| get_quote_status | Retrieve a generated quote by number or list all quotes for a customer | any |
+| get_booking_link | Get a Calendly booking link for a customer — optionally pre-fills name/email | rep+ |
+| create_ticket | Create a support ticket with auto-calculated SLA due date based on priority | rep+ |
+| update_ticket | Update ticket status or assignee (resolved auto-sets resolution date) | rep+ |
+| list_tickets | List tickets filtered by customer, status, priority, or assignee | any |
+| close_ticket | Close a ticket and optionally log resolution as an interaction | rep+ |
+| send_nps_survey | Generate NPS/CSAT survey token + HTML email draft (does not send automatically) | rep+ |
+| get_survey_results | NPS score, promoter/passive/detractor breakdown, all responses for a survey | any |
+| search_knowledge_base | Full-text search across KB articles (title, body, tags) with category and public filters | any |
+| create_kb_article | Create a new knowledge base article stored as Markdown in .agentic/knowledge-base/ | rep+ |
+| backup_now | Trigger immediate backup of customers/ + .agentic/ with SHA-256 integrity check | admin |
+| list_backups | List available backups with date, size, verification status, and customer count | any |
 
 ## Tool Reference
 
@@ -74,12 +106,13 @@ Returns all available MCP tools, their inputs, and the CRM workflow guide.
 ### get_active_session()
 Check which customer is currently active in the session store.
 - Input: none
-- Returns: { hasSession: boolean, customerSlug?, customerName?, startedAt? }
+- Returns: { hasSession: boolean, customerSlug?, customerName?, startedAt?, owner? }
 
-### get_customer_context({ slug })
+### get_customer_context({ slug? })
 Load complete briefing for a customer. Reads main_facts.md, last 10 interactions,
 and pipeline deals. Returns a structured markdown context block.
-- Input: { slug: string } — Customer ID (e.g. "acme-corp")
+Automatically triggers a background Gmail sync if last sync was >30 minutes ago.
+- Input: { slug?: string } — Customer ID (e.g. "acme-corp"). Leave empty for active session.
 - Returns: Formatted markdown with Quick Reference, Contacts, Critical Context,
   Recent Activity, Pipeline, and Open Questions
 - Performance: <3 seconds. Token budget: <3000 tokens.
@@ -87,17 +120,20 @@ and pipeline deals. Returns a structured markdown context block.
 ### search_customer_knowledge({ slug, query, limit? })
 Hybrid vector + full-text search across all emails and transcripts for a customer.
 Searches the LanceDB docs table for the given customer.
-- Input: { slug: string, query: string, limit?: number (default 5) }
+- Input: { slug: string, query: string, limit?: number (default 5, max 50) }
 - Returns: { results: Array<{ content, score, source }> }
 
 ### list_customers({ filter? })
 List all customers with their stage, last interaction date, and deal value.
-- Input: { filter?: string } — Optional substring filter on name or slug
+RBAC: rep role only sees owned customers.
+- Input: { filter?: string } — Optional substring filter on name or slug (case-insensitive)
 - Returns: Array of { slug, name, stage, lastInteraction?, dealValue? }
 
-### log_interaction({ slug, type, summary, with, nextSteps?, direction?, source? })
+### log_interaction({ slug, type, summary, with, nextSteps?, direction?, source?, date? })
 Write a new interaction entry to interactions.md. Immediately searchable.
+Also auto-updates the relationship graph and health scores (fire-and-forget).
 Use after every call, meeting, or email.
+RBAC: rep+
 - Input:
   slug: Customer ID
   type: "Email" | "Call" | "Meeting" | "Note" | "Demo" | "Proposal" | "Contract" | "Other"
@@ -105,11 +141,13 @@ Use after every call, meeting, or email.
   with: Who was involved (name or email)
   nextSteps?: Array of action items
   direction?: "inbound" | "outbound"
-  source?: Source reference string
+  source?: Source reference string (auto-generated if omitted)
+  date?: Interaction date YYYY-MM-DD (defaults to today)
 - Returns: { success: boolean, path: string, entry: string }
 
 ### update_deal({ slug, dealName, stage?, value?, probability?, closeDate?, notes? })
 Update or create a deal in pipeline.md. Upserts by deal name.
+RBAC: rep+
 - Input:
   slug: Customer ID
   dealName: Deal name (used as unique key)
@@ -122,38 +160,78 @@ Update or create a deal in pipeline.md. Upserts by deal name.
 
 ### update_customer_facts({ slug, name?, domain?, email?, phone?, industry?, relationshipStage?, dealValue?, primaryContact?, timezone?, tags? })
 Update fields in a customer's main_facts.md profile. Merges patch into existing data. Sets updated = today.
+RBAC: admin
 - Input: slug (required) + any combination of the optional fields
 - Returns: { success: boolean, facts: object }
 
 ### export_customer({ slug, format? })
-Export all customer data (main_facts + interactions count + pipeline).
+Export all customer data (main_facts + interactions count + pipeline + attachments list).
+RBAC: admin
 - Input: { slug: string, format?: "json" | "markdown" (default "json") }
-- Returns: Serialized customer data
+- Returns (JSON): { slug, exportedAt, mainFacts, interactionsCount, pipeline, attachments }
+- Returns (Markdown): Formatted document with all sections
+
+### get_deal_health({ slug })
+Score the health of all deals for a customer based on activity recency, stage velocity,
+close date proximity, and probability.
+- Input: { slug: string }
+- Returns: { slug, deals: [{ deal, stage, score, grade, signals, warnings }] }
+
+### get_pipeline_forecast({ filter? })
+Aggregate weighted pipeline revenue across all customers. Groups open deals by stage,
+computes probability-weighted expected revenue. Excludes won/lost deals.
+- Input: { filter?: string } — Optional filter by customer slug substring
+- Returns: { deals: [...], totalWeightedValue: number, byStage: { stage: { count, weightedValue } } }
+
+### get_pipeline_stages()
+Returns all configured pipeline stages. Falls back to default stages if no custom stages configured.
+- Input: none
+- Returns: { stages: [{ id, label, order, probability, color, final }] }
+
+### summarize_meeting({ slug, transcript, with?, date? })
+LLM-summarize a meeting transcript and log it as a Meeting interaction.
+Falls back to raw text slice if LLM unavailable.
+RBAC: rep+
+- Input:
+  slug: Customer ID
+  transcript: Full meeting transcript text
+  with?: Participant names
+  date?: Meeting date YYYY-MM-DD (defaults to today)
+- Returns: { success, summary, nextSteps, sourceRef }
+
+### get_market_intelligence({ query, excludeCurrentCustomer?, slug? })
+Search across all customers to find patterns, common topics, or similar issues.
+Uses semantic search (LanceDB) across all customer knowledge bases.
+Results use slug (not real names) for privacy.
+- Input: { query: string, excludeCurrentCustomer?: boolean, slug?: string }
+- Returns: { query, results: CrossCustomerResult[], totalCustomersSearched }
 
 ### get_relationship_graph({ slug })
 Returns the knowledge graph for a customer: contacts, companies, and their relationships.
 Auto-populated from every log_interaction call. Shows stakeholder map with champions, blockers,
-economic buyers, and gaps (missingRoles).
+economic buyers, and warm intro paths.
 - Input: { slug: string }
-- Returns: { nodeCount, edgeCount, stakeholders: { champions[], blockers[], economicBuyers[], allContacts[], missingRoles[] }, nodes[], edges[] }
+- Returns: { nodeCount, edgeCount, updatedAt, stakeholders: { champions[], blockers[], economicBuyers[], allContacts[], missingRoles[] }, warmIntroPaths[], nodes[], edges[] }
 
 ### get_relationship_health({ slug })
 Returns health scores (0-100, A-F grade) for all contacts. Scores decay when cadence breaks.
 Risk flags: NO_CONTACT_14D, NO_CONTACT_30D, CHAMPION_SILENT.
 Recomputes automatically if stale (>1h) or missing.
 - Input: { slug: string }
-- Returns: { overallHealth, atRiskContacts[], coldContacts[], contacts: ContactHealth[] }
+- Returns: { overallHealth, updatedAt, atRiskContacts[], coldContacts[], contacts: ContactHealth[] }
 
 ### run_deal_agent({ slug, dealName, autonomyLevel?, instruction?, valueThreshold? })
 Analyzes deal situation (health, relationships, stakeholder gaps) via LLM (rule-based fallback).
 Returns prioritized action plan with confidence scores and full reasoning trace.
-autonomyLevel: "observe" (read-only) | "suggest" (queue for review) | "act" (auto-execute)
-- Input: { slug, dealName, autonomyLevel?: "observe"|"suggest"|"act", instruction?, valueThreshold?: number }
+autonomyLevel: "observe" (read-only) | "suggest" (queue for review, default) | "act" (auto-execute if confidence ≥ 0.7 and value < valueThreshold)
+RBAC: rep+
+- Input: { slug, dealName, autonomyLevel?: "observe"|"suggest"|"act", instruction?, valueThreshold?: number (default 50000) }
 - Returns: { assessment, riskLevel, plan[], actionsQueued[], actionsExecuted[], trace }
 
 ### approve_agent_action({ slug, actionId, approved })
 Execute (approved=true) or reject (approved=false) a pending deal agent action.
 Find actionId in run_deal_agent response.actionsQueued[].actionId
+RBAC: rep+
 - Input: { slug, actionId, approved: boolean }
 - Returns: { success, actionId, status }
 
@@ -161,19 +239,20 @@ Find actionId in run_deal_agent response.actionsQueued[].actionId
 Monte Carlo simulation over all active deals. Adjusts probabilities via health score (D12) and
 champion presence (D11). Returns P10/P50/P90 confidence interval + sensitivity map.
 horizon: "quarter" (default) | "year"
-- Returns: { forecast: { p10, p50, p90, expected, stdDev, atRiskRevenue, byCloseMonth, topRisks, sensitivityMap }, confidence, dealCount }
+- Returns: { forecast: { p10, p50, p90, expected, stdDev, atRiskRevenue, byCloseMonth, topRisks, sensitivityMap }, confidence, dealCount, horizon }
 
 ### get_playbook({ slug, stage?, value?, healthScore?, daysSinceContact?, championPresent? })
 Returns playbooks matching the current deal situation. Without deal context, returns all playbooks.
 Playbooks are sorted by success rate (highest first). run_deal_agent uses playbooks automatically.
 - Input: slug (required) + optional deal context fields for trigger matching
-- Returns: { matches: [{ name, score, trigger, successRate, usedCount, content }], totalPlaybooks, slug }
+- Returns: { matches: [{ name, score, matchedConditions, trigger, successRate, usedCount, content }], totalPlaybooks, slug }
 
 ### create_playbook({ slug, name, trigger, content, successRate? })
 Create or update a playbook encoding proven tactics for a specific deal situation.
-Trigger DSL uses AND-only conditions: deal_stage_<s> | value > N | days_stalled > N | health < N | no_champion | has_champion
+Trigger DSL uses AND-only conditions: deal_stage_<s> | value > N | value < N | days_stalled > N | health < N | health > N | no_champion | has_champion
+RBAC: rep+
 - Input: slug, name, trigger (DSL string), content (markdown), successRate? (0–1, default 0.5)
-- Returns: { success: true, playbook: { name, trigger, successRate, path } }
+- Returns: { success: true, playbook: { name, trigger, successRate, usedCount, lastUpdated, path } }
 
 ### list_playbooks({ slug })
 List all playbooks for a customer (metadata only — no body content for performance).
@@ -183,16 +262,196 @@ List all playbooks for a customer (metadata only — no body content for perform
 ### distill_playbook({ slug, dealName, outcome })
 LLM analyzes a deal's interaction history and extracts a reusable playbook.
 Run after every won or lost deal to build procedural memory.
+RBAC: rep+
 outcome: "won" | "lost"
 - Returns: { success: true, playbook: { name, trigger, successRate, path }, reasoning }
 
-## Recommended Workflow
+### pursue_goal({ goal, deadline, context? })
+Set a revenue or pipeline goal and get an AI-decomposed action plan.
+Analyzes current pipeline (P50 forecast) and decomposes the gap into prioritized sub-goals per deal.
+Persists goal to .agentic/goals.json for tracking.
+RBAC: manager+
+- Input: { goal: string, deadline: "YYYY-MM-DD", context?: string }
+- Returns: { goalId, description, target, deadline, decomposition: { analysis, currentPipeline, gap, subGoals, probabilisticOutcome } }
 
-1. User mentions a customer → **get_customer_context({ slug })**
-2. Need historical info → **search_customer_knowledge({ slug, query })**
-3. After a call/email/meeting → **log_interaction({ slug, type, summary, ... })**
-4. Deal stage changed → **update_deal({ slug, dealName, stage, ... })**
-5. Morning review → **list_customers()** for pipeline overview
+### get_goal_status({ goalId? })
+Get the status of active goals. Without goalId, returns all active goals.
+- Input: { goalId?: string } — omit for all active goals
+- Returns: { goals: [{ id, description, target, progress, status, deadline, daysRemaining, subGoals }], activeCount, completedCount }
+
+### register_push_subscription({ provider, slug, webhookUrl, ... })
+Register a real-time push subscription so providers send events in real-time (no polling).
+RBAC: admin only
+- Input:
+  provider: "gmail" | "microsoft-graph" | "slack"
+  slug: Customer slug to receive events for
+  webhookUrl: Public HTTPS URL for provider callbacks
+  gmailTopicName?: (Gmail) Cloud Pub/Sub topic name
+  microsoftClientState?: (MS Graph) Secret for HMAC verification
+  microsoftResource?: (MS Graph) Resource path
+  slackTeamId?: (Slack) Workspace team ID
+  slackChannelId?: (Slack) Optional specific channel
+- Returns: { subscriptionId, provider, slug, status, expiresAt, createdAt, warning? }
+
+### get_push_status({ slug?, provider? })
+Show all push subscriptions with expiry and event counts.
+- Input: { slug?: string, provider?: "gmail" | "microsoft-graph" | "slack" }
+- Returns: { subscriptions: [{ id, provider, slug, status, expiresAt, expiresInHours, needsRenewal, lastEventAt, eventsProcessed }], summary: { total, active, expiringSoon, expired } }
+
+### get_org_intelligence({ slug, dealName? })
+Build a stakeholder map for a customer: champions, economic buyers, blockers, health scores, risk flags, and a prioritised recommendation.
+- Input: { slug: string, dealName?: string }
+- Returns: { slug, updatedAt, people: [{ name, email, role, healthScore, daysSinceContact, contactStrength, riskFlags }], missingRoles, riskAssessment, recommendation }
+
+### open_deal_room({ slug, dealName })
+Multi-agent deal brief: orchestrates relationship graph, health scores, deal health, Monte Carlo simulation, and playbook matching into a unified brief with executive summary, top priorities, and risk score (0–100).
+- Input: { slug: string, dealName: string }
+- Returns: { slug, dealName, generatedAt, stakeholders, relationshipHealth, dealHealth, revenueSimulation, recommendedPlaybook, executiveSummary, topPriorities, riskScore }
+
+### get_proactive_briefing({ date? })
+Generate a proactive daily briefing: urgent alerts (relationship decay, deal risk, overdue close dates),
+pipeline forecast (P50/P90), and a single top-action recommendation.
+- Input: { date?: "YYYY-MM-DD" } — defaults to today
+- Returns: { date, generatedAt, urgent: string[], opportunities: string[], forecast: string, topAction: string }
+
+### list_email_templates({ category? })
+List available email templates. Optionally filter by category.
+- Input: { category?: string } — e.g. "outreach", "followup", "support"
+- Returns: Array of { id, name, category, subject } (body excluded for performance)
+
+### get_email_template({ id })
+Get a specific email template with full body and detected template variables.
+- Input: { id: string } — Template ID (e.g. "enterprise-intro")
+- Returns: { id, name, category, subject, body, detectedVariables: string[] }
+
+### draft_email({ slug, templateId, overrides? })
+Draft a personalized email for a customer using a stored template.
+Variables are auto-filled from the customer's main_facts.md.
+Does NOT send automatically — returns the draft for review.
+RBAC: rep+
+- Input: { slug, templateId, overrides?: Record<string, string> }
+- Returns: { subject, body, to, slug, templateId, resolvedVariables }
+
+### enroll_in_sequence({ slug, contactEmail, sequenceId })
+Enroll a contact in an email sequence. Validates that the sequence and first template exist.
+RBAC: rep+
+- Input: { slug: string, contactEmail: string, sequenceId: string }
+- Returns: { enrollmentId, sequenceName, totalSteps }
+
+### list_sequence_enrollments({ slug?, status? })
+List email sequence enrollments. Filter by customer slug or status.
+- Input: { slug?: string, status?: "active" | "paused" | "completed" }
+- Returns: { enrollments: SequenceEnrollment[] }
+
+### unenroll_from_sequence({ enrollmentId })
+Pause (soft-unenroll) a contact from an email sequence. Sets status to "paused".
+RBAC: rep+
+- Input: { enrollmentId: string }
+- Returns: { success: boolean }
+
+### list_sequences()
+List all defined email sequences with step count and current enrollment count.
+- Input: none
+- Returns: { sequences: [{ id, name, stepCount, enrollmentCount }] }
+
+### generate_quote({ slug, dealName, lineItems, vatPercent?, validUntilDays?, currency? })
+Generate a professional HTML quote for a customer deal.
+Calculates subtotal, VAT, and total. Saves JSON + HTML to .agentic/quotes/.
+RBAC: rep+
+- Input:
+  slug: Customer slug
+  dealName: Deal name this quote is for
+  lineItems: Array<{ description, quantity, unitPrice }>
+  vatPercent?: VAT percentage (default 19)
+  validUntilDays?: Quote validity in days (default 30)
+  currency?: Currency code (default EUR)
+- Returns: { quoteNumber, htmlPath, total, subtotal, vat, vatPercent, currency, validUntil, status }
+
+### get_quote_status({ quoteNumber?, slug? })
+Get quote status and details. Filter by quoteNumber (single quote) or slug (all quotes for customer).
+- Input: { quoteNumber?: string, slug?: string }
+- Returns (single): Full quote object with status: draft | sent | viewed | accepted | declined
+- Returns (list): { quotes: [...] }
+
+### get_booking_link({ slug, eventType?, prefillName? })
+Get a Calendly booking link for a customer. Optionally pre-fills the customer's name/email.
+Requires CALENDLY_API_KEY env var or .agentic/integrations/calendly.yaml config.
+RBAC: rep+
+- Input: { slug, eventType?: string, prefillName?: boolean }
+- Returns: { bookingUrl, eventType, duration }
+
+### create_ticket({ slug, title, description?, priority?, assignee? })
+Create a support ticket. Auto-calculates SLA due date based on priority.
+SLA defaults: urgent=4h, high=24h, normal=72h, low=168h.
+RBAC: rep+
+- Input:
+  slug: Customer slug
+  title: Ticket title
+  description?: Detailed description
+  priority?: "urgent" | "high" | "normal" | "low" (default: normal)
+  assignee?: Assignee name or email
+- Returns: { ticket } with id T-NNN, status=open, slaDue
+
+### update_ticket({ slug, ticketId, status?, assignee? })
+Update a ticket's status or assignee. Setting status=resolved auto-sets resolved date.
+RBAC: rep+
+- Input: { slug, ticketId, status?: "open"|"in-progress"|"waiting"|"resolved"|"closed", assignee?: string }
+- Returns: { ticket }
+
+### list_tickets({ slug?, status?, priority?, assignee? })
+List support tickets sorted by priority then date. Filter by any combination of fields.
+- Input: { slug?, status?: "open"|"in-progress"|"waiting"|"resolved"|"closed", priority?: "urgent"|"high"|"normal"|"low", assignee? }
+- Returns: { tickets: Array<{ slug, ticket }> }
+
+### close_ticket({ slug, ticketId, resolution? })
+Close a ticket and optionally log the resolution as an interaction in interactions.md.
+RBAC: rep+
+- Input: { slug, ticketId, resolution?: string }
+- Returns: { ticket } with status=closed
+
+### send_nps_survey({ slug, contactEmail, surveyId, serverUrl? })
+Generate an NPS/CSAT survey email draft. Returns subject, HTML body, and a token-based response URL.
+Does NOT send automatically — returns draft for review.
+Requires survey definition in .agentic/surveys/.
+RBAC: rep+
+- Input: { slug, contactEmail, surveyId, serverUrl?: string }
+- Returns: { token, subject, body, surveyUrl, note }
+
+### get_survey_results({ surveyId, slug? })
+Calculate NPS score and breakdown for a survey. Optionally filter to a single customer.
+- Input: { surveyId: string, slug?: string }
+- Returns: { surveyId, totalResponses, npsScore (-100 to 100), promoters, passives, detractors, responses: [{ slug, email, score, comment?, respondedAt }] }
+
+### search_knowledge_base({ query, category?, publicOnly?, limit? })
+Full-text search across all KB articles (title, body, tags).
+- Input: { query, category?: string, publicOnly?: boolean, limit?: number (default 10) }
+- Returns: { query, count, articles: [{ id, title, category, excerpt, public, tags }] }
+
+### create_kb_article({ id, title, body, category?, tags?, public?, sourceTicketId? })
+Create a new knowledge base article. Articles are stored as Markdown in .agentic/knowledge-base/.
+Returns an error if an article with the same ID already exists.
+RBAC: rep+
+- Input:
+  id: Article slug (e.g. "troubleshoot-api-timeout")
+  title: Article title
+  body: Article body in Markdown
+  category?: Category (default: "general")
+  tags?: Array of tags for search
+  public?: Make publicly accessible (default: false)
+  sourceTicketId?: Ticket this article was created from
+- Returns: { id, title, category, path }
+
+### backup_now({ remote?, note? })
+Trigger an immediate backup of all CRM data (customers/ + .agentic/).
+Creates a timestamped ZIP with SHA-256 manifest. Optionally uploads to S3/rsync/local.
+RBAC: admin
+- Input: { remote?: string, note?: string }
+- Returns: { path, createdAt, customerCount, fileCount, sizeMb, directories, verified, uploadedTo? }
+
+### list_backups({ limit? })
+List available CRM backups with metadata. Shows log-tracked backups first, falls back to directory scan.
+- Input: { limit?: number (default 10, max 50) }
+- Returns: { count, totalAvailable, backups: [{ filename, createdAt, sizeMb, verified, encrypted, customerCount, fileCount }] }
 
 ## Data Structure
 
@@ -201,6 +460,15 @@ Customer data lives in \`customers/<slug>/\`:
 - \`interactions.md\` — Chronological log (newest first)
 - \`pipeline.md\` — Deal table in Markdown
 - \`sources.json\` — Gmail/transcript sync config per customer
+
+Agentic data lives in \`.agentic/\`:
+- \`goals.json\` — Active goals and decompositions
+- \`push-subscriptions.json\` — Real-time push registrations
+- \`backup-log.json\` — Backup history
+- \`rbac.json\` — Role assignments
+- \`audit.log\` — Full audit trail
+- \`knowledge-base/\` — KB articles
+- \`quotes/\` — Generated quote files
 
 ## Response Format
 
@@ -305,18 +573,8 @@ dxcrm import --from pipedrive --mode api --token <tok> --url https://myco.pipedr
 Two-pass: persons → customers, activities → interactions.
 sourceRef: \`pipedrive://activity/<id>\`
 
-### update_customer_facts (new MCP tool)
-Agents can now update customer profiles directly:
-\`\`\`
-update_customer_facts({ slug: "acme-corp", domain: "new-acme.com", primaryContact: "Bob" })
-\`\`\`
-Fields: name, domain, email, phone, industry, relationshipStage, dealValue, primaryContact, timezone, tags.
-Restricted to admin role (RBAC). Writes audit log entry.
-
 ### CSV LLM Field Mapping
 Generic CSV imports now use LLM-assisted column detection (fallback to heuristics when ANTHROPIC_API_KEY is unset).
-
-## CLI Reference (Phase 4 — Enterprise)
 
 ## CLI Reference (Enterprise — Sprints R1–R5)
 
@@ -396,21 +654,6 @@ Cancel an active goal.
 dxcrm goal cancel goal_abc123
 \`\`\`
 
-### pursue_goal (MCP)
-Sets a goal and returns a structured decomposition plan with sub-goals per deal.
-RBAC: manager+. Persists to .agentic/goals.json.
-\`\`\`
-pursue_goal({ goal: "Close €500k ARR this quarter", deadline: "2026-09-30" })
-\`\`\`
-Returns: { goalId, target, decomposition: { analysis, currentPipeline, gap, subGoals, probabilisticOutcome } }
-
-### get_goal_status (MCP)
-Returns all active goals or a specific goal by ID. Shows progress, days remaining, top sub-goals.
-\`\`\`
-get_goal_status()                         // all active goals
-get_goal_status({ goalId: "goal_abc" })  // specific goal
-\`\`\`
-
 ## CLI Reference (D17 — Real-Time Push Ingestion)
 
 ### dxcrm push register
@@ -440,210 +683,4 @@ Renew expiring push subscriptions (also runs automatically daily at 06:00).
 \`\`\`
 dxcrm push renew --all
 \`\`\`
-
-### register_push_subscription (MCP)
-Register a real-time push subscription. Admin only.
-\`\`\`
-register_push_subscription({ provider: "gmail", slug: "acme-corp", webhookUrl: "https://myserver.com/webhooks/gmail", gmailTopicName: "projects/x/topics/y" })
-\`\`\`
-Returns: { subscriptionId, provider, slug, status, expiresAt, warning? }
-
-### get_push_status (MCP)
-Show all push subscriptions with expiry and event counts.
-\`\`\`
-get_push_status()                           // all subscriptions
-get_push_status({ slug: "acme-corp" })     // filter by customer
-get_push_status({ provider: "gmail" })     // filter by provider
-\`\`\`
-Returns: { subscriptions: [...], summary: { total, active, expiringSoon, expired } }
-
-### get_org_intelligence (MCP)
-Build a stakeholder map for a customer: champions, economic buyers, blockers, health scores, risk flags, and a prioritised recommendation.
-\`\`\`
-get_org_intelligence({ slug: "acme-corp" })
-get_org_intelligence({ slug: "acme-corp", dealName: "Enterprise License" })
-\`\`\`
-Returns: { slug, updatedAt, people: [{ name, email, role, healthScore, daysSinceContact, contactStrength, riskFlags }], missingRoles, riskAssessment, recommendation }
-
-### open_deal_room (MCP)
-Multi-agent deal brief: orchestrates stakeholder map, relationship health, deal health, Monte Carlo simulation, and playbook matching into a single structured brief.
-\`\`\`
-open_deal_room({ slug: "acme-corp", dealName: "Enterprise License 2026" })
-\`\`\`
-Returns: { slug, dealName, generatedAt, stakeholders, relationshipHealth, dealHealth, revenueSimulation, recommendedPlaybook, executiveSummary, topPriorities, riskScore }
-
-### get_proactive_briefing (MCP)
-Generate a proactive daily briefing: urgent alerts (relationship decay, imminent close dates), opportunities (high-health customers with active pipeline), P50/P90 forecast, and a single top-action recommendation.
-\`\`\`
-get_proactive_briefing()                         // today
-get_proactive_briefing({ date: "2026-05-28" })   // specific date
-\`\`\`
-Returns: { date, generatedAt, urgent: string[], opportunities: string[], forecast: string, topAction: string }
-
-## H2 — Email Templates
-
-### list_email_templates (MCP)
-List all saved email templates. Returns id, name, category, subject, and body preview.
-\`\`\`
-list_email_templates()
-list_email_templates({ category: "follow-up" })
-\`\`\`
-Returns: { templates: [{ id, name, category, subject, bodyPreview }] }
-
-### get_email_template (MCP)
-Retrieve a single email template with full body and all variables.
-\`\`\`
-get_email_template({ id: "proposal-follow-up" })
-\`\`\`
-Returns: { id, name, category, subject, body, variables: string[] }
-
-### draft_email (MCP)
-Draft a personalized email from a template, substituting variables from customer context.
-\`\`\`
-draft_email({ slug: "acme-corp", templateId: "proposal-follow-up", overrides: { subject: "Following up on your proposal" } })
-\`\`\`
-Returns: { subject, body, suggestedTo, suggestedCc?, variables }
-
-## H1 — Email Sequences
-
-### enroll_in_sequence (MCP)
-Enroll a customer contact in a multi-step email sequence. Steps are sent automatically.
-\`\`\`
-enroll_in_sequence({ slug: "acme-corp", sequenceId: "onboarding-7day", contactEmail: "alice@acme.com" })
-\`\`\`
-Returns: { enrollmentId, slug, sequenceId, contactEmail, enrolledAt, nextStepDue, totalSteps }
-
-### list_sequence_enrollments (MCP)
-List active (and optionally completed) sequence enrollments.
-\`\`\`
-list_sequence_enrollments()
-list_sequence_enrollments({ slug: "acme-corp", status: "active" })
-\`\`\`
-Returns: { enrollments: [{ enrollmentId, slug, sequenceId, contactEmail, currentStep, nextStepDue, status }] }
-
-### unenroll_from_sequence (MCP)
-Remove a contact from an active sequence (marks as cancelled).
-\`\`\`
-unenroll_from_sequence({ enrollmentId: "enr_abc123" })
-\`\`\`
-Returns: { success: boolean, enrollmentId }
-
-### list_sequences (MCP)
-List all defined email sequences with step count and description.
-\`\`\`
-list_sequences()
-\`\`\`
-Returns: { sequences: [{ id, name, description, steps: number, triggerOn? }] }
-
-## H4 — Quotes
-
-### generate_quote (MCP)
-Generate a structured quote document for a customer deal.
-\`\`\`
-generate_quote({ slug: "acme-corp", dealName: "Enterprise License", lineItems: [{ description: "Platform (12 mo)", quantity: 1, unitPrice: 24000 }], validDays: 30 })
-\`\`\`
-Returns: { quoteId, slug, dealName, total, currency, validUntil, markdownTable, fullText }
-
-### get_quote_status (MCP)
-Retrieve a generated quote with full line items and total.
-\`\`\`
-get_quote_status({ quoteId: "Q-2026-001" })
-\`\`\`
-Returns: { quoteId, slug, dealName, lineItems, subtotal, total, validUntil, status }
-
-## H3 — Meeting Scheduler
-
-### get_booking_link (MCP)
-Get a scheduling link for a meeting with a customer. Configure via DXCRM_CALENDLY_URL or per-customer sources.json.
-\`\`\`
-get_booking_link({ slug: "acme-corp", meetingType: "demo" })
-\`\`\`
-Returns: { url, meetingType, calendarProvider, prefillEmail?, note? }
-
-## H6 — Ticket Management
-
-### create_ticket (MCP)
-Create a support ticket. Auto-sets SLA due date: critical=4h, high=24h, medium=72h, low=168h.
-\`\`\`
-create_ticket({ slug: "acme-corp", title: "Login broken", priority: "high", description: "Cannot login since yesterday", assignee: "alice" })
-\`\`\`
-Returns: { ticketId, slug, title, priority, status, slaDue, assignee?, createdAt }
-
-### update_ticket (MCP)
-Update ticket status or assignee.
-\`\`\`
-update_ticket({ slug: "acme-corp", ticketId: "T-001", status: "in-progress", assignee: "bob" })
-\`\`\`
-Returns: { ticketId, status, updatedAt }
-
-### list_tickets (MCP)
-List tickets sorted by priority. Filter by customer, status, priority, or assignee.
-\`\`\`
-list_tickets()
-list_tickets({ slug: "acme-corp", status: "open" })
-list_tickets({ priority: "high", assignee: "alice" })
-\`\`\`
-Returns: { tickets: [{ ticketId, slug, title, priority, status, slaDue, assignee?, createdAt }] }
-
-### close_ticket (MCP)
-Close a ticket and optionally log a resolution note to interactions.md.
-\`\`\`
-close_ticket({ slug: "acme-corp", ticketId: "T-001", resolution: "Fixed by updating oauth token" })
-\`\`\`
-Returns: { ticketId, status: "closed", closedAt, resolution? }
-
-## H7 — NPS/CSAT Survey Engine
-
-### send_nps_survey (MCP)
-Generate a survey token and HTML email body. Customers click a score button (0–10) which
-posts to your server's /survey/respond endpoint. Set DXCRM_SERVER_URL or pass serverUrl.
-\`\`\`
-send_nps_survey({ slug: "acme-corp", contactEmail: "alice@acme.com", surveyId: "q1-nps" })
-send_nps_survey({ slug: "acme-corp", contactEmail: "alice@acme.com", surveyId: "q1-nps", serverUrl: "https://crm.myco.com" })
-\`\`\`
-Returns: { token, emailSubject, emailBody (HTML), surveyId, expiresAt }
-
-### get_survey_results (MCP)
-Calculate NPS score and breakdown by promoter/passive/detractor.
-\`\`\`
-get_survey_results({ surveyId: "q1-nps" })
-get_survey_results({ surveyId: "q1-nps", slug: "acme-corp" })
-\`\`\`
-Returns: { surveyId, npsScore (-100 to 100), responseCount, promoters, passives, detractors, responses: [{ slug, contactEmail, score, comment?, respondedAt }] }
-
-## H8 — Knowledge Base
-
-### search_knowledge_base (MCP)
-Full-text search across all KB articles (title, body, tags).
-\`\`\`
-search_knowledge_base({ query: "password reset" })
-search_knowledge_base({ query: "billing", publicOnly: true })
-\`\`\`
-Returns: { results: [{ id, title, category, excerpt, public, tags }] }
-
-### create_kb_article (MCP)
-Create or update a knowledge base article (upserts by ID).
-\`\`\`
-create_kb_article({ id: "password-reset", title: "How to reset your password", body: "## Steps\\n1. Go to login...", category: "account", tags: ["password", "auth"], public: true })
-\`\`\`
-Returns: { id, title, createdAt, updatedAt, public }
-
-## Enterprise Backup
-
-### backup_now (MCP)
-Trigger an immediate backup of customers/ + .agentic/. Creates a timestamped ZIP with
-SHA-256 manifest. Optionally encrypts (AES-256-GCM) and uploads to S3/rsync/local.
-\`\`\`
-backup_now({})
-backup_now({ remote: "s3://my-bucket/crm-backups/", note: "Pre-migration backup" })
-\`\`\`
-Returns: { path, createdAt, customerCount, fileCount, sizeMb, directories, verified, uploadedTo? }
-
-### list_backups (MCP)
-List available CRM backups with metadata from .agentic/backup-log.json.
-Falls back to directory scan if log unavailable.
-\`\`\`
-list_backups({ limit: 10 })
-\`\`\`
-Returns: { count, totalAvailable, backups: [{ filename, createdAt, sizeMb, verified, encrypted, customerCount, fileCount }] }
 `.trim();

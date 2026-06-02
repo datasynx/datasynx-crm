@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 interface CalendlyConfig {
   apiKey?: string;

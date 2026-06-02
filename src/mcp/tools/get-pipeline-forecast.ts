@@ -3,7 +3,7 @@ import { z } from "zod";
 import fs from "fs";
 import path from "path";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 interface ForecastDeal {
   slug: string;

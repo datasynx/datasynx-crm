@@ -3,7 +3,7 @@ import { z } from "zod";
 import { getTemplate } from "../../fs/template-store.js";
 import { extractVariables } from "../../core/template-engine.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleGetEmailTemplate(
   input: { id: string },

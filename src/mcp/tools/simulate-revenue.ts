@@ -6,7 +6,7 @@ import {
   buildConfidenceMessage,
 } from "../../core/revenue-simulation.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleSimulateRevenue(
   input: { horizon?: "quarter" | "year"; iterations?: number },

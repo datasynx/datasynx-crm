@@ -3,7 +3,7 @@ import { z } from "zod";
 import { listAllTickets } from "../../fs/ticket-writer.js";
 import type { Ticket } from "../../schemas/ticket.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleListTickets(
   input: {

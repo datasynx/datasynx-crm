@@ -3,7 +3,7 @@ import { z } from "zod";
 import { readGraph, getStakeholders, findPath } from "../../core/graph.js";
 import type { GraphNode } from "../../core/graph.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 function summarizeNode(n: GraphNode) {
   return { id: n.id, name: n.label, email: n.properties["email"] };

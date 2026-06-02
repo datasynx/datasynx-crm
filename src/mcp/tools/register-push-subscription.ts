@@ -3,7 +3,7 @@ import { z } from "zod";
 import { register, type PushProvider } from "../../sync/push-manager.js";
 import { enforceRbac } from "../../core/rbac.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 const VALID_PROVIDERS: PushProvider[] = ["gmail", "microsoft-graph", "slack"];
 

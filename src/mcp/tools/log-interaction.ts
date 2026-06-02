@@ -10,7 +10,7 @@ import { enforceRbac } from "../../core/rbac.js";
 import { updateGraphFromInteraction } from "../../core/graph-extractor.js";
 import { updateHealthFromInteraction } from "../../core/relationship-health.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleLogInteraction(
   input: {

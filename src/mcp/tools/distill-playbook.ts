@@ -3,7 +3,7 @@ import { z } from "zod";
 import { distillPlaybook } from "../../core/playbooks.js";
 import { callLlm } from "../../core/llm.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 export async function handleDistillPlaybook(
   input: { slug: string; dealName: string; outcome: "won" | "lost" },

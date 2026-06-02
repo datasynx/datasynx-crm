@@ -8,7 +8,7 @@ import { getLastGmailSync, updateSlugSyncState } from "../../fs/sync-state.js";
 import { getGmailAuth } from "../../core/oauth-store.js";
 import { canSeeCustomer } from "../../core/rbac.js";
 
-const DATA_DIR = process.cwd();
+const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
 function triggerOnQuerySync(dataDir: string, slug: string): void {
   const auth = getGmailAuth();
