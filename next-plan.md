@@ -31,7 +31,7 @@ Workspace-Modell auf — wir erweitern ihn (siehe Architektur-Entscheidung A1).
 |---|---|---|
 | Dual npm-Paket (MCP-Server + SDK) | ✅ `bin` + `exports` (`.` + `./mcp`), Dual ESM/CJS, `prepublishOnly` | `server.json` (Registry) fehlt |
 | MCP-Server | ✅ **52 Tools**, **4 Resources** (`crm://customers`, `crm://customer/{slug}`, `crm://pipeline/{slug}`, `crm://timeline/{slug}`), **4 Prompts** (Playbooks), stdio **+** stateless Streamable HTTP | kein `instructions`-Feld, kein Tool-Search (offen: N1-3/N1-5) |
-| Auth (HTTP `/mcp`) | 🔴 **komplett unauthentifiziert** (neue Transport-Instanz pro Request) | **OAuth 2.1** (RFC 9728/8707, PKCE-S256) fehlt — **aber** Webhook-HMAC-Verifikation existiert (Gmail/MS/Slack) als Baustein |
+| Auth (HTTP `/mcp`) | ✅ **Bearer-Token-Gate** (opt-in via `dxcrm mcp token` oder `DXCRM_MCP_AUTH=required`), RFC-9728-Metadata + 401/`WWW-Authenticate`, SHA-256-gehashte Tokens, Actor→RBAC (`src/mcp/auth.ts`) | Voller OAuth-Flow gegen externen AS (PKCE/JWKS) optional/später; per-Request-Actor-Propagation in RBAC noch env-basiert |
 | RBAC | ✅ tool-level via `DXCRM_ACTOR` + `.agentic/rbac.json` (admin/manager/rep) | nicht request-/token-gebunden; Sharing-Rules nur grob (owned_customers) |
 | Datenmodell | 🔴 **11 feste Zod-Schemas** (main_facts/interaction/pipeline/ticket/quote/sequence/survey/kb/agent-config/sources/email-template) | **null Custom Objects/Fields, keine Composite-Typen, keine Runtime-Metadaten** (`src/schemas/`) |
 | Storage | ✅ Markdown+Frontmatter als SoT, `write-queue`/`file-lock` für Concurrency | bewusst keine DB — Moat |
@@ -170,7 +170,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | N1-1 | MCP **Resources** (read-only Entities) | Core/MCP | M | ✅ |
 | N1-2 | MCP **Prompts** (Playbooks) | Core/MCP | S | ✅ |
 | N1-3 | **Elicitation** bei Pflichtfeldern | Core/MCP | S | 🔲 |
-| N1-4 | **OAuth 2.1 Resource Server** (HTTP) | Security | L | 🔲 |
+| N1-4 | **OAuth 2.1 Resource Server** (HTTP, token auth) | Security | L | ✅ |
 | N1-5 | **Tool-Search / Lazy-Loading** | Core/MCP | M | 🔲 |
 | N1-6 | **Registry-Listing** (`server.json` + OIDC-Publish) | GTM | S | 🔲 |
 | N1-7 | **Metadaten-Datenmodell** (object/fieldMetadata, Runtime-Zod) | Core | L | 🔲 |
@@ -235,7 +235,10 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 
 **N1-3 · Elicitation** — S · **Ziel:** bei fehlenden Pflichtfeldern strukturiertes Schema statt Fehler (z. B. fehlende Stage in `update_deal`). **Akzeptanz:** Tool gibt Elicitation-Request statt Error; Test. **Abhängig:** SDK-Elicitation-Support. **Status:** 🔲
 
-**N1-4 · OAuth 2.1 Resource Server** — L · **Ziel:** HTTP-`/mcp` absichern (heute komplett offen). **Deliverables:** RFC 9728 `/.well-known/oauth-protected-resource`, 401+`WWW-Authenticate`, RFC 8707 Audience-Binding, PKCE-S256, Tokens nur SHA-256-gehasht, **kein** Token-Passthrough; danach RBAC-Actor aus Token statt `DXCRM_ACTOR`-Env ableiten. **Wiederverwendbar:** die HMAC-Signaturprüfung der Webhooks (`webhook-receiver.ts`) + `timingSafeEqual` als Crypto-Baustein. **Akzeptanz:** Unauthentifizierte Requests → 401 mit Metadata-URL; gültiges Token → Zugriff; Tests für Token-Hashing & Audience-Check. **Status:** 🔲
+**N1-4 · OAuth 2.1 Resource Server** — L · **Status:** ✅
+- ✅ Bearer-Token-Gate auf HTTP-`/mcp` (`src/mcp/auth.ts`): opt-in, sobald ein Token via `dxcrm mcp token --actor --role` provisioniert ist (oder `DXCRM_MCP_AUTH=required`); standardmäßig offen für lokalen/Firewall-Betrieb (`DXCRM_MCP_AUTH=off` erzwingt aus).
+- ✅ RFC 9728 `/.well-known/oauth-protected-resource`; 401 + `WWW-Authenticate: Bearer resource_metadata=...`; Tokens nur SHA-256-gehasht, `timingSafeEqual`-Vergleich; Token-Actor → `DXCRM_ACTOR` für RBAC.
+- 🔲 **Offen (später):** voller OAuth-Flow gegen externen Authorization Server (JWKS/JWT-Validierung, PKCE-S256, RFC 8707 Audience-Binding); per-Request-Actor statt Prozess-Env (verzahnt mit N5-3).
 
 **N1-5 · Tool-Search / Lazy-Loading** — M · **Ziel:** Kontext-Überlauf bei 52+ Tools vermeiden. **Akzeptanz:** Tool-Discovery liefert relevante Teilmenge; Test. **Status:** 🔲
 

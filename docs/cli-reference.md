@@ -145,9 +145,12 @@ dxcrm mcp docs                         # Print MCP tool reference
 dxcrm mcp start                        # Start MCP server (stdio transport)
 dxcrm mcp start --http                 # Start MCP server (HTTP transport, port 3847)
 dxcrm mcp start --http --port 4000    # HTTP on custom port
+dxcrm mcp token --actor alice --role admin   # Mint a bearer token (printed once)
 ```
 
-HTTP mode exposes `POST /mcp` (StreamableHTTP) and `GET /health`.
+HTTP mode exposes `POST /mcp` (StreamableHTTP), `GET /health`, and
+`GET /.well-known/oauth-protected-resource` (RFC 9728). Once a token is minted,
+`/mcp` requires `Authorization: Bearer <token>`. Only token hashes are stored.
 Set `DXCRM_MCP_MODE=http` + `DXCRM_MCP_PORT=3847` env vars to configure
 when using the server as a subprocess.
 

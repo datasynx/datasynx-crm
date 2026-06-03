@@ -179,7 +179,11 @@ dxcrm init --team http://vm-ip:3847/mcp
 
 ## Security Notes
 
-- The HTTP MCP server has no authentication in Phase 3. Restrict access via firewall or VPN.
-- Recommended: only expose port 3847 on private VPN / Tailscale network.
+- The HTTP MCP server supports **bearer-token authentication**. Mint a token with
+  `dxcrm mcp token --actor alice --role admin` (printed once; only its SHA-256 hash is stored in
+  `.agentic/mcp-tokens.json`). Once any token exists, `/mcp` requires `Authorization: Bearer <token>`
+  and returns `401` with RFC 9728 `WWW-Authenticate` metadata otherwise. Force on/off with
+  `DXCRM_MCP_AUTH=required|off`.
+- Defense in depth: still restrict port 3847 to a private VPN / Tailscale network where possible.
 - Audit log is append-only — `fs.appendFileSync` is atomic for lines <4096 bytes on Linux.
-- Phase 4 will add JWT-based authentication and RBAC.
+- RBAC (admin/manager/rep) is enforced per tool; a token's actor drives the role on HTTP requests.

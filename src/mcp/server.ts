@@ -74,6 +74,12 @@ import { registerTriggerSync } from "./tools/trigger-sync.js";
 import { registerGetAuditLog } from "./tools/get-audit-log.js";
 import { registerPrompts } from "./prompts.js";
 import { registerResources } from "./resources.js";
+import {
+  isAuthRequired,
+  verifyBearer,
+  protectedResourceMetadata,
+  wwwAuthenticateHeader,
+} from "./auth.js";
 
 export function surveyThankYouPage(score: number, comment?: string): string {
   const emoji = score >= 9 ? "🎉" : score >= 7 ? "🙂" : "🙏";
@@ -170,8 +176,34 @@ export async function startHttp(port = 3847): Promise<void> {
   app.use(express.json());
 
   const server = createMcpServer();
+  const dataDir = process.cwd();
+
+  // RFC 9728 — OAuth 2.0 Protected Resource Metadata
+  app.get("/.well-known/oauth-protected-resource", (req, res) => {
+    const base = `${req.protocol}://${req.get("host") ?? "localhost"}`;
+    res.json(protectedResourceMetadata(`${base}/mcp`));
+  });
 
   app.post("/mcp", async (req, res) => {
+    // OAuth 2.1 resource-server gate: require a valid bearer token when auth is
+    // enabled (a token is provisioned or DXCRM_MCP_AUTH=required).
+    if (isAuthRequired(dataDir)) {
+      const auth = verifyBearer(req.headers["authorization"], dataDir);
+      if (!auth.ok) {
+        const base = `${req.protocol}://${req.get("host") ?? "localhost"}`;
+        res
+          .status(401)
+          .set(
+            "WWW-Authenticate",
+            wwwAuthenticateHeader(`${base}/.well-known/oauth-protected-resource`)
+          )
+          .json({ error: "unauthorized" });
+        return;
+      }
+      // Attach the token's actor for RBAC enforcement on this request.
+      if (auth.actor) process.env["DXCRM_ACTOR"] = auth.actor;
+    }
+
     const transport = new StreamableHTTPServerTransport({ enableJsonResponse: true });
     // Ensure onclose is always a function (required by Transport interface with exactOptionalPropertyTypes)
     transport.onclose = () => {
@@ -187,8 +219,6 @@ export async function startHttp(port = 3847): Promise<void> {
   app.get("/health", (_req, res) => {
     res.json({ status: "ok", server: "datasynx-opencrm", version: "0.1.0" });
   });
-
-  const dataDir = process.cwd();
 
   app.get("/sessions", async (_req, res) => {
     try {
