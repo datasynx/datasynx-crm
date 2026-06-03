@@ -310,6 +310,7 @@ const mockFetchSalesforceLeads = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceEvents = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceCases = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceLineItems = vi.hoisted(() => vi.fn());
+const mockFetchSalesforceNotes = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceContacts: mockFetchSalesforceContacts,
@@ -319,6 +320,7 @@ vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceEvents: mockFetchSalesforceEvents,
   fetchSalesforceCases: mockFetchSalesforceCases,
   fetchSalesforceLineItems: mockFetchSalesforceLineItems,
+  fetchSalesforceNotes: mockFetchSalesforceNotes,
 }));
 
 describe("runImport — Salesforce API mode", () => {
@@ -557,6 +559,47 @@ describe("runImport — Salesforce API mode", () => {
         p.includes("/quotes/") && p.endsWith(".json") && String(c).includes("Enterprise Seat")
     );
     expect(quoteFile).toBeDefined();
+  });
+
+  it("imports notes as Note interactions linked by ParentId", async () => {
+    vol.fromJSON({});
+    mockFetchSalesforceContacts.mockResolvedValue([
+      {
+        Id: "c1",
+        Name: "Alice",
+        Email: "alice@acme.com",
+        Account: { Website: "https://acme.com" },
+      },
+    ]);
+    mockFetchSalesforceTasks.mockResolvedValue([]);
+    mockFetchSalesforceOpportunities.mockResolvedValue([]);
+    mockFetchSalesforceLeads.mockResolvedValue([]);
+    mockFetchSalesforceEvents.mockResolvedValue([]);
+    mockFetchSalesforceCases.mockResolvedValue([]);
+    mockFetchSalesforceLineItems.mockResolvedValue([]);
+    mockFetchSalesforceNotes.mockResolvedValue([
+      {
+        Id: "note1",
+        Title: "Renewal terms",
+        Body: "Customer wants annual billing.",
+        ParentId: "c1",
+        CreatedDate: "2026-03-01T10:00:00Z",
+      },
+    ]);
+
+    const result = await runImport(
+      "",
+      { from: "salesforce", mode: "api", token: "tok", url: "https://acme.salesforce.com" },
+      "/crm"
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.notesImported).toBe(1);
+    const entry = appendInteraction.mock.calls.find(
+      (c) => (c[2] as { sourceRef: string }).sourceRef === "salesforce://note/note1"
+    )?.[2] as { type: string; summary: string } | undefined;
+    expect(entry?.type).toBe("Note");
+    expect(entry?.summary).toContain("Renewal terms");
   });
 
   it("returns error when Salesforce API throws", async () => {

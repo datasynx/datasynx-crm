@@ -490,3 +490,37 @@ describe("fetchSalesforceLineItems", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("fetchSalesforceNotes", () => {
+  it("returns parsed notes and paginates", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            records: [
+              {
+                Id: "note1",
+                Title: "Renewal terms",
+                Body: "Customer wants annual billing.",
+                ParentId: "c001",
+                CreatedDate: "2026-03-01T10:00:00Z",
+              },
+            ],
+            totalSize: 2,
+            done: false,
+            nextRecordsUrl: "/services/data/v58.0/query/01g-8000",
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ records: [{ Id: "note2", Title: "X" }], totalSize: 2, done: true }),
+      });
+    const { fetchSalesforceNotes } = await import("../../src/sync/salesforce-client.js");
+    const notes = await fetchSalesforceNotes("https://myco.salesforce.com", "tok");
+    expect(notes).toHaveLength(2);
+    expect(notes[0]!.Title).toBe("Renewal terms");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

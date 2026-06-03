@@ -556,8 +556,8 @@ Bewahrt die vollständige Historie inkl. verknüpfter Activities und Multi-Objec
 > **Volle Pagination** über `nextRecordsUrl` für Contacts, Tasks UND Opportunities via gemeinsamem
 > `soqlQueryAll()`-Helper — kein LIMIT-Cap mehr, große Orgs werden vollständig importiert
 > (`src/sync/salesforce-client.ts`, `runSalesforceApiImport` in `src/commands/import.ts`).
-> **Leads → Kunden** ✅ · **Events → Meeting-interactions** ✅ · **Cases → Tickets** ✅ · **OpportunityLineItems → Quote** ✅ (ein Quote je Opportunity, dedup über dealName).
-> **Noch offen für vollständige Migration:** Notes/Attachments,
+> **Leads → Kunden** ✅ · **Events → Meeting-interactions** ✅ · **Cases → Tickets** ✅ · **OpportunityLineItems → Quote** ✅ · **Notes → Note-interactions** ✅ (`salesforce://note/<id>`, ParentId-Link).
+> **Noch offen für vollständige Migration:** Attachments,
 > Campaigns, Custom Fields, Owner→Actor-Mapping.
 
 ### Domino 4d — Compliance-Paket

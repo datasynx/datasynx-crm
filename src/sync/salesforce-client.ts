@@ -35,6 +35,14 @@ export interface SalesforceLead {
   Website?: string;
 }
 
+export interface SalesforceNote {
+  Id: string;
+  Title?: string;
+  Body?: string;
+  ParentId?: string;
+  CreatedDate?: string;
+}
+
 export interface SalesforceLineItem {
   Id: string;
   OpportunityId?: string;
@@ -173,6 +181,17 @@ export async function fetchSalesforceLineItems(
     instanceUrl,
     token,
     "SELECT+Id,OpportunityId,Quantity,UnitPrice,TotalPrice,Description,Product2.Name+FROM+OpportunityLineItem"
+  );
+}
+
+export async function fetchSalesforceNotes(
+  instanceUrl: string,
+  token: string
+): Promise<SalesforceNote[]> {
+  return soqlQueryAll<SalesforceNote>(
+    instanceUrl,
+    token,
+    "SELECT+Id,Title,Body,ParentId,CreatedDate+FROM+Note"
   );
 }
 

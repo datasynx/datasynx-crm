@@ -15,6 +15,7 @@ interface ImportResult {
   eventsImported?: number;
   casesImported?: number;
   quotesImported?: number;
+  notesImported?: number;
 }
 
 /** Map a Salesforce StageName to opencrm's fixed pipeline stage enum. */
@@ -600,6 +601,7 @@ async function runSalesforceApiImport(
     fetchSalesforceEvents,
     fetchSalesforceCases,
     fetchSalesforceLineItems,
+    fetchSalesforceNotes,
   } = await import("../sync/salesforce-client.js");
 
   let contacts: Awaited<ReturnType<typeof fetchSalesforceContacts>>;
@@ -609,6 +611,7 @@ async function runSalesforceApiImport(
   let events: Awaited<ReturnType<typeof fetchSalesforceEvents>>;
   let cases: Awaited<ReturnType<typeof fetchSalesforceCases>>;
   let lineItems: Awaited<ReturnType<typeof fetchSalesforceLineItems>>;
+  let notes: Awaited<ReturnType<typeof fetchSalesforceNotes>>;
 
   try {
     contacts = await fetchSalesforceContacts(instanceUrl, token);
@@ -618,6 +621,7 @@ async function runSalesforceApiImport(
     events = (await fetchSalesforceEvents(instanceUrl, token)) ?? [];
     cases = (await fetchSalesforceCases(instanceUrl, token)) ?? [];
     lineItems = (await fetchSalesforceLineItems(instanceUrl, token)) ?? [];
+    notes = (await fetchSalesforceNotes(instanceUrl, token)) ?? [];
   } catch (err) {
     result.errors.push(`Salesforce API: ${(err as Error).message}`);
     return result;
@@ -833,6 +837,9 @@ async function runSalesforceApiImport(
         continue;
       }
     }
+    // Make the account/contact reachable for note linking (Pass 8)
+    if (c.AccountId) slugMap.set(c.AccountId, slug);
+    if (c.ContactId) slugMap.set(c.ContactId, slug);
 
     const caseRef = `salesforce://case/${c.Id}`;
     const existingTickets = await readTickets(dir, slug);
@@ -904,6 +911,38 @@ async function runSalesforceApiImport(
       } catch (err) {
         result.errors.push(`LineItems for '${opp.dealName}': ${(err as Error).message}`);
       }
+    }
+  }
+
+  // Pass 8: notes → Note interactions, linked by ParentId (account/contact/opp)
+  for (const note of notes) {
+    const slug = note.ParentId ? slugMap.get(note.ParentId) : undefined;
+    if (!slug) {
+      result.skipped++;
+      continue;
+    }
+    const sourceRef = `salesforce://note/${note.Id}`;
+    const existing = await readInteractions(dir, slug).catch(() => "");
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
+    const date = (note.CreatedDate ?? new Date().toISOString()).slice(0, 10);
+    const title = note.Title ?? "Salesforce Note";
+    try {
+      await appendInteraction(dir, slug, {
+        date,
+        type: "Note",
+        with: slug,
+        subject: title,
+        summary: `${title}${note.Body ? `: ${note.Body}` : ""}`.slice(0, 500),
+        nextSteps: [],
+        sourceRef,
+        synced: new Date().toISOString(),
+      });
+      result.notesImported = (result.notesImported ?? 0) + 1;
+    } catch (err) {
+      result.errors.push(`Note ${note.Id}: ${(err as Error).message}`);
     }
   }
 
