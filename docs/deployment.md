@@ -142,6 +142,8 @@ dxcrm audit --limit 100          # More entries
 | `TELEGRAM_BOT_TOKEN` | — | Bot token for agent notifications |
 | `TELEGRAM_CHAT_ID` | — | Default Telegram chat ID |
 | `ANTHROPIC_API_KEY` | — | API key for LLM email summarization |
+| `DXCRM_MCP_AUTH` | auto | HTTP `/mcp` auth: `required`, `off`, or auto (on once a token exists) |
+| `DXCRM_PII_MASKING` | `off` | When `on`, mask emails/phones in text sent to the LLM (restored in responses) |
 
 ---
 

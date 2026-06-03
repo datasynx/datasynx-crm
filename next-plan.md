@@ -186,7 +186,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | N6-1 | Bi-temporaler Wissensgraph (Kùzu, 4 Zeitstempel/Edge) | Memory | L | 🔲 |
 | N6-2 | Multi-Agent-Orchestrierung (Subagents/Handoffs) | Agentic | L | 🔲 |
 | N6-3 | Command-Center-Observability (Containment/Accuracy) | Agentic | M | 🔲 |
-| X-1 | PII-Masking vor LLM-Call | Compliance | M | 🔲 |
+| X-1 | PII-Masking vor LLM-Call | Compliance | M | ✅ (opt-in `DXCRM_PII_MASKING=on`) |
 | X-2 | Guardrails (Toxizität, Prompt-Injection, Indirect-Injection) | Compliance | M | 🔲 |
 | REF-1 | Spark-Framework-Adapter (Stub fertigstellen/entfernen) | Refinement | S | 🔲 |
 | REF-2 | Structured `ContextBlock` (neben string) | Refinement | S | 🔲 |
