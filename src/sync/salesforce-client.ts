@@ -35,6 +35,16 @@ export interface SalesforceLead {
   Website?: string;
 }
 
+export interface SalesforceEvent {
+  Id: string;
+  Subject?: string;
+  Description?: string;
+  ActivityDate?: string;
+  StartDateTime?: string;
+  WhoId?: string;
+  WhatId?: string;
+}
+
 interface SoqlResponse<T> {
   records: T[];
   totalSize: number;
@@ -106,6 +116,17 @@ export async function fetchSalesforceLeads(
     instanceUrl,
     token,
     "SELECT+Id,Name,Company,Email,Title,Phone,Status,Website+FROM+Lead"
+  );
+}
+
+export async function fetchSalesforceEvents(
+  instanceUrl: string,
+  token: string
+): Promise<SalesforceEvent[]> {
+  return soqlQueryAll<SalesforceEvent>(
+    instanceUrl,
+    token,
+    "SELECT+Id,Subject,Description,ActivityDate,StartDateTime,WhoId,WhatId+FROM+Event"
   );
 }
 

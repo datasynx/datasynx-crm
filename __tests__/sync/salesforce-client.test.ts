@@ -378,3 +378,39 @@ describe("fetchSalesforceLeads", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("fetchSalesforceEvents", () => {
+  it("returns parsed events and paginates", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            records: [
+              {
+                Id: "e1",
+                Subject: "Discovery call",
+                Description: "Intro meeting",
+                StartDateTime: "2026-05-10T14:00:00Z",
+                ActivityDate: "2026-05-10",
+                WhoId: "c001",
+                WhatId: "a001",
+              },
+            ],
+            totalSize: 2,
+            done: false,
+            nextRecordsUrl: "/services/data/v58.0/query/01g-5000",
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({ records: [{ Id: "e2", Subject: "Demo" }], totalSize: 2, done: true }),
+      });
+    const { fetchSalesforceEvents } = await import("../../src/sync/salesforce-client.js");
+    const events = await fetchSalesforceEvents("https://myco.salesforce.com", "tok");
+    expect(events).toHaveLength(2);
+    expect(events[0]!.Subject).toBe("Discovery call");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

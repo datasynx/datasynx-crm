@@ -307,12 +307,14 @@ const mockFetchSalesforceContacts = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceTasks = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceOpportunities = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceLeads = vi.hoisted(() => vi.fn());
+const mockFetchSalesforceEvents = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceContacts: mockFetchSalesforceContacts,
   fetchSalesforceTasks: mockFetchSalesforceTasks,
   fetchSalesforceOpportunities: mockFetchSalesforceOpportunities,
   fetchSalesforceLeads: mockFetchSalesforceLeads,
+  fetchSalesforceEvents: mockFetchSalesforceEvents,
 }));
 
 describe("runImport — Salesforce API mode", () => {
@@ -428,6 +430,44 @@ describe("runImport — Salesforce API mode", () => {
     const entry = appendInteraction.mock.calls[0]![2] as { sourceRef: string; summary: string };
     expect(entry.sourceRef).toBe("salesforce://lead/l1");
     expect(entry.summary).toContain("Open - Not Contacted");
+  });
+
+  it("imports events as Meeting interactions linked by WhoId", async () => {
+    vol.fromJSON({});
+    mockFetchSalesforceContacts.mockResolvedValue([
+      {
+        Id: "c1",
+        Name: "Alice",
+        Email: "alice@acme.com",
+        Account: { Website: "https://acme.com" },
+      },
+    ]);
+    mockFetchSalesforceTasks.mockResolvedValue([]);
+    mockFetchSalesforceOpportunities.mockResolvedValue([]);
+    mockFetchSalesforceLeads.mockResolvedValue([]);
+    mockFetchSalesforceEvents.mockResolvedValue([
+      {
+        Id: "e1",
+        Subject: "Discovery call",
+        Description: "Intro meeting with Alice",
+        StartDateTime: "2026-05-10T14:00:00Z",
+        WhoId: "c1",
+      },
+    ]);
+
+    const result = await runImport(
+      "",
+      { from: "salesforce", mode: "api", token: "tok", url: "https://acme.salesforce.com" },
+      "/crm"
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.eventsImported).toBe(1);
+    const entry = appendInteraction.mock.calls.find(
+      (c) => (c[2] as { sourceRef: string }).sourceRef === "salesforce://event/e1"
+    )?.[2] as { type: string; date: string } | undefined;
+    expect(entry?.type).toBe("Meeting");
+    expect(entry?.date).toBe("2026-05-10");
   });
 
   it("returns error when Salesforce API throws", async () => {

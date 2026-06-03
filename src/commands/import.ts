@@ -12,6 +12,7 @@ interface ImportResult {
   errors: string[];
   dealsImported?: number;
   leadsImported?: number;
+  eventsImported?: number;
 }
 
 /** Map a Salesforce StageName to opencrm's fixed pipeline stage enum. */
@@ -573,18 +574,21 @@ async function runSalesforceApiImport(
     fetchSalesforceTasks,
     fetchSalesforceOpportunities,
     fetchSalesforceLeads,
+    fetchSalesforceEvents,
   } = await import("../sync/salesforce-client.js");
 
   let contacts: Awaited<ReturnType<typeof fetchSalesforceContacts>>;
   let tasks: Awaited<ReturnType<typeof fetchSalesforceTasks>>;
   let opportunities: Awaited<ReturnType<typeof fetchSalesforceOpportunities>>;
   let leads: Awaited<ReturnType<typeof fetchSalesforceLeads>>;
+  let events: Awaited<ReturnType<typeof fetchSalesforceEvents>>;
 
   try {
     contacts = await fetchSalesforceContacts(instanceUrl, token);
     tasks = await fetchSalesforceTasks(instanceUrl, token);
     opportunities = (await fetchSalesforceOpportunities(instanceUrl, token)) ?? [];
     leads = (await fetchSalesforceLeads(instanceUrl, token)) ?? [];
+    events = (await fetchSalesforceEvents(instanceUrl, token)) ?? [];
   } catch (err) {
     result.errors.push(`Salesforce API: ${(err as Error).message}`);
     return result;
@@ -593,7 +597,7 @@ async function runSalesforceApiImport(
   if (opts.dryRun) {
     console.log(
       info(
-        `Dry run — ${contacts.length} contacts, ${tasks.length} tasks, ${opportunities.length} opportunities, ${leads.length} leads from Salesforce`
+        `Dry run — ${contacts.length} contacts, ${tasks.length} tasks, ${opportunities.length} opportunities, ${leads.length} leads, ${events.length} events from Salesforce`
       )
     );
     return result;
@@ -733,6 +737,46 @@ async function runSalesforceApiImport(
       result.leadsImported = (result.leadsImported ?? 0) + 1;
     } catch (err) {
       result.errors.push(`Lead ${lead.Id}: ${(err as Error).message}`);
+    }
+  }
+
+  // Pass 5: events (calendar) → Meeting interactions, linked by WhoId/WhatId
+  for (const event of events) {
+    const slug = event.WhoId
+      ? slugMap.get(event.WhoId)
+      : event.WhatId
+        ? slugMap.get(event.WhatId)
+        : undefined;
+    if (!slug) {
+      result.skipped++;
+      continue;
+    }
+
+    const sourceRef = `salesforce://event/${event.Id}`;
+    const existing = await readInteractions(dir, slug).catch(() => "");
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
+
+    const date = (event.StartDateTime ?? event.ActivityDate ?? new Date().toISOString()).slice(
+      0,
+      10
+    );
+    try {
+      await appendInteraction(dir, slug, {
+        date,
+        type: "Meeting",
+        with: slug,
+        subject: event.Subject ?? "Salesforce Event",
+        summary: (event.Description ?? event.Subject ?? "").slice(0, 500),
+        nextSteps: [],
+        sourceRef,
+        synced: new Date().toISOString(),
+      });
+      result.eventsImported = (result.eventsImported ?? 0) + 1;
+    } catch (err) {
+      result.errors.push(`Event ${event.Id}: ${(err as Error).message}`);
     }
   }
 
