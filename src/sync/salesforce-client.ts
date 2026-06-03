@@ -35,6 +35,16 @@ export interface SalesforceLead {
   Website?: string;
 }
 
+export interface SalesforceCampaignMember {
+  Id: string;
+  CampaignId?: string;
+  Campaign?: { Name?: string };
+  ContactId?: string;
+  LeadId?: string;
+  Status?: string;
+  CreatedDate?: string;
+}
+
 export interface SalesforceNote {
   Id: string;
   Title?: string;
@@ -192,6 +202,17 @@ export async function fetchSalesforceNotes(
     instanceUrl,
     token,
     "SELECT+Id,Title,Body,ParentId,CreatedDate+FROM+Note"
+  );
+}
+
+export async function fetchSalesforceCampaignMembers(
+  instanceUrl: string,
+  token: string
+): Promise<SalesforceCampaignMember[]> {
+  return soqlQueryAll<SalesforceCampaignMember>(
+    instanceUrl,
+    token,
+    "SELECT+Id,CampaignId,Campaign.Name,ContactId,LeadId,Status,CreatedDate+FROM+CampaignMember"
   );
 }
 

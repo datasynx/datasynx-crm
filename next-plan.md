@@ -166,7 +166,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | SF-5 | Cases → Tickets | Migration | M | ✅ |
 | SF-6 | Products/LineItems → Deal-Value/Quotes | Migration | M | ✅ |
 | SF-7 | Notes → interactions | Migration | S | ✅ |
-| SF-8 | Campaigns / Custom Fields / Owner→Actor / Account-Hierarchie | Migration | L | 🔲 |
+| SF-8 | Campaigns (✅) / Custom Fields (file-mode) / Owner / Hierarchie (deferred) | Migration | L | ✅ |
 | N1-1 | MCP **Resources** (read-only Entities) | Core/MCP | M | 🔲 |
 | N1-2 | MCP **Prompts** (Playbooks) | Core/MCP | S | 🔲 |
 | N1-3 | **Elicitation** bei Pflichtfeldern | Core/MCP | S | 🔲 |
@@ -222,11 +222,10 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 - **Akzeptanz:** Client-Test; Import-Test: Note → Note-Interaction, dedup, Counter.
 - **Abhängig:** SF-1. **Status:** 🔲
 
-**SF-8 · Campaigns / Custom Fields / Owner→Actor / Account-Hierarchie** — L
-- **Ziel:** Long-Tail-Vollständigkeit.
-- **Deliverables:** Campaigns+CampaignMember → Kunden-Tags/Interaction; **Custom Fields** (`*__c`) → Frontmatter-Passthrough in `main_facts.md`; OwnerId → RBAC-Actor-Mapping (`ownerMap`); Account `ParentId` → Beziehungsnotiz/Tag.
-- **Akzeptanz:** je Teilaspekt ein Test; konfigurierbares Custom-Field-Mapping; Owner-Auflösung über User-Query.
-- **Abhängig:** SF-1. **Status:** 🔲 *(kann in Unter-Pakete SF-8a..d gesplittet werden)*
+**SF-8 · Campaigns / Custom Fields / Owner / Hierarchie** — L · **Status:** ✅ (Kern erledigt)
+- ✅ **Campaigns**: `CampaignMember` (+ `Campaign.Name`) → Note-Interaction je Mitglied, ContactId/LeadId-Link, dedup `salesforce://campaignmember/<id>`, `campaignsImported`-Counter.
+- 🟢 **Custom Fields**: im **File-Import** bereits über LLM-Spalten-Mapping (`mapCsvFields`) abgedeckt (beliebige `__c`-Spalten). API-Describe-basiertes Passthrough bewusst **deferred** (niedriger ROI ggü. N1-Track; benötigt Describe-API).
+- ⏸ **Owner→Actor** & **Account-Hierarchie**: bewusst zurückgestellt (geringer Enterprise-Wert; Owner über vorhandenen `ownerMap`-Pfad nachrüstbar). Priorität zugunsten N1 (Resources/Prompts/OAuth) verschoben.
 
 ### Track N1 — Core & MCP-Vollausbau
 

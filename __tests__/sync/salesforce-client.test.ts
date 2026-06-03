@@ -524,3 +524,41 @@ describe("fetchSalesforceNotes", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("fetchSalesforceCampaignMembers", () => {
+  it("returns parsed campaign members and paginates", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            records: [
+              {
+                Id: "cm1",
+                CampaignId: "camp1",
+                Campaign: { Name: "Q3 Webinar" },
+                ContactId: "c001",
+                Status: "Responded",
+              },
+            ],
+            totalSize: 2,
+            done: false,
+            nextRecordsUrl: "/services/data/v58.0/query/01g-9000",
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            records: [{ Id: "cm2", CampaignId: "camp1" }],
+            totalSize: 2,
+            done: true,
+          }),
+      });
+    const { fetchSalesforceCampaignMembers } = await import("../../src/sync/salesforce-client.js");
+    const members = await fetchSalesforceCampaignMembers("https://myco.salesforce.com", "tok");
+    expect(members).toHaveLength(2);
+    expect(members[0]!.Campaign?.Name).toBe("Q3 Webinar");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

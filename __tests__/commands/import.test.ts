@@ -311,6 +311,7 @@ const mockFetchSalesforceEvents = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceCases = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceLineItems = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceNotes = vi.hoisted(() => vi.fn());
+const mockFetchSalesforceCampaignMembers = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceContacts: mockFetchSalesforceContacts,
@@ -321,6 +322,7 @@ vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceCases: mockFetchSalesforceCases,
   fetchSalesforceLineItems: mockFetchSalesforceLineItems,
   fetchSalesforceNotes: mockFetchSalesforceNotes,
+  fetchSalesforceCampaignMembers: mockFetchSalesforceCampaignMembers,
 }));
 
 describe("runImport — Salesforce API mode", () => {
@@ -600,6 +602,48 @@ describe("runImport — Salesforce API mode", () => {
     )?.[2] as { type: string; summary: string } | undefined;
     expect(entry?.type).toBe("Note");
     expect(entry?.summary).toContain("Renewal terms");
+  });
+
+  it("imports campaign members as Note interactions linked by ContactId", async () => {
+    vol.fromJSON({});
+    mockFetchSalesforceContacts.mockResolvedValue([
+      {
+        Id: "c1",
+        Name: "Alice",
+        Email: "alice@acme.com",
+        Account: { Website: "https://acme.com" },
+      },
+    ]);
+    mockFetchSalesforceTasks.mockResolvedValue([]);
+    mockFetchSalesforceOpportunities.mockResolvedValue([]);
+    mockFetchSalesforceLeads.mockResolvedValue([]);
+    mockFetchSalesforceEvents.mockResolvedValue([]);
+    mockFetchSalesforceCases.mockResolvedValue([]);
+    mockFetchSalesforceLineItems.mockResolvedValue([]);
+    mockFetchSalesforceNotes.mockResolvedValue([]);
+    mockFetchSalesforceCampaignMembers.mockResolvedValue([
+      {
+        Id: "cm1",
+        CampaignId: "camp1",
+        Campaign: { Name: "Q3 Webinar" },
+        ContactId: "c1",
+        Status: "Responded",
+        CreatedDate: "2026-07-01T10:00:00Z",
+      },
+    ]);
+
+    const result = await runImport(
+      "",
+      { from: "salesforce", mode: "api", token: "tok", url: "https://acme.salesforce.com" },
+      "/crm"
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.campaignsImported).toBe(1);
+    const entry = appendInteraction.mock.calls.find(
+      (c) => (c[2] as { sourceRef: string }).sourceRef === "salesforce://campaignmember/cm1"
+    )?.[2] as { summary: string } | undefined;
+    expect(entry?.summary).toContain("Q3 Webinar");
   });
 
   it("returns error when Salesforce API throws", async () => {

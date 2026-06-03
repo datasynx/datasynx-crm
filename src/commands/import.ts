@@ -16,6 +16,7 @@ interface ImportResult {
   casesImported?: number;
   quotesImported?: number;
   notesImported?: number;
+  campaignsImported?: number;
 }
 
 /** Map a Salesforce StageName to opencrm's fixed pipeline stage enum. */
@@ -602,6 +603,7 @@ async function runSalesforceApiImport(
     fetchSalesforceCases,
     fetchSalesforceLineItems,
     fetchSalesforceNotes,
+    fetchSalesforceCampaignMembers,
   } = await import("../sync/salesforce-client.js");
 
   let contacts: Awaited<ReturnType<typeof fetchSalesforceContacts>>;
@@ -612,6 +614,7 @@ async function runSalesforceApiImport(
   let cases: Awaited<ReturnType<typeof fetchSalesforceCases>>;
   let lineItems: Awaited<ReturnType<typeof fetchSalesforceLineItems>>;
   let notes: Awaited<ReturnType<typeof fetchSalesforceNotes>>;
+  let campaignMembers: Awaited<ReturnType<typeof fetchSalesforceCampaignMembers>>;
 
   try {
     contacts = await fetchSalesforceContacts(instanceUrl, token);
@@ -622,6 +625,7 @@ async function runSalesforceApiImport(
     cases = (await fetchSalesforceCases(instanceUrl, token)) ?? [];
     lineItems = (await fetchSalesforceLineItems(instanceUrl, token)) ?? [];
     notes = (await fetchSalesforceNotes(instanceUrl, token)) ?? [];
+    campaignMembers = (await fetchSalesforceCampaignMembers(instanceUrl, token)) ?? [];
   } catch (err) {
     result.errors.push(`Salesforce API: ${(err as Error).message}`);
     return result;
@@ -943,6 +947,41 @@ async function runSalesforceApiImport(
       result.notesImported = (result.notesImported ?? 0) + 1;
     } catch (err) {
       result.errors.push(`Note ${note.Id}: ${(err as Error).message}`);
+    }
+  }
+
+  // Pass 9: campaign members → Note interactions, linked by ContactId/LeadId
+  for (const cm of campaignMembers) {
+    const slug = cm.ContactId
+      ? slugMap.get(cm.ContactId)
+      : cm.LeadId
+        ? slugMap.get(cm.LeadId)
+        : undefined;
+    if (!slug) {
+      result.skipped++;
+      continue;
+    }
+    const sourceRef = `salesforce://campaignmember/${cm.Id}`;
+    const existing = await readInteractions(dir, slug).catch(() => "");
+    if (existing.includes(sourceRef)) {
+      result.skipped++;
+      continue;
+    }
+    const campaignName = cm.Campaign?.Name ?? cm.CampaignId ?? "Unknown campaign";
+    try {
+      await appendInteraction(dir, slug, {
+        date: (cm.CreatedDate ?? new Date().toISOString()).slice(0, 10),
+        type: "Note",
+        with: slug,
+        subject: `Campaign: ${campaignName}`,
+        summary: `Salesforce Campaign: ${campaignName} (status: ${cm.Status ?? "n/a"})`,
+        nextSteps: [],
+        sourceRef,
+        synced: new Date().toISOString(),
+      });
+      result.campaignsImported = (result.campaignsImported ?? 0) + 1;
+    } catch (err) {
+      result.errors.push(`CampaignMember ${cm.Id}: ${(err as Error).message}`);
     }
   }
 
