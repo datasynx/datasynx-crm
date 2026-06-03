@@ -23,24 +23,32 @@ Workspace-Modell auf — wir erweitern ihn (siehe Architektur-Entscheidung A1).
 
 ---
 
-## 2. Wo wir heute stehen (ehrliche Bestandsaufnahme)
+## 2. Wo wir heute stehen (ehrliche Bestandsaufnahme — codeverifiziert)
 
-| Vision-Baustein (Whitepaper) | opencrm heute | Delta |
+> Belegt durch tiefe Code-Analyse (MCP-Layer · Datenmodell/Storage/Memory · Feature/Compliance-Inventar).
+
+| Vision-Baustein (Whitepaper) | opencrm heute | Beleg / Delta |
 |---|---|---|
-| Dual npm-Paket (MCP-Server + SDK) | ✅ `bin` + `exports` (`.` + `./mcp`), Dual ESM/CJS | Registry-Listing (`server.json`) fehlt |
-| MCP-Server | ✅ 52 Tools, stdio **+** Streamable HTTP | nur **Tools** — **Resources** & **Prompts** fehlen |
-| Auth | 🟡 HTTP-Server **ohne** Auth (Firewall-Modell) | **OAuth 2.1 Resource Server** (RFC 9728/8707, PKCE-S256) fehlt |
-| Datenmodell | 🟡 **feste** Markdown-Schemas (main_facts/interactions/pipeline) | **metadaten-getrieben** (Custom Objects/Fields, Runtime-Typen) fehlt |
-| Memory / Graph | 🟡 LanceDB-Vektorsuche + Relationship-Graph | **bi-temporaler** Wissensgraph (4 Zeitstempel/Edge, Graphiti-Muster) fehlt |
-| Sales | ✅ Deals/Pipeline, Forecast, Deal-Health, Lead-Import, Activity-Capture (Gmail/MS) | Opportunity-Scoring teils heuristisch |
-| Service | 🟡 Tickets (SLA, create/update/close) | Omni-Channel-Routing, vektorisierte KB-Eskalation |
-| Marketing/Data | 🟡 Templates, Sequences, NPS | Journeys, CDP/Identity-Resolution, Segmente |
-| Platform/Automation | 🟡 Proactive Worker, Playbooks, Goals, Push-Subscriptions | Custom Objects via Metadata-API, Webhook-CRUD-Events |
-| Agent-Harness | 🟡 eigene Agents (deal-agent, proactive worker) | Andocken an Claude Agent SDK / Mastra / Hermes statt Eigenbau |
-| Compliance | ✅ RBAC, Audit-Log, GDPR-Erase, security-report, local-first | PII-Masking vor LLM-Call, Guardrails, bi-temporale Auditierbarkeit |
+| Dual npm-Paket (MCP-Server + SDK) | ✅ `bin` + `exports` (`.` + `./mcp`), Dual ESM/CJS, `prepublishOnly` | `server.json` (Registry) fehlt |
+| MCP-Server | ✅ **52 Tools** (`registerTool`), stdio **+** stateless Streamable HTTP | **0 Resources, 0 Prompts, kein `instructions`-Feld, kein Tool-Search** (`server.ts`) |
+| Auth (HTTP `/mcp`) | 🔴 **komplett unauthentifiziert** (neue Transport-Instanz pro Request) | **OAuth 2.1** (RFC 9728/8707, PKCE-S256) fehlt — **aber** Webhook-HMAC-Verifikation existiert (Gmail/MS/Slack) als Baustein |
+| RBAC | ✅ tool-level via `DXCRM_ACTOR` + `.agentic/rbac.json` (admin/manager/rep) | nicht request-/token-gebunden; Sharing-Rules nur grob (owned_customers) |
+| Datenmodell | 🔴 **11 feste Zod-Schemas** (main_facts/interaction/pipeline/ticket/quote/sequence/survey/kb/agent-config/sources/email-template) | **null Custom Objects/Fields, keine Composite-Typen, keine Runtime-Metadaten** (`src/schemas/`) |
+| Storage | ✅ Markdown+Frontmatter als SoT, `write-queue`/`file-lock` für Concurrency | bewusst keine DB — Moat |
+| Vektor/Memory | ✅ **reif:** LanceDB embedded, Xenova/all-MiniLM-L6-v2 (384-dim, lokal), Hybrid-Search | — |
+| Knowledge-Graph | 🟡 **hand-rolled `graph.json`** (Nodes person/company/deal/product/event; Edges KNOWS/WORKS_AT/IS_CHAMPION…; `weight`, `lastContact`, `contactCount`) + BFS-Pfad + Health-Scoring | **nicht bi-temporal** (kein t_valid/t_invalid/t_created/t_expired), kein embedded Graph-DB (Kùzu) |
+| Sales | ✅ Deals/Pipeline, Forecast, Monte-Carlo-Sim, Deal-Health (A–F), Relationship-Graph/-Health, Org-Intelligence, Playbooks, Goals, Lead/Opp-Import | Opportunity-Scoring teils heuristisch |
+| Service | 🟡 Tickets + **SLA-Engine** (`sla-engine.ts`, YAML-Regeln), vektorisierte KB | Omni-Channel-Routing, Eskalation/transfer-to-human als Action |
+| Marketing/Data | 🟡 Email-Templates, **lineare** Sequences (skipIfReplied), NPS/CSAT/CES, Email-Dedup | Journeys (Branching), Segmente/Listen, CDP/Identity-Resolution, Unified Profiles |
+| Platform/Automation | 🟡 Proactive Worker (7-Uhr-Cron), Playbooks, Goals, **Push-Manager**, **`webhook-receiver`** (Stripe/Linear/GitHub/Calendly + Signaturen) | Custom Objects via Metadata-API, **CRUD-Webhook-Events**, Workflow-Engine |
+| Agent-Harness | 🟡 **Eigenbau** (deal-agent, proactive-worker) auf direktem `@anthropic-ai/sdk` (Haiku) | **kein** Mastra/LangGraph/Claude-Agent-SDK → A3 ist echte Migration |
+| Compliance | ✅ RBAC, Audit-Log, GDPR-Erase, security-report, **AES-256-GCM-Feldverschlüsselung** (`encryption.ts`), `input-guard` (Längen/Typ/Byte-Limit) | **kein PII-Masking vor LLM**, **keine Guardrails** (Toxizität/Prompt-Injection), keine bi-temporale Auditierbarkeit |
 
-**Kurz:** Der Sales-Kern + Compliance sind stark. Die drei großen Deltas sind **(1) metadaten-getriebenes
-Datenmodell, (2) MCP-Resources/Prompts + OAuth 2.1, (3) bi-temporaler Memory-Graph.**
+**Kurz:** Sales-Kern, Sync, Vektor-Memory, Health-Scoring und Compliance-Basis sind **reif**. Die drei
+großen Deltas zur Whitepaper-Vision sind unverändert: **(1) metadaten-getriebenes Datenmodell,
+(2) MCP-Resources/Prompts + OAuth 2.1, (3) bi-temporaler Memory-Graph.** Wichtige Nuance aus der Analyse:
+mehrere „neue" Pakete sind in Wahrheit **Upgrades vorhandener Bausteine** (Graph→bi-temporal,
+Webhook-Receiver→CRUD-Events, Email-Dedup→Identity-Resolution, Encryption ist schon da).
 
 ---
 
@@ -52,10 +60,16 @@ ein `objectMetadata`/`fieldMetadata`-Äquivalent in `.agentic/schema/` (JSON), d
 beschreibt; Records weiterhin als Markdown + Frontmatter; ein **Runtime-Typ-/Validierungs-Layer** (Zod aus
 Metadaten generiert) und ein **permission-aware Query-Layer**. Composite-Feldtypen (ADDRESS/FULL_NAME/
 CURRENCY/EMAILS/PHONES/LINKS) wie bei Twenty.
+*Befund:* Die 11 Schemas sind heute hart-codiert; Graph-Nodes/Edges haben aber bereits ein offenes
+`properties: Record<string, unknown>` — der Custom-Field-Layer kann **inkrementell** eingeführt werden
+(erst Frontmatter-Passthrough + Metadaten-Registry, dann Runtime-Zod), ohne Big-Bang-Rewrite.
 
-**A2 — Embedded Storage:** LanceDB (Vektoren, schon vorhanden) **+ Kùzu** (embedded Graph, Cypher,
-file-basiert) für den bi-temporalen Graphen. Default zero-config; pgvector/Neo4j als Produktions-Pfad ab
-Schwellen (>5 Mio Vektoren / hohe Concurrency).
+**A2 — Embedded Storage & Graph: in-place upgraden statt ersetzen.** LanceDB (Vektoren) ist reif und bleibt.
+Der Knowledge-Graph ist heute `graph.json` (hand-rolled, current-state). Zwei Optionen für Bi-Temporalität:
+**(A2a)** `graph.json`-Schema um vier Zeitstempel/Edge erweitern + Edge-Invalidation statt Löschen
+(kleiner Schritt, kein neues Dependency, bleibt local-first) — **empfohlen für den Prototyp**;
+**(A2b)** embedded **Kùzu** (Cypher, file-basiert) für Skalierung/Cypher-Queries — später, ab Bedarf.
+Produktions-Pfad pgvector/Neo4j erst ab Schwellen (>5 Mio Vektoren / hohe Concurrency).
 
 **A3 — Agent-Harness wählen, nicht bauen:** primär **Claude Agent SDK** (Hooks für Audit/Security,
 Subagents), **Mastra** für TS-Workflows/Memory, **Hermes** für self-hosted/data-sovereign. Eigene
@@ -222,20 +236,24 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 
 **N1-3 · Elicitation** — S · **Ziel:** bei fehlenden Pflichtfeldern strukturiertes Schema statt Fehler (z. B. fehlende Stage in `update_deal`). **Akzeptanz:** Tool gibt Elicitation-Request statt Error; Test. **Abhängig:** SDK-Elicitation-Support. **Status:** 🔲
 
-**N1-4 · OAuth 2.1 Resource Server** — L · **Ziel:** HTTP-`/mcp` absichern (löst B1). **Deliverables:** RFC 9728 `/.well-known/oauth-protected-resource`, 401+`WWW-Authenticate`, RFC 8707 Audience-Binding, PKCE-S256, Tokens nur SHA-256-gehasht, **kein** Token-Passthrough. **Akzeptanz:** Unauthentifizierte Requests → 401 mit Metadata-URL; gültiges Token → Zugriff; Tests für Token-Hashing & Audience-Check. **Status:** 🔲
+**N1-4 · OAuth 2.1 Resource Server** — L · **Ziel:** HTTP-`/mcp` absichern (heute komplett offen). **Deliverables:** RFC 9728 `/.well-known/oauth-protected-resource`, 401+`WWW-Authenticate`, RFC 8707 Audience-Binding, PKCE-S256, Tokens nur SHA-256-gehasht, **kein** Token-Passthrough; danach RBAC-Actor aus Token statt `DXCRM_ACTOR`-Env ableiten. **Wiederverwendbar:** die HMAC-Signaturprüfung der Webhooks (`webhook-receiver.ts`) + `timingSafeEqual` als Crypto-Baustein. **Akzeptanz:** Unauthentifizierte Requests → 401 mit Metadata-URL; gültiges Token → Zugriff; Tests für Token-Hashing & Audience-Check. **Status:** 🔲
 
 **N1-5 · Tool-Search / Lazy-Loading** — M · **Ziel:** Kontext-Überlauf bei 52+ Tools vermeiden. **Akzeptanz:** Tool-Discovery liefert relevante Teilmenge; Test. **Status:** 🔲
 
 **N1-6 · Registry-Listing** — S · **Ziel:** `server.json` (Reverse-DNS-Namespace), Publish auf `registry.modelcontextprotocol.io` via `mcp-publisher` + GitHub-OIDC. **Akzeptanz:** valides `server.json`, CI-Step. **Abhängig:** OPS-1 (public). **Status:** 🔲
 
-**N1-7 · Metadaten-Datenmodell** — L · **Ziel:** `object/fieldMetadata`-Äquivalent in `.agentic/schema/`, Composite-Typen, Runtime-Zod-Generierung, permission-aware Query-Layer (Architektur-Entscheidung A1). **Akzeptanz:** Custom-Object/-Field definierbar → Records validiert + lesbar ohne Code-Migration; Tests. **Abhängig:** A1 bestätigt. **Status:** 🔲 *(Fundament für N5-1)*
+**N1-7 · Metadaten-Datenmodell** — L · **Ziel:** `object/fieldMetadata`-Äquivalent in `.agentic/schema/`, Composite-Typen, Runtime-Zod-Generierung, permission-aware Query-Layer (Architektur-Entscheidung A1). **Inkrementeller Pfad** (kein Big-Bang): (1) Custom-Field-Passthrough in `main_facts.md`-Frontmatter; (2) Metadaten-Registry + Runtime-Zod-Merge mit den 11 Basis-Schemas; (3) Custom-Objects. Nutzt das schon offene `properties: Record<string,unknown>` der Graph-Nodes als Vorbild. **Akzeptanz:** Custom-Field definierbar → Record validiert + lesbar ohne Code-Migration; Basis-Schemas bleiben rückwärtskompatibel; Tests. **Abhängig:** A1 bestätigt. **Status:** 🔲 *(Fundament für N5-1)*
 
 ### Track N2–N6 (Domänen)
 Pakete N2-1, N3-1/2, N4-1/2/3, N5-1/2/3, N6-1/2/3 wie im Status-Board; Detail-Spezifikation jeweils
 beim Start des Pakets (research-Schritt), Ziel/Akzeptanz aus §4 abgeleitet.
 
 ### Track Querschnitt / Refinement / Ops
-- **X-1 PII-Masking**, **X-2 Guardrails** — vor N4/N6 verpflichtend.
+- **X-1 PII-Masking** (M): Integrationspunkt ist `src/core/llm.ts` (`getClient()`/`callLlm`/`summarizeEmail`) — Masking-Pass vor jedem `messages.create`, Demaskierung der Response. **X-2 Guardrails** (M): Prompt-Injection/Toxizität in `llm.ts` + `input-guard.ts` erweitern (heute nur Längen/Typ/Byte-Limit). Beide **vor** N4/N6 verpflichtend (EU AI Act).
+- **N6-1 ist ein Upgrade**, kein Greenfield: `graph.json`-Edges um 4 Zeitstempel + Edge-Invalidation erweitern (A2a); `relationship-health.ts`/`org-intelligence.ts` lesen weiter denselben Graphen.
+- **N5-2 (Webhook-CRUD-Events)** baut auf vorhandenem `webhook-receiver.ts` (heute nur **inbound**) — zu ergänzen: **outbound** Events bei Create/Update/Delete + Backoff/Replay-Store.
+- **N4-3 (CDP/Identity-Resolution)**: Seed vorhanden (`email-dedup.ts`, Domain-/Email-Kanonisierung) → zu ML-/regelbasierter Identity-Resolution + Unified Profiles ausbauen.
+- **AES-256-GCM-Feldverschlüsselung existiert bereits** (`encryption.ts`) — kein eigenes Paket nötig, nur für sensible Felder/Tokens anwenden.
 - **REF-1 Spark-Adapter**, **REF-2 ContextBlock**, **REF-3 Coverage** — jederzeit als Lückenfüller.
 - **OPS-1/OPS-2** — user-seitig (GitHub-UI), siehe §C/§D im Verlauf; kein Agent-Zugriff in dieser Umgebung.
 
