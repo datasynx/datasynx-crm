@@ -309,6 +309,7 @@ const mockFetchSalesforceOpportunities = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceLeads = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceEvents = vi.hoisted(() => vi.fn());
 const mockFetchSalesforceCases = vi.hoisted(() => vi.fn());
+const mockFetchSalesforceLineItems = vi.hoisted(() => vi.fn());
 
 vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceContacts: mockFetchSalesforceContacts,
@@ -317,6 +318,7 @@ vi.mock("../../src/sync/salesforce-client.js", () => ({
   fetchSalesforceLeads: mockFetchSalesforceLeads,
   fetchSalesforceEvents: mockFetchSalesforceEvents,
   fetchSalesforceCases: mockFetchSalesforceCases,
+  fetchSalesforceLineItems: mockFetchSalesforceLineItems,
 }));
 
 describe("runImport — Salesforce API mode", () => {
@@ -505,6 +507,56 @@ describe("runImport — Salesforce API mode", () => {
     expect(tickets).toContain("Login broken");
     expect(tickets).toContain("in-progress");
     expect(tickets).toContain("high");
+  });
+
+  it("imports opportunity line items as a quote", async () => {
+    vol.fromJSON({});
+    mockFetchSalesforceContacts.mockResolvedValue([]);
+    mockFetchSalesforceTasks.mockResolvedValue([]);
+    mockFetchSalesforceOpportunities.mockResolvedValue([
+      {
+        Id: "o001",
+        Name: "Acme Enterprise License",
+        StageName: "Proposal",
+        Amount: 1500,
+        Account: { Name: "Acme Corp" },
+      },
+    ]);
+    mockFetchSalesforceLeads.mockResolvedValue([]);
+    mockFetchSalesforceEvents.mockResolvedValue([]);
+    mockFetchSalesforceCases.mockResolvedValue([]);
+    mockFetchSalesforceLineItems.mockResolvedValue([
+      {
+        Id: "oli1",
+        OpportunityId: "o001",
+        Quantity: 10,
+        UnitPrice: 100,
+        TotalPrice: 1000,
+        Product2: { Name: "Enterprise Seat" },
+      },
+      {
+        Id: "oli2",
+        OpportunityId: "o001",
+        Quantity: 1,
+        UnitPrice: 500,
+        Product2: { Name: "Setup" },
+      },
+    ]);
+
+    const result = await runImport(
+      "",
+      { from: "salesforce", mode: "api", token: "tok", url: "https://acme.salesforce.com" },
+      "/crm"
+    );
+
+    expect(result.errors).toHaveLength(0);
+    expect(result.quotesImported).toBe(1);
+    const files = vol.toJSON();
+    const quoteFile = Object.entries(files).find(
+      ([p, c]) =>
+        p.includes("/quotes/") && p.endsWith(".json") && String(c).includes("Enterprise Seat")
+    );
+    expect(quoteFile).toBeDefined();
   });
 
   it("returns error when Salesforce API throws", async () => {

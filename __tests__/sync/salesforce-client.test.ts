@@ -451,3 +451,42 @@ describe("fetchSalesforceCases", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("fetchSalesforceLineItems", () => {
+  it("returns parsed opportunity line items and paginates", async () => {
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            records: [
+              {
+                Id: "oli1",
+                OpportunityId: "o001",
+                Quantity: 10,
+                UnitPrice: 100,
+                TotalPrice: 1000,
+                Product2: { Name: "Enterprise Seat" },
+              },
+            ],
+            totalSize: 2,
+            done: false,
+            nextRecordsUrl: "/services/data/v58.0/query/01g-7000",
+          }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: () =>
+          Promise.resolve({
+            records: [{ Id: "oli2", OpportunityId: "o001", Quantity: 1, UnitPrice: 500 }],
+            totalSize: 2,
+            done: true,
+          }),
+      });
+    const { fetchSalesforceLineItems } = await import("../../src/sync/salesforce-client.js");
+    const items = await fetchSalesforceLineItems("https://myco.salesforce.com", "tok");
+    expect(items).toHaveLength(2);
+    expect(items[0]!.Product2?.Name).toBe("Enterprise Seat");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});

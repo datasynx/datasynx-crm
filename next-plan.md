@@ -164,7 +164,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | SF-3 | Leads → Kunden | Migration | M | ✅ |
 | SF-4 | Events → interactions | Migration | S | ✅ |
 | SF-5 | Cases → Tickets | Migration | M | ✅ |
-| SF-6 | Products/LineItems → Deal-Value/Quotes | Migration | M | 🔲 |
+| SF-6 | Products/LineItems → Deal-Value/Quotes | Migration | M | ✅ |
 | SF-7 | Notes → interactions | Migration | S | 🔲 |
 | SF-8 | Campaigns / Custom Fields / Owner→Actor / Account-Hierarchie | Migration | L | 🔲 |
 | N1-1 | MCP **Resources** (read-only Entities) | Core/MCP | M | 🔲 |

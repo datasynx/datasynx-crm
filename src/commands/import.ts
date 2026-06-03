@@ -14,6 +14,7 @@ interface ImportResult {
   leadsImported?: number;
   eventsImported?: number;
   casesImported?: number;
+  quotesImported?: number;
 }
 
 /** Map a Salesforce StageName to opencrm's fixed pipeline stage enum. */
@@ -598,6 +599,7 @@ async function runSalesforceApiImport(
     fetchSalesforceLeads,
     fetchSalesforceEvents,
     fetchSalesforceCases,
+    fetchSalesforceLineItems,
   } = await import("../sync/salesforce-client.js");
 
   let contacts: Awaited<ReturnType<typeof fetchSalesforceContacts>>;
@@ -606,6 +608,7 @@ async function runSalesforceApiImport(
   let leads: Awaited<ReturnType<typeof fetchSalesforceLeads>>;
   let events: Awaited<ReturnType<typeof fetchSalesforceEvents>>;
   let cases: Awaited<ReturnType<typeof fetchSalesforceCases>>;
+  let lineItems: Awaited<ReturnType<typeof fetchSalesforceLineItems>>;
 
   try {
     contacts = await fetchSalesforceContacts(instanceUrl, token);
@@ -614,6 +617,7 @@ async function runSalesforceApiImport(
     leads = (await fetchSalesforceLeads(instanceUrl, token)) ?? [];
     events = (await fetchSalesforceEvents(instanceUrl, token)) ?? [];
     cases = (await fetchSalesforceCases(instanceUrl, token)) ?? [];
+    lineItems = (await fetchSalesforceLineItems(instanceUrl, token)) ?? [];
   } catch (err) {
     result.errors.push(`Salesforce API: ${(err as Error).message}`);
     return result;
@@ -688,6 +692,7 @@ async function runSalesforceApiImport(
   // Pass 3: opportunities → pipeline deals
   const { upsertDeal } = await import("../fs/pipeline-writer.js");
   const today = new Date().toISOString().slice(0, 10);
+  const oppSlugById = new Map<string, { slug: string; dealName: string }>();
   for (const opp of opportunities) {
     const accountName = opp.Account?.Name?.trim();
     if (!opp.Name || !accountName) continue;
@@ -705,6 +710,7 @@ async function runSalesforceApiImport(
         continue;
       }
     }
+    oppSlugById.set(opp.Id, { slug, dealName: opp.Name });
 
     try {
       await upsertDeal(dir, slug, {
@@ -853,6 +859,51 @@ async function runSalesforceApiImport(
       result.casesImported = (result.casesImported ?? 0) + 1;
     } catch (err) {
       result.errors.push(`Case ${c.Id}: ${(err as Error).message}`);
+    }
+  }
+
+  // Pass 7: opportunity line items → one quote per opportunity
+  if (lineItems.length > 0 && oppSlugById.size > 0) {
+    const { generateQuote, listQuotes } = await import("../core/quote-generator.js");
+    const byOpp = new Map<string, typeof lineItems>();
+    for (const li of lineItems) {
+      if (!li.OpportunityId) continue;
+      const arr = byOpp.get(li.OpportunityId) ?? [];
+      arr.push(li);
+      byOpp.set(li.OpportunityId, arr);
+    }
+    for (const [oppId, items] of byOpp) {
+      const opp = oppSlugById.get(oppId);
+      if (!opp) continue;
+      // Dedup: skip if a quote for this deal already exists for the customer.
+      if (listQuotes(dir, opp.slug).some((q) => q.dealName === opp.dealName)) {
+        result.skipped++;
+        continue;
+      }
+      const quoteLineItems = items.map((li) => {
+        const quantity = typeof li.Quantity === "number" && li.Quantity > 0 ? li.Quantity : 1;
+        const unitPrice =
+          typeof li.UnitPrice === "number"
+            ? li.UnitPrice
+            : typeof li.TotalPrice === "number"
+              ? li.TotalPrice / quantity
+              : 0;
+        return {
+          description: li.Product2?.Name ?? li.Description ?? "Line item",
+          quantity,
+          unitPrice,
+        };
+      });
+      try {
+        await generateQuote(dir, {
+          slug: opp.slug,
+          dealName: opp.dealName,
+          lineItems: quoteLineItems,
+        });
+        result.quotesImported = (result.quotesImported ?? 0) + 1;
+      } catch (err) {
+        result.errors.push(`LineItems for '${opp.dealName}': ${(err as Error).message}`);
+      }
     }
   }
 

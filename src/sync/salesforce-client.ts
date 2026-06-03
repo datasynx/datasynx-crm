@@ -35,6 +35,16 @@ export interface SalesforceLead {
   Website?: string;
 }
 
+export interface SalesforceLineItem {
+  Id: string;
+  OpportunityId?: string;
+  Quantity?: number | null;
+  UnitPrice?: number | null;
+  TotalPrice?: number | null;
+  Description?: string;
+  Product2?: { Name?: string };
+}
+
 export interface SalesforceCase {
   Id: string;
   CaseNumber?: string;
@@ -152,6 +162,17 @@ export async function fetchSalesforceCases(
     instanceUrl,
     token,
     "SELECT+Id,CaseNumber,Subject,Description,Status,Priority,Account.Name,AccountId,ContactId,CreatedDate,ClosedDate+FROM+Case"
+  );
+}
+
+export async function fetchSalesforceLineItems(
+  instanceUrl: string,
+  token: string
+): Promise<SalesforceLineItem[]> {
+  return soqlQueryAll<SalesforceLineItem>(
+    instanceUrl,
+    token,
+    "SELECT+Id,OpportunityId,Quantity,UnitPrice,TotalPrice,Description,Product2.Name+FROM+OpportunityLineItem"
   );
 }
 
