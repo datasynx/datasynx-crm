@@ -317,3 +317,43 @@ describe("uploadBackup", () => {
     consoleSpy.mockRestore();
   });
 });
+
+describe("runVerify", () => {
+  it("exits with error when zip file not found (lines 263-266)", async () => {
+    vol.fromJSON({});
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    const { runVerify } = await import("../../src/commands/backup.js");
+    await runVerify("/crm/missing.zip");
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining("File not found"));
+    errorSpy.mockRestore();
+    exitSpy.mockRestore();
+  });
+
+  it("logs size and SHA-256 when zip is valid (lines 271-276)", async () => {
+    vol.fromJSON({ "/crm/backup.zip": "valid zip data" });
+    const { execSync } = await import("child_process");
+    vi.mocked(execSync).mockReturnValue(Buffer.from(""));
+    const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { runVerify } = await import("../../src/commands/backup.js");
+    await runVerify("/crm/backup.zip");
+    expect(consoleSpy.mock.calls.flat().join("\n")).toContain("ZIP integrity OK");
+    consoleSpy.mockRestore();
+  });
+
+  it("exits with error when zip integrity check fails (lines 277-280)", async () => {
+    vol.fromJSON({ "/crm/backup.zip": "corrupt data" });
+    const { execSync } = await import("child_process");
+    vi.mocked(execSync).mockImplementation(() => {
+      throw new Error("unzip: bad CRC");
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const exitSpy = vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    const { runVerify } = await import("../../src/commands/backup.js");
+    await runVerify("/crm/backup.zip");
+    expect(exitSpy).toHaveBeenCalledWith(1);
+    errorSpy.mockRestore();
+    exitSpy.mockRestore();
+  });
+});
