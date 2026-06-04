@@ -16,8 +16,10 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/)
 
 ### Fixed
 
-- `dxcrm backup` / `dxcrm restore` now honor `DXCRM_DATA_DIR` (previously fell
-  back to the current working directory).
+- `dxcrm status`, `dxcrm agent`, `dxcrm import`, `dxcrm backup`/`restore` and
+  `dxcrm backup schedule` now honor `DXCRM_DATA_DIR` (these command actions
+  previously fell back to the current working directory, so e.g. `status`
+  reported 0 customers when the data dir was set elsewhere).
 - `dxcrm vault get|list` with a wrong master key now prints a clear error and
   exits 1 instead of crashing with an uncaught crypto exception.
 - Consolidated the customer-slug listing duplicated across ~13 files into a
