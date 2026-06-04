@@ -174,7 +174,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | N1-5 | **Tool-Search / Lazy-Loading** | Core/MCP | M | 🟡 (searchTools-Relevanzsuche über Katalog; MCP-Tool-Exposition optional) |
 | N1-6 | **Registry-Listing** (`server.json`) | GTM | S | ✅ (Publish via OIDC = OPS) |
 | N1-7 | **Metadaten-Datenmodell** (object/fieldMetadata, Runtime-Zod) | Core | L | 🟡 (Custom-Fields-Registry + `dxcrm fields` ✅; Runtime-Zod-Merge/Custom-Objects offen) |
-| N2-1 | LLM-Opportunity-Scoring | Sales | M | 🔲 |
+| N2-1 | Opportunity-Scoring (Win-Likelihood) | Sales | M | 🟡 (deterministisch stage+probability→0-100/A-F; LLM-Rationale follow-up) |
 | N3-1 | Omni-Channel-Routing (skill/load) | Service | M | 🟡 (routeTicket + Agent-Store; Ticket-Auto-Assign-Wiring offen) |
 | N3-2 | KB-Eskalation / transfer-to-human | Service | M | 🟡 (escalateToHuman: Ticket + Routing-Assign; MCP-Action-Wiring offen) |
 | N4-1 | Segmente/Listen | Marketing | M | ✅ (`dxcrm segment` + evaluateSegment) |
