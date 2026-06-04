@@ -7,6 +7,7 @@ import { withJsonFile } from "./file-lock.js";
 import { guardIsoDate } from "./input-guard.js";
 import type { DealSnapshot, SimulationInput } from "./revenue-simulation.js";
 import { readPipeline } from "../fs/pipeline-writer.js";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -438,17 +439,11 @@ export async function syncGoalProgressFromPipeline(
 
   if (revenueGoals.length === 0) return { updated: [], skipped: activeGoals.length };
 
-  const customersDir = path.join(dataDir, "customers");
   let totalWon = 0;
-  if (fs.existsSync(customersDir)) {
-    const slugs = fs
-      .readdirSync(customersDir)
-      .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory());
-    for (const slug of slugs) {
-      const deals = await readPipeline(dataDir, slug).catch(() => []);
-      for (const deal of deals) {
-        if (deal.stage === "won") totalWon += deal.value ?? 0;
-      }
+  for (const slug of listCustomerSlugs(dataDir)) {
+    const deals = await readPipeline(dataDir, slug).catch(() => []);
+    for (const deal of deals) {
+      if (deal.stage === "won") totalWon += deal.value ?? 0;
     }
   }
 

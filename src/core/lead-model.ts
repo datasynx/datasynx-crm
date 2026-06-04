@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { readPipelineSync } from "../fs/pipeline-writer.js";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 import { scoreOpportunity } from "./opportunity-score.js";
 import type { PipelineDeal } from "../schemas/pipeline.js";
 
@@ -28,18 +29,6 @@ function modelPath(dataDir: string): string {
   return path.join(dataDir, MODEL_FILE);
 }
 
-function listSlugs(dataDir: string): string[] {
-  const dir = path.join(dataDir, "customers");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((s) => {
-    try {
-      return fs.statSync(path.join(dir, s)).isDirectory();
-    } catch {
-      return false;
-    }
-  });
-}
-
 function features(deal: PipelineDeal): number[] {
   return [Math.log10((deal.value ?? 0) + 1), (deal.probability ?? 0) / 100];
 }
@@ -51,7 +40,7 @@ function sigmoid(z: number): number {
 /** Read every customer's closed (won/lost) deals as labelled training rows. */
 export function gatherTrainingDeals(dataDir: string): Array<{ x: number[]; y: number }> {
   const rows: Array<{ x: number[]; y: number }> = [];
-  for (const slug of listSlugs(dataDir)) {
+  for (const slug of listCustomerSlugs(dataDir)) {
     let deals: PipelineDeal[] = [];
     try {
       deals = readPipelineSync(dataDir, slug);

@@ -1,6 +1,4 @@
-import fs from "fs";
-import path from "path";
-import { readMainFacts } from "../fs/customer-dir.js";
+import { readMainFacts, listCustomerSlugs } from "../fs/customer-dir.js";
 
 /**
  * Identity resolution (CDP v1, N4-3): deterministic deduplication of customers
@@ -20,18 +18,6 @@ export interface DuplicateCluster {
   slugs: string[];
 }
 
-function listSlugs(dataDir: string): string[] {
-  const dir = path.join(dataDir, "customers");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((s) => {
-    try {
-      return fs.statSync(path.join(dir, s)).isDirectory();
-    } catch {
-      return false;
-    }
-  });
-}
-
 /** Canonical key for a customer: normalized domain, else email domain, else "". */
 export async function canonicalKey(dataDir: string, slug: string): Promise<string> {
   const facts = await readMainFacts(dataDir, slug).catch(() => null);
@@ -44,7 +30,7 @@ export async function canonicalKey(dataDir: string, slug: string): Promise<strin
 /** Group customers by canonical key; clusters with ≥2 members are duplicates. */
 export async function findDuplicateClusters(dataDir: string): Promise<DuplicateCluster[]> {
   const byKey = new Map<string, string[]>();
-  for (const slug of listSlugs(dataDir)) {
+  for (const slug of listCustomerSlugs(dataDir)) {
     const key = await canonicalKey(dataDir, slug);
     if (!key) continue;
     byKey.set(key, [...(byKey.get(key) ?? []), slug]);

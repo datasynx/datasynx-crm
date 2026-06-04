@@ -1,6 +1,5 @@
-import fs from "fs";
-import path from "path";
 import { readPipeline } from "../fs/pipeline-writer.js";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 import { readHealth, computeCustomerHealth } from "./relationship-health.js";
 import { readGraph, getStakeholders } from "./graph.js";
 import { getPipelineStages } from "./pipeline-stages.js";
@@ -245,14 +244,10 @@ export async function buildSimulationInput(
   today: string,
   externalSignals: ExternalSignal[] = []
 ): Promise<SimulationInput> {
-  const customersDir = path.join(dataDir, "customers");
-  if (!fs.existsSync(customersDir)) {
+  const slugs = listCustomerSlugs(dataDir);
+  if (slugs.length === 0) {
     return { deals: [], externalSignals, iterations: 10_000, horizon, today };
   }
-
-  const slugs = fs
-    .readdirSync(customersDir)
-    .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory());
 
   const stages = getPipelineStages(dataDir);
   const stageProb: Record<string, number> = {};

@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { readMainFacts } from "../fs/customer-dir.js";
+import { readMainFacts, listCustomerSlugs } from "../fs/customer-dir.js";
 
 /**
  * Customer segments (marketing lists, N4-1): named filter criteria over
@@ -59,18 +59,6 @@ export function removeSegment(dataDir: string, name: string): boolean {
   return true;
 }
 
-function listSlugs(dataDir: string): string[] {
-  const dir = path.join(dataDir, "customers");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((s) => {
-    try {
-      return fs.statSync(path.join(dir, s)).isDirectory();
-    } catch {
-      return false;
-    }
-  });
-}
-
 function daysBetween(fromIso: string, toIso: string): number {
   const a = new Date(fromIso).getTime();
   const b = new Date(toIso).getTime();
@@ -85,7 +73,7 @@ export async function evaluateSegment(
   now: string = new Date().toISOString().slice(0, 10)
 ): Promise<string[]> {
   const matches: string[] = [];
-  for (const slug of listSlugs(dataDir)) {
+  for (const slug of listCustomerSlugs(dataDir)) {
     const facts = await readMainFacts(dataDir, slug).catch(() => null);
     if (!facts) continue;
 

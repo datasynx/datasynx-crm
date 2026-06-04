@@ -12,6 +12,19 @@ export function customerExists(dataDir: string, slug: string): boolean {
   return fs.existsSync(getCustomerDir(dataDir, slug));
 }
 
+/** List all customer slugs (immediate subdirectories of customers/). */
+export function listCustomerSlugs(dataDir: string): string[] {
+  const dir = path.join(dataDir, "customers");
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir).filter((s) => {
+    try {
+      return fs.statSync(path.join(dir, s)).isDirectory();
+    } catch {
+      return false;
+    }
+  });
+}
+
 export async function ensureCustomerDir(dataDir: string, slug: string): Promise<void> {
   const customerDir = getCustomerDir(dataDir, slug);
   fs.mkdirSync(customerDir, { recursive: true });

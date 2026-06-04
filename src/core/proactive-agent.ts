@@ -3,6 +3,7 @@ import path from "path";
 import { withJsonFile } from "./file-lock.js";
 import { computeCustomerHealth, readHealth } from "./relationship-health.js";
 import { readPipeline } from "../fs/pipeline-writer.js";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 import { buildSimulationInput, runSimulation } from "./revenue-simulation.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -100,12 +101,7 @@ export async function markTaskDone(
 // ─── Daily briefing ───────────────────────────────────────────────────────────
 
 export async function buildDailyBriefing(dataDir: string, today: string): Promise<DailyBriefing> {
-  const customersDir = path.join(dataDir, "customers");
-  const slugs = fs.existsSync(customersDir)
-    ? fs
-        .readdirSync(customersDir)
-        .filter((d) => fs.statSync(path.join(customersDir, d)).isDirectory())
-    : [];
+  const slugs = listCustomerSlugs(dataDir);
 
   const urgent: string[] = [];
   const opportunities: string[] = [];

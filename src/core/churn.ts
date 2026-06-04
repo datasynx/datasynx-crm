@@ -1,6 +1,5 @@
-import fs from "fs";
-import path from "path";
 import { computeCustomerHealth } from "./relationship-health.js";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 
 /**
  * Churn early-warning (domino D13 / C4): turns the per-contact relationship
@@ -16,18 +15,6 @@ export interface ChurnAssessment {
   riskScore: number; // 0–100, higher = more likely to churn
   level: ChurnLevel;
   signals: string[];
-}
-
-function listSlugs(dataDir: string): string[] {
-  const dir = path.join(dataDir, "customers");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((s) => {
-    try {
-      return fs.statSync(path.join(dir, s)).isDirectory();
-    } catch {
-      return false;
-    }
-  });
 }
 
 function levelFromScore(score: number): ChurnLevel {
@@ -85,7 +72,7 @@ export function scanChurn(
   dataDir: string,
   today: string = new Date().toISOString().slice(0, 10)
 ): ChurnAssessment[] {
-  return listSlugs(dataDir)
+  return listCustomerSlugs(dataDir)
     .map((slug) => assessChurn(dataDir, slug, today))
     .sort((a, b) => b.riskScore - a.riskScore);
 }

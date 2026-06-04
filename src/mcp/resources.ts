@@ -1,21 +1,7 @@
 import { type McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
-import fs from "fs";
-import path from "path";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 
 const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-
-/** List customer slugs (directories under customers/). */
-export function listCustomerSlugs(dataDir: string): string[] {
-  const dir = path.join(dataDir, "customers");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((s) => {
-    try {
-      return fs.statSync(path.join(dir, s)).isDirectory();
-    } catch {
-      return false;
-    }
-  });
-}
 
 /**
  * Read-only MCP Resources for CRM entities. Complements the action Tools:

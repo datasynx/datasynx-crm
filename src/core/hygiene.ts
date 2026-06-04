@@ -1,6 +1,4 @@
-import fs from "fs";
-import path from "path";
-import { readMainFacts } from "../fs/customer-dir.js";
+import { readMainFacts, listCustomerSlugs } from "../fs/customer-dir.js";
 import { findDuplicateClusters, normalizeDomain } from "./identity.js";
 
 /**
@@ -19,22 +17,10 @@ export interface HygieneIssue {
   suggestedFix?: string;
 }
 
-function listSlugs(dataDir: string): string[] {
-  const dir = path.join(dataDir, "customers");
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir).filter((s) => {
-    try {
-      return fs.statSync(path.join(dir, s)).isDirectory();
-    } catch {
-      return false;
-    }
-  });
-}
-
 export async function scanHygiene(dataDir: string): Promise<HygieneIssue[]> {
   const issues: HygieneIssue[] = [];
 
-  for (const slug of listSlugs(dataDir)) {
+  for (const slug of listCustomerSlugs(dataDir)) {
     const facts = await readMainFacts(dataDir, slug).catch(() => null);
     if (!facts) continue;
 
