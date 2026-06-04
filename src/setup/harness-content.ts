@@ -80,6 +80,7 @@ const ALL_TOOLS = [
 ] as const;
 
 export type McpToolName = (typeof ALL_TOOLS)[number];
+export { ALL_TOOLS };
 export const TOOL_COUNT = ALL_TOOLS.length; // 56
 
 /** Claude Code: CLAUDE.md in CRM dataDir */
