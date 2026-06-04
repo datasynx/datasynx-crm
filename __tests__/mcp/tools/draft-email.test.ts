@@ -155,4 +155,23 @@ describe("handleDraftEmail", () => {
     expect(parsed.polished).toBe(false);
     expect(vi.mocked(callLlm)).not.toHaveBeenCalled();
   });
+
+  it("falls back to the customer tone profile when no tone override is given", async () => {
+    const { callLlm } = await import("../../../src/core/llm.js");
+    vi.mocked(callLlm).mockResolvedValue("Sehr geehrte Damen und Herren, ...");
+    vol.fromJSON({
+      [`${DATA_DIR}/customers/acme/main_facts.md`]: MAIN_FACTS,
+      [`${DATA_DIR}/customers/acme/tone.json`]: JSON.stringify({
+        formality: "formal",
+        language: "de",
+      }),
+      [`${DATA_DIR}/.agentic/templates/outreach/intro.md`]: TEMPLATE_CONTENT,
+    });
+    const { handleDraftEmail } = await import("../../../src/mcp/tools/draft-email.js");
+    const res = await handleDraftEmail({ slug: "acme", templateId: "intro" }, DATA_DIR);
+    const parsed = JSON.parse(res.content[0]!.text) as { polished: boolean; tone: string | null };
+    expect(parsed.polished).toBe(true);
+    expect(parsed.tone).toContain("formal");
+    expect(vi.mocked(callLlm)).toHaveBeenCalled();
+  });
 });

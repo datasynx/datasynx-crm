@@ -33,16 +33,25 @@ export async function handleDraftEmail(
   const subject = interpolate(tmpl.subject, vars);
   const interpolatedBody = interpolate(tmpl.body, vars);
 
+  // Tone: explicit override wins; otherwise fall back to the customer's tone
+  // profile (D8), then the global default.
+  let effectiveTone = input.tone;
+  if (!effectiveTone) {
+    const { resolveTone, toneInstruction } = await import("../../core/tone.js");
+    const instr = toneInstruction(resolveTone(dataDir, input.slug));
+    if (instr) effectiveTone = instr;
+  }
+
   // Optional LLM polish: rewrite the interpolated body in the requested tone.
   // Falls back to the plain interpolation when no ANTHROPIC_API_KEY is set or
   // the call fails — the template-fill behaviour is always preserved.
   let body = interpolatedBody;
   let polished = false;
-  if (input.tone) {
+  if (effectiveTone) {
     try {
       const { callLlm } = await import("../../core/llm.js");
       const refined = await callLlm(
-        `Rewrite the following email in a ${input.tone} tone. Keep the same language, ` +
+        `Rewrite the following email in a ${effectiveTone} tone. Keep the same language, ` +
           `preserve all names and facts, and do not invent details. ` +
           `Return ONLY the rewritten email body, no preamble.\n\n---\n${interpolatedBody}`
       );
@@ -70,7 +79,7 @@ export async function handleDraftEmail(
             to,
             slug: input.slug,
             templateId: input.templateId,
-            tone: input.tone ?? null,
+            tone: effectiveTone ?? null,
             polished,
             resolvedVariables: vars,
           },

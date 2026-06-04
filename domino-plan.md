@@ -72,7 +72,7 @@ Jeder Stein: **Was er freischaltet/verbessert · hängt ab von · Quelle · Aufw
 - **Hängt ab von:** D2.
 - **Schaltet frei:** prozessgetreue Ausführung in D9, D11.
 
-### D8 · Tonalität je Kunde (+ global default) — *jede ausgehende Kommunikation wird besser* · F2 · S
+### D8 ✅ · Tonalität je Kunde (+ global default) — *jede ausgehende Kommunikation wird besser* · F2 · S
 - **Warum hier:** Klein, sofort wirksam; dockt an `draft_email`/Sequenzen/Journeys an → verbessert **alle**
   Kommunikations-Features auf einen Schlag.
 - **Hängt ab von:** vorhandenes `draft_email({ tone })`.

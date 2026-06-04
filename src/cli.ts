@@ -38,6 +38,7 @@ import { approvalsCommand, policyCommand } from "./commands/approvals.js";
 import { hygieneCommand } from "./commands/hygiene.js";
 import { memoryCommand } from "./commands/memory.js";
 import { sopCommand } from "./commands/sop.js";
+import { toneCommand } from "./commands/tone.js";
 
 const program = new Command();
 program
@@ -88,5 +89,6 @@ program.addCommand(policyCommand);
 program.addCommand(hygieneCommand);
 program.addCommand(memoryCommand);
 program.addCommand(sopCommand);
+program.addCommand(toneCommand);
 
 await program.parseAsync(process.argv);
