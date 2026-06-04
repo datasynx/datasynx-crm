@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.6.0...v1.7.0) (2026-06-04)
+
+
+### Features
+
+* **daemon:** auto-poll all logged-in mailboxes on the sync cycle ([ce2b36c](https://github.com/datasynx-ai/datasynx-crm/commit/ce2b36c04950732ab33cb3a9ff610f62dc922ae2))
+
 # [1.6.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.5.0...v1.6.0) (2026-06-04)
 
 
