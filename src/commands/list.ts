@@ -1,7 +1,5 @@
 import { Command } from "commander";
-import fs from "fs";
-import path from "path";
-import { readMainFacts } from "../fs/customer-dir.js";
+import { readMainFacts, listCustomerSlugs } from "../fs/customer-dir.js";
 import { renderCustomerTable } from "../ui/table.js";
 import type { MainFacts } from "../schemas/main-facts.js";
 
@@ -9,16 +7,12 @@ export const listCommand = new Command("list")
   .option("--filter <query>", "Filter by name or slug")
   .action(async (opts: { filter?: string }) => {
     const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
-    const customersDir = path.join(dataDir, "customers");
+    const slugs = listCustomerSlugs(dataDir);
 
-    if (!fs.existsSync(customersDir)) {
+    if (slugs.length === 0) {
       console.log('No customers yet. Run: dxcrm create "Customer Name"');
       return;
     }
-
-    const slugs = fs
-      .readdirSync(customersDir)
-      .filter((s) => fs.statSync(path.join(customersDir, s)).isDirectory());
 
     const customers: Array<{
       slug: string;

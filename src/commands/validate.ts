@@ -2,6 +2,7 @@ import { Command } from "commander";
 import fs from "fs";
 import path from "path";
 import { MainFactsSchema } from "../schemas/main-facts.js";
+import { listCustomerSlugs } from "../fs/customer-dir.js";
 import matter from "gray-matter";
 import { success, error, warning, info } from "../ui/colors.js";
 
@@ -46,9 +47,7 @@ export async function runValidate(opts: { fix?: boolean }, dataDir: string): Pro
     return;
   }
 
-  const slugs = fs
-    .readdirSync(customersDir)
-    .filter((s) => fs.statSync(path.join(customersDir, s)).isDirectory());
+  const slugs = listCustomerSlugs(dataDir);
 
   let errorCount = 0;
   let fixedCount = 0;
