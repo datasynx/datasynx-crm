@@ -208,6 +208,15 @@ dxcrm mailbox login microsoft --user you@org.com
 
 Tokens are stored per `provider:user` and refreshed automatically; the same client-ID env vars are needed at sync time so expired access tokens can be refreshed.
 
+### dxcrm mailbox list / logout — manage linked accounts
+
+```bash
+dxcrm mailbox list                          # show linked accounts + token status
+dxcrm mailbox logout gmail:you@gmail.com    # remove a stored account
+```
+
+`list` prints each `provider:user` with `valid`/`expired` token status and expiry. `logout` deletes the stored token. Linked mailboxes also appear in `dxcrm status` (`Mailboxes: N linked (M valid)`).
+
 **Configuration (environment variables):**
 | Variable | Required | Default | Notes |
 |---|---|---|---|

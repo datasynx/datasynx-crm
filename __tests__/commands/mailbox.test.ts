@@ -9,8 +9,10 @@ import {
   runMailboxSync,
   parseAccount,
   resolveAccountConfig,
+  runMailboxList,
+  runMailboxLogout,
 } from "../../src/commands/mailbox.js";
-import { saveMailboxToken } from "../../src/sync/oauth/token-store.js";
+import { saveMailboxToken, loadMailboxToken } from "../../src/sync/oauth/token-store.js";
 
 beforeEach(() => {
   vol.reset();
@@ -139,5 +141,56 @@ describe("runMailboxSync with --account", () => {
     });
     expect("error" in res).toBe(true);
     expect(syncImapMailbox).not.toHaveBeenCalled();
+  });
+});
+
+describe("runMailboxList", () => {
+  it("summarizes accounts with valid/expired status", () => {
+    saveMailboxToken("/data", {
+      provider: "gmail",
+      user: "a@x.com",
+      accessToken: "AT",
+      refreshToken: "RT",
+      expiresAt: Date.now() + 3600_000,
+    });
+    saveMailboxToken("/data", {
+      provider: "microsoft",
+      user: "b@org.com",
+      accessToken: "AT",
+      refreshToken: "RT",
+      expiresAt: Date.now() - 1000,
+    });
+    const list = runMailboxList("/data");
+    expect(list).toHaveLength(2);
+    expect(list.find((a) => a.account === "gmail:a@x.com")?.status).toBe("valid");
+    expect(list.find((a) => a.account === "microsoft:b@org.com")?.status).toBe("expired");
+  });
+
+  it("returns an empty list when nothing is logged in", () => {
+    expect(runMailboxList("/data")).toEqual([]);
+  });
+});
+
+describe("runMailboxLogout", () => {
+  it("removes a stored account", () => {
+    saveMailboxToken("/data", {
+      provider: "gmail",
+      user: "a@x.com",
+      accessToken: "AT",
+      refreshToken: "RT",
+      expiresAt: Date.now() + 3600_000,
+    });
+    const res = runMailboxLogout("/data", "gmail:a@x.com");
+    expect(res).toEqual({ removed: true });
+    expect(loadMailboxToken("/data", "gmail", "a@x.com")).toBeUndefined();
+  });
+
+  it("reports removed:false for an unknown account", () => {
+    expect(runMailboxLogout("/data", "gmail:nobody@x.com")).toEqual({ removed: false });
+  });
+
+  it("rejects a malformed account string", () => {
+    const res = runMailboxLogout("/data", "bogus");
+    expect("error" in res).toBe(true);
   });
 });

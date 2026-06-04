@@ -58,6 +58,22 @@ export function listMailboxTokens(dataDir: string): MailboxToken[] {
   return Object.values(readAll(dataDir));
 }
 
+/** Remove a stored token for a provider+user. Returns true if one was removed. */
+export function removeMailboxToken(
+  dataDir: string,
+  provider: MailboxProvider,
+  user: string
+): boolean {
+  const all = readAll(dataDir);
+  const key = keyOf(provider, user);
+  if (!(key in all)) return false;
+  delete all[key];
+  const file = tokensPath(dataDir);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  writeFileAtomic(file, JSON.stringify(all, null, 2));
+  return true;
+}
+
 /** True when the access token is missing or expires within `skewMs` (default 60s). */
 export function isTokenExpired(token: MailboxToken, skewMs = 60_000, now = Date.now()): boolean {
   return !token.accessToken || token.expiresAt <= now + skewMs;

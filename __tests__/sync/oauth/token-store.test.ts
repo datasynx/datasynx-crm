@@ -4,6 +4,7 @@ import {
   saveMailboxToken,
   loadMailboxToken,
   listMailboxTokens,
+  removeMailboxToken,
   isTokenExpired,
   type MailboxToken,
 } from "../../../src/sync/oauth/token-store.js";
@@ -37,6 +38,13 @@ describe("token-store", () => {
 
   it("returns undefined for unknown token", () => {
     expect(loadMailboxToken("/data", "gmail", "nobody@x.com")).toBeUndefined();
+  });
+
+  it("removes a token and reports whether one existed", () => {
+    saveMailboxToken("/data", tok());
+    expect(removeMailboxToken("/data", "gmail", "me@example.com")).toBe(true);
+    expect(loadMailboxToken("/data", "gmail", "me@example.com")).toBeUndefined();
+    expect(removeMailboxToken("/data", "gmail", "me@example.com")).toBe(false);
   });
 
   it("persists to .agentic/mailbox-tokens.json", () => {

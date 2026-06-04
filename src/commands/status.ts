@@ -95,6 +95,14 @@ export async function runStatus(
   // Customer count
   console.log(` Customers:  ${slugs.length} active`);
 
+  // Linked mailbox accounts (OAuth)
+  const { listMailboxTokens, isTokenExpired } = await import("../sync/oauth/token-store.js");
+  const mailboxTokens = listMailboxTokens(dir);
+  if (mailboxTokens.length > 0) {
+    const valid = mailboxTokens.filter((t) => !isTokenExpired(t)).length;
+    console.log(` Mailboxes:  ${mailboxTokens.length} linked (${valid} valid)`);
+  }
+
   // Session line
   const session = getSession() ?? readAllSessions(dir)[0] ?? null;
   if (session) {

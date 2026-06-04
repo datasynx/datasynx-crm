@@ -3,10 +3,48 @@ import readline from "readline";
 import { success, error, info, bold } from "../ui/colors.js";
 import type { ImapMailboxConfig, SyncImapResult } from "../sync/connectors/imap.js";
 import type { MailboxProvider } from "../sync/oauth/token-store.js";
-import { imapConfigFromEnv, resolveAccountConfig } from "../sync/mailbox-config.js";
+import { imapConfigFromEnv, parseAccount, resolveAccountConfig } from "../sync/mailbox-config.js";
+import {
+  listMailboxTokens,
+  removeMailboxToken,
+  isTokenExpired,
+} from "../sync/oauth/token-store.js";
 
 // Re-exported for backward compatibility (tests + external callers).
 export { imapConfigFromEnv, parseAccount, resolveAccountConfig } from "../sync/mailbox-config.js";
+
+export interface MailboxAccountSummary {
+  account: string;
+  provider: string;
+  user: string;
+  status: "valid" | "expired";
+  expiresAt: string;
+}
+
+/** Summarize every stored mailbox OAuth account. */
+export function runMailboxList(dataDir: string): MailboxAccountSummary[] {
+  return listMailboxTokens(dataDir).map((t) => ({
+    account: `${t.provider}:${t.user}`,
+    provider: t.provider,
+    user: t.user,
+    status: isTokenExpired(t) ? "expired" : "valid",
+    expiresAt: new Date(t.expiresAt).toISOString(),
+  }));
+}
+
+/** Remove a stored mailbox account by "provider:user". */
+export function runMailboxLogout(
+  dataDir: string,
+  account: string
+): { removed: boolean } | { error: string } {
+  const parsed = parseAccount(account);
+  if (!parsed) {
+    return {
+      error: `Invalid account '${account}'. Use 'gmail:you@gmail.com' or 'microsoft:you@org.com'.`,
+    };
+  }
+  return { removed: removeMailboxToken(dataDir, parsed.provider, parsed.user) };
+}
 
 export interface RunMailboxSyncOptions {
   dataDir: string;
@@ -159,3 +197,37 @@ mailboxCommand
       });
     }
   );
+
+mailboxCommand
+  .command("list")
+  .description("List logged-in mailbox accounts and their token status")
+  .action(() => {
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+    const accounts = runMailboxList(dataDir);
+    if (accounts.length === 0) {
+      console.log(info("No mailbox accounts. Run 'dxcrm mailbox login gmail|microsoft'."));
+      return;
+    }
+    for (const a of accounts) {
+      const tag = a.status === "valid" ? success("valid") : error("expired");
+      console.log(`${bold(a.account)} — token ${tag} (expires ${a.expiresAt})`);
+    }
+  });
+
+mailboxCommand
+  .command("logout")
+  .description("Remove a stored mailbox account")
+  .argument("<account>", "provider:user (e.g. gmail:you@gmail.com)")
+  .action((account: string) => {
+    const dataDir = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
+    const result = runMailboxLogout(dataDir, account);
+    if ("error" in result) {
+      console.error(error(result.error));
+      return;
+    }
+    console.log(
+      result.removed
+        ? success(`✓ Removed ${bold(account)}.`)
+        : info(`No stored account '${account}'.`)
+    );
+  });
