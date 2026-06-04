@@ -121,3 +121,62 @@ export async function buildContext(dataDir: string, slug: string): Promise<strin
 
   return raw;
 }
+
+/** Robust section-body extractor: from a `## Name` heading to the next `## ` heading. */
+function sectionBody(content: string, name: string): string {
+  const lines = content.split("\n");
+  const start = lines.findIndex((l) => l.trim() === `## ${name}`);
+  if (start < 0) return "";
+  const body: string[] = [];
+  for (let i = start + 1; i < lines.length; i++) {
+    if (lines[i]!.startsWith("## ")) break;
+    body.push(lines[i]!);
+  }
+  return body.join("\n").trim();
+}
+
+export interface ContextBlock {
+  slug: string;
+  metadata: Record<string, unknown>;
+  quickReference: string;
+  contacts: string;
+  criticalContext: string;
+  openQuestions: string;
+  recentActivity: string;
+  pipeline: string;
+}
+
+/**
+ * Structured variant of buildContext (REF-2): returns a typed object instead of
+ * a markdown string, for callers that need fields programmatically (e.g. MCP
+ * responses, SDK consumers). buildContext remains the token-budgeted string form.
+ */
+export async function buildContextBlock(dataDir: string, slug: string): Promise<ContextBlock> {
+  const customerDir = path.join(dataDir, "customers", slug);
+  if (!fs.existsSync(customerDir)) {
+    throw new Error(`Customer '${slug}' not found`);
+  }
+
+  const mainFactsPath = path.join(customerDir, "main_facts.md");
+  const interactionsPath = path.join(customerDir, "interactions.md");
+  const pipelinePath = path.join(customerDir, "pipeline.md");
+
+  let mainContent = "";
+  let metadata: Record<string, unknown> = {};
+  if (fs.existsSync(mainFactsPath)) {
+    const raw = matter(fs.readFileSync(mainFactsPath, "utf-8") as string);
+    mainContent = raw.content ?? "";
+    metadata = raw.data as Record<string, unknown>;
+  }
+
+  return {
+    slug,
+    metadata,
+    quickReference: sectionBody(mainContent, "Quick Reference"),
+    contacts: sectionBody(mainContent, "Contacts"),
+    criticalContext: sectionBody(mainContent, "Critical Context"),
+    openQuestions: sectionBody(mainContent, "Open Questions"),
+    recentActivity: parseRecentInteractions(interactionsPath, MAX_INTERACTIONS),
+    pipeline: parsePipelineContent(pipelinePath),
+  };
+}

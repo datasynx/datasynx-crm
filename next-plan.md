@@ -189,7 +189,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | X-1 | PII-Masking vor LLM-Call | Compliance | M | ✅ (opt-in `DXCRM_PII_MASKING=on`) |
 | X-2 | Guardrails (Prompt-Injection / Indirect-Injection) | Compliance | M | ✅ (opt-in `DXCRM_GUARDRAILS=on`) |
 | REF-1 | Spark-Framework-Adapter (Stub fertigstellen/entfernen) | Refinement | S | 🔲 |
-| REF-2 | Structured `ContextBlock` (neben string) | Refinement | S | 🔲 |
+| REF-2 | Structured `ContextBlock` (neben string) | Refinement | S | ✅ |
 | REF-3 | Coverage-Top-ups (`mcp/server.ts`, `sync/index.ts`) | Quality | S | 🔲 |
 | OPS-1 | Go-Live npm (Repo public, Secrets, Pages, Release) | Ops | — | ⏸ user |
 | OPS-2 | 8 alte `claude/*`-Branches löschen | Ops | — | ⏸ user |
