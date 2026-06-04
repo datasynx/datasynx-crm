@@ -1,3 +1,14 @@
+# [1.1.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.0.0...v1.1.0) (2026-06-04)
+
+
+### Features
+
+* **converters:** opt-in OCR for scanned PDFs via optional canvas dep ([4c9e660](https://github.com/datasynx-ai/datasynx-crm/commit/4c9e660669baac0c15148afb3c317a086636d475))
+* **converters:** pluggable attachment-to-Markdown converter registry ([e0904e4](https://github.com/datasynx-ai/datasynx-crm/commit/e0904e422417eb3b8cbd3191fccc6d6728b82c3d))
+* **export:** bundle attachment Markdown + docs for attachment pipeline ([1ca05e7](https://github.com/datasynx-ai/datasynx-crm/commit/1ca05e77f68ab2bf64825bb6005fed70540b87cc))
+* **gmail:** download, convert and index email attachments ([deebd55](https://github.com/datasynx-ai/datasynx-crm/commit/deebd55ee14dd020b20da98e73dc4e05b55b5dc6))
+* **gmail:** extract and index full email body, not just snippet ([e33bccd](https://github.com/datasynx-ai/datasynx-crm/commit/e33bccd0de087b2aefb90e6cf47af295e353778a))
+
 # 1.0.0 (2026-06-04)
 
 
