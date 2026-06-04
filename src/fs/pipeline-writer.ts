@@ -82,13 +82,17 @@ function serializeDeals(deals: PipelineDeal[]): string {
   return `${PIPELINE_HEADER}${TABLE_HEADER}\n${rows}\n`;
 }
 
-export async function readPipeline(dataDir: string, slug: string): Promise<PipelineDeal[]> {
+export function readPipelineSync(dataDir: string, slug: string): PipelineDeal[] {
   const filePath = path.join(dataDir, "customers", slug, "pipeline.md");
   if (!fs.existsSync(filePath)) {
     return [];
   }
   const content = fs.readFileSync(filePath, "utf-8") as string;
   return parseDealsFromMarkdown(content);
+}
+
+export async function readPipeline(dataDir: string, slug: string): Promise<PipelineDeal[]> {
+  return readPipelineSync(dataDir, slug);
 }
 
 export async function upsertDeal(dataDir: string, slug: string, deal: PipelineDeal): Promise<void> {

@@ -863,3 +863,17 @@ into an account-level churn-risk read so at-risk customers surface before they l
 dxcrm churn assess acme     # one customer, with explanatory signals
 dxcrm churn scan            # all customers ranked by risk (highest first)
 ```
+
+## dxcrm leadscore (predictive)
+
+A dependency-free logistic-regression model learned from your own won/lost
+history (features: log-scaled deal value + stated probability). Explainable, no
+external ML runtime; falls back to the deterministic heuristic until there's
+enough closed history (≥4 deals with both outcomes).
+
+```bash
+dxcrm leadscore train          # learn + persist the model from won/lost deals
+dxcrm leadscore predict acme   # win-probability for acme's open deals
+```
+
+The model is stored at `.agentic/lead-model.json`.

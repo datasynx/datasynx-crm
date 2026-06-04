@@ -44,6 +44,7 @@ import { askCommand } from "./commands/ask.js";
 import { nbaCommand } from "./commands/nba.js";
 import { vaultCommand } from "./commands/vault.js";
 import { churnCommand } from "./commands/churn.js";
+import { leadscoreCommand } from "./commands/leadscore.js";
 
 const program = new Command();
 program
@@ -100,5 +101,6 @@ program.addCommand(askCommand);
 program.addCommand(nbaCommand);
 program.addCommand(vaultCommand);
 program.addCommand(churnCommand);
+program.addCommand(leadscoreCommand);
 
 await program.parseAsync(process.argv);
