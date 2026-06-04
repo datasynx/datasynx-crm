@@ -30,7 +30,7 @@ Workspace-Modell auf — wir erweitern ihn (siehe Architektur-Entscheidung A1).
 | Vision-Baustein (Whitepaper) | opencrm heute | Beleg / Delta |
 |---|---|---|
 | Dual npm-Paket (MCP-Server + SDK) | ✅ `bin` + `exports` (`.` + `./mcp`), Dual ESM/CJS, `prepublishOnly` | `server.json` (Registry) fehlt |
-| MCP-Server | ✅ **52 Tools**, **4 Resources** (`crm://customers`, `crm://customer/{slug}`, `crm://pipeline/{slug}`, `crm://timeline/{slug}`), **4 Prompts** (Playbooks), stdio **+** stateless Streamable HTTP | kein `instructions`-Feld, kein Tool-Search (offen: N1-3/N1-5) |
+| MCP-Server | ✅ **56 Tools** (inkl. 4 Custom-Object-Tools), **4 Resources**, **4 Prompts** (Playbooks), stdio **+** stateless Streamable HTTP | kein `instructions`-Feld, kein Tool-Search (offen: N1-3/N1-5) |
 | Auth (HTTP `/mcp`) | ✅ **Bearer-Token-Gate** (opt-in via `dxcrm mcp token` oder `DXCRM_MCP_AUTH=required`), RFC-9728-Metadata + 401/`WWW-Authenticate`, SHA-256-gehashte Tokens, Actor→RBAC (`src/mcp/auth.ts`) | Voller OAuth-Flow gegen externen AS (PKCE/JWKS) optional/später; per-Request-Actor-Propagation in RBAC noch env-basiert |
 | RBAC | ✅ tool-level via `DXCRM_ACTOR` + `.agentic/rbac.json` (admin/manager/rep) | nicht request-/token-gebunden; Sharing-Rules nur grob (owned_customers) |
 | Datenmodell | 🔴 **11 feste Zod-Schemas** (main_facts/interaction/pipeline/ticket/quote/sequence/survey/kb/agent-config/sources/email-template) | **null Custom Objects/Fields, keine Composite-Typen, keine Runtime-Metadaten** (`src/schemas/`) |
@@ -180,7 +180,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | N4-1 | Segmente/Listen | Marketing | M | 🔲 |
 | N4-2 | Journeys (mehrstufig, multichannel) | Marketing | L | 🔲 |
 | N4-3 | CDP: Identity Resolution + Unified Profiles + Calculated Insights | Data | L | 🔲 |
-| N5-1 | Custom Objects/Fields via Metadata-API (No-Migration) | Platform | L | ✅ (`dxcrm object define/add/list` + CRUD; MCP-Tool-Exposition offen) |
+| N5-1 | Custom Objects/Fields via Metadata-API (No-Migration) | Platform | L | ✅ (CRUD + `dxcrm object` CLI + 4 MCP-Tools) |
 | N5-2 | Webhook-CRUD-Events (Backoff + Replay-Store) | Platform | M | 🔲 |
 | N5-3 | Sharing-Rules / Field-/Row-Level-Security | Platform | M | 🔲 |
 | N6-1 | Bi-temporaler Wissensgraph (4 Zeitstempel/Edge) | Memory | L | 🟡 (Primitive ✅: validFrom/To+recordedAt/invalidatedAt, invalidateEdge/activeEdges; Auto-Invalidation widersprüchlicher Fakten + Kùzu offen) |

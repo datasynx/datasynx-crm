@@ -17,9 +17,11 @@ const ALLOWED_TOOLS: Record<Role, string[]> = {
     "export_customer",
     "pursue_goal",
     "register_push_subscription",
+    "define_custom_object",
+    "create_record",
   ],
-  manager: ["log_interaction", "update_deal", "pursue_goal"],
-  rep: ["log_interaction", "update_deal"],
+  manager: ["log_interaction", "update_deal", "pursue_goal", "create_record"],
+  rep: ["log_interaction", "update_deal", "create_record"],
 };
 
 function rbacPath(dataDir: string): string {

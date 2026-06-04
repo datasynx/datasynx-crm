@@ -72,10 +72,15 @@ const ALL_TOOLS = [
   // Sync & Audit (Enterprise)
   "trigger_sync",
   "get_audit_log",
+  // Metadata / custom objects (Platform)
+  "define_custom_object",
+  "create_record",
+  "list_records",
+  "list_custom_objects",
 ] as const;
 
 export type McpToolName = (typeof ALL_TOOLS)[number];
-export const TOOL_COUNT = ALL_TOOLS.length; // 52
+export const TOOL_COUNT = ALL_TOOLS.length; // 56
 
 /** Claude Code: CLAUDE.md in CRM dataDir */
 export function buildClaudeMd(dataDir: string): string {
@@ -203,6 +208,12 @@ It combines graph, health, revenue simulation, playbook, and org intelligence in
 - \`trigger_sync({ slug?, since? })\` — force immediate Gmail sync for one or all customers (bypasses 30-min daemon cycle)
 - \`get_audit_log({ slug?, actor?, limit? })\` — read append-only audit log of all write operations
 
+### Custom Objects (Platform / metadata)
+- \`define_custom_object({ name, label?, fields })\` — define a runtime entity type with typed fields (no migration), admin
+- \`create_record({ object, values })\` — create a record of a custom object, validated against its schema, rep+
+- \`list_records({ object })\` — list records of a custom object
+- \`list_custom_objects()\` — list all defined custom objects and their schemas
+
 ## Rules
 - Never discuss a customer without first loading their context
 - Always log interactions — calls, emails, Slack, demos, proposals
@@ -307,6 +318,8 @@ summarize_meeting · get_pipeline_stages · get_market_intelligence
 **Backup (Enterprise):** backup_now · list_backups
 
 **Sync & Audit (Enterprise):** trigger_sync · get_audit_log
+
+**Custom Objects (Platform):** define_custom_object · create_record · list_records · list_custom_objects
 
 ## Never
 - Discuss a customer without context loaded
@@ -461,7 +474,8 @@ create_ticket · update_ticket · list_tickets · close_ticket ·
 send_nps_survey · get_survey_results ·
 search_knowledge_base · create_kb_article ·
 backup_now · list_backups ·
-trigger_sync · get_audit_log
+trigger_sync · get_audit_log ·
+define_custom_object · create_record · list_records · list_custom_objects
 
 ## Data: ${dataDir}`.trim();
 }

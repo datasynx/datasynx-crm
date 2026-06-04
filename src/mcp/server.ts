@@ -74,6 +74,7 @@ import { registerTriggerSync } from "./tools/trigger-sync.js";
 import { registerGetAuditLog } from "./tools/get-audit-log.js";
 import { registerPrompts } from "./prompts.js";
 import { registerResources } from "./resources.js";
+import { registerCustomObjectTools } from "./tools/custom-objects.js";
 import {
   isAuthRequired,
   verifyBearer,
@@ -98,7 +99,7 @@ export function createMcpServer(): McpServer {
     version: "0.1.0",
   });
 
-  // Register all 52 tools
+  // Register all 56 tools
   // IMPORTANT: Use server.registerTool() — server.tool() is deprecated in v2
   registerGetCapabilities(server);
   registerGetActiveSession(server);
@@ -152,6 +153,7 @@ export function createMcpServer(): McpServer {
   registerListBackups(server);
   registerTriggerSync(server);
   registerGetAuditLog(server);
+  registerCustomObjectTools(server);
 
   // MCP Prompts (playbooks) + Resources (read-only entities) — agent-native primitives
   registerPrompts(server);

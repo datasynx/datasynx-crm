@@ -248,7 +248,7 @@ dxcrm attach acme-corp ./proposals/acme-q2-2026.pdf
 
 ---
 
-## MCP Tools (52 tools for AI Agents)
+## MCP Tools (56 tools for AI Agents)
 
 These tools are available to any AI agent connected via MCP (Claude Code, Codex, Cursor, etc.):
 

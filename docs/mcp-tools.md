@@ -1,6 +1,6 @@
-# MCP Tools Reference — datasynx-opencrm v2 (52 Tools)
+# MCP Tools Reference — datasynx-opencrm v2 (56 Tools)
 
-All 52 tools are registered via `server.registerTool()` (MCP SDK v1.x).
+All 56 tools are registered via `server.registerTool()` (MCP SDK v1.x).
 Server name: `datasynx-opencrm`
 Tool prefix in Claude Code: `mcp__datasynx-opencrm__`
 
