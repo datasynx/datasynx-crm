@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.5.0...v1.6.0) (2026-06-04)
+
+
+### Features
+
+* **pipeline:** pipeline time-travel — daily snapshots + 'what changed?' diff ([f4dccd8](https://github.com/datasynx-ai/datasynx-crm/commit/f4dccd8795483b51445c5fdea4808b9abbd4c56f))
+
 # [1.5.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.4.0...v1.5.0) (2026-06-04)
 
 
