@@ -14,8 +14,19 @@ function icon(status: CheckStatus): string {
 
 export const doctorCommand = new Command("doctor")
   .description("Run self-diagnostics: data integrity, temp files, log errors, backup freshness")
-  .action(async () => {
-    const { runDiagnostics } = await import("../core/doctor.js");
+  .option("--fix", "Clean up safely-fixable issues (orphaned temp files)")
+  .action(async (opts: { fix?: boolean }) => {
+    const { runDiagnostics, cleanupTempFiles } = await import("../core/doctor.js");
+
+    if (opts.fix) {
+      const removed = cleanupTempFiles(dataDir());
+      console.log(
+        removed.length > 0
+          ? success(`Removed ${removed.length} orphaned temp file(s).`)
+          : warning("Nothing to fix.")
+      );
+    }
+
     const report = await runDiagnostics(dataDir());
 
     console.log(bold("dxcrm doctor"));

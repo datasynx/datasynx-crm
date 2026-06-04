@@ -60,6 +60,23 @@ describe("runDiagnostics", () => {
     expect(check.detail).toMatch(/1 orphaned/i);
   });
 
+  it("cleanupTempFiles removes orphaned temp files and reports them", async () => {
+    vol.fromJSON({
+      "/crm/.agentic/config.json": "{}",
+      "/crm/.agentic/rbac.json.111.aa11bb.tmp": "x",
+      "/crm/customers/acme/pipeline.md.222.cc22dd.tmp": "y",
+      "/crm/customers/acme/main_facts.md":
+        "---\nname: Acme\nrelationship_stage: active\ncreated: 2026-01-01\nupdated: 2026-01-01\n---\n",
+    });
+    const { cleanupTempFiles, runDiagnostics } = await import("../../src/core/doctor.js");
+    const removed = cleanupTempFiles(DATA_DIR);
+    expect(removed).toHaveLength(2);
+    expect(vol.existsSync("/crm/.agentic/rbac.json.111.aa11bb.tmp")).toBe(false);
+    // doctor now reports temp files clean
+    const report = await runDiagnostics(DATA_DIR);
+    expect(report.checks.find((c) => c.name === "temp files")!.status).toBe("ok");
+  });
+
   it("surfaces recent log errors", async () => {
     vol.fromJSON({ "/crm/.agentic/config.json": "{}" });
     const { logger } = await import("../../src/core/logger.js");

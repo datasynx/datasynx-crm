@@ -49,6 +49,24 @@ function findOrphanedTempFiles(dir: string, depth = 0): string[] {
   return out;
 }
 
+/** Delete orphaned atomic-write temp files; returns the paths removed. */
+export function cleanupTempFiles(dataDir: string): string[] {
+  const temps = [
+    ...findOrphanedTempFiles(path.join(dataDir, ".agentic")),
+    ...findOrphanedTempFiles(path.join(dataDir, "customers")),
+  ];
+  const removed: string[] = [];
+  for (const f of temps) {
+    try {
+      fs.rmSync(f, { force: true });
+      removed.push(f);
+    } catch {
+      /* leave it; reported but not removable */
+    }
+  }
+  return removed;
+}
+
 export async function runDiagnostics(dataDir: string): Promise<DiagnosticReport> {
   const checks: DiagnosticCheck[] = [];
 
