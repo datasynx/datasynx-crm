@@ -40,6 +40,13 @@ export interface GraphEdge {
   lastContact: string;
   contactCount: number;
   properties: Record<string, unknown>;
+  // Bi-temporal fields (Graphiti-style), optional for backward compatibility:
+  // valid time = when the fact held in the world; transaction time = when the
+  // system recorded/retracted it. Edges are invalidated, never deleted.
+  validFrom?: string;
+  validTo?: string;
+  recordedAt?: string;
+  invalidatedAt?: string;
 }
 
 export interface CustomerGraph {
@@ -163,8 +170,42 @@ export function upsertEdge(
     edges[idx] = updated;
     return { ...graph, edges };
   }
-  const newEdge: GraphEdge = { ...edge, id };
+  const now = new Date().toISOString();
+  const newEdge: GraphEdge = {
+    ...edge,
+    id,
+    recordedAt: edge.recordedAt ?? now,
+    validFrom: edge.validFrom ?? edge.lastContact ?? now,
+  };
   return { ...graph, edges: [...graph.edges, newEdge] };
+}
+
+/**
+ * Invalidate an edge instead of deleting it: records when the fact stopped
+ * being true (validTo) and when the system retracted it (invalidatedAt),
+ * preserving full temporal auditability.
+ */
+export function invalidateEdge(graph: CustomerGraph, edgeId: string, at?: string): CustomerGraph {
+  const stamp = at ?? new Date().toISOString();
+  const edges = graph.edges.map((e) =>
+    e.id === edgeId ? { ...e, validTo: stamp, invalidatedAt: new Date().toISOString() } : e
+  );
+  return { ...graph, edges };
+}
+
+/**
+ * Edges considered active at a point in time (default: now): not invalidated,
+ * already valid (validFrom <= at), and not yet expired (at < validTo).
+ * Edges without temporal fields (legacy) are treated as active.
+ */
+export function activeEdges(graph: CustomerGraph, at?: string): GraphEdge[] {
+  const t = at ?? new Date().toISOString();
+  return graph.edges.filter((e) => {
+    if (e.invalidatedAt) return false;
+    if (e.validFrom && e.validFrom > t) return false;
+    if (e.validTo && t >= e.validTo) return false;
+    return true;
+  });
 }
 
 export function findEdges(graph: CustomerGraph, fromId: string, type?: EdgeType): GraphEdge[] {

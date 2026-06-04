@@ -36,7 +36,7 @@ Workspace-Modell auf — wir erweitern ihn (siehe Architektur-Entscheidung A1).
 | Datenmodell | 🔴 **11 feste Zod-Schemas** (main_facts/interaction/pipeline/ticket/quote/sequence/survey/kb/agent-config/sources/email-template) | **null Custom Objects/Fields, keine Composite-Typen, keine Runtime-Metadaten** (`src/schemas/`) |
 | Storage | ✅ Markdown+Frontmatter als SoT, `write-queue`/`file-lock` für Concurrency | bewusst keine DB — Moat |
 | Vektor/Memory | ✅ **reif:** LanceDB embedded, Xenova/all-MiniLM-L6-v2 (384-dim, lokal), Hybrid-Search | — |
-| Knowledge-Graph | 🟡 **hand-rolled `graph.json`** (Nodes person/company/deal/product/event; Edges KNOWS/WORKS_AT/IS_CHAMPION…; `weight`, `lastContact`, `contactCount`) + BFS-Pfad + Health-Scoring | **nicht bi-temporal** (kein t_valid/t_invalid/t_created/t_expired), kein embedded Graph-DB (Kùzu) |
+| Knowledge-Graph | 🟡 **hand-rolled `graph.json`** (Nodes/Edges, weight/lastContact/contactCount) + BFS + Health-Scoring; **bi-temporale Edge-Felder + invalidateEdge/activeEdges vorhanden** (N6-1 v1) | Auto-Invalidation widersprüchlicher Fakten + embedded Graph-DB (Kùzu) offen |
 | Sales | ✅ Deals/Pipeline, Forecast, Monte-Carlo-Sim, Deal-Health (A–F), Relationship-Graph/-Health, Org-Intelligence, Playbooks, Goals, Lead/Opp-Import | Opportunity-Scoring teils heuristisch |
 | Service | 🟡 Tickets + **SLA-Engine** (`sla-engine.ts`, YAML-Regeln), vektorisierte KB | Omni-Channel-Routing, Eskalation/transfer-to-human als Action |
 | Marketing/Data | 🟡 Email-Templates, **lineare** Sequences (skipIfReplied), NPS/CSAT/CES, Email-Dedup | Journeys (Branching), Segmente/Listen, CDP/Identity-Resolution, Unified Profiles |
@@ -183,7 +183,7 @@ optimize → document → commit*. Status-Legende: ✅ fertig · 🟡 in Arbeit 
 | N5-1 | Custom Objects/Fields via Metadata-API (No-Migration) | Platform | L | 🔲 |
 | N5-2 | Webhook-CRUD-Events (Backoff + Replay-Store) | Platform | M | 🔲 |
 | N5-3 | Sharing-Rules / Field-/Row-Level-Security | Platform | M | 🔲 |
-| N6-1 | Bi-temporaler Wissensgraph (Kùzu, 4 Zeitstempel/Edge) | Memory | L | 🔲 |
+| N6-1 | Bi-temporaler Wissensgraph (4 Zeitstempel/Edge) | Memory | L | 🟡 (Primitive ✅: validFrom/To+recordedAt/invalidatedAt, invalidateEdge/activeEdges; Auto-Invalidation widersprüchlicher Fakten + Kùzu offen) |
 | N6-2 | Multi-Agent-Orchestrierung (Subagents/Handoffs) | Agentic | L | 🔲 |
 | N6-3 | Command-Center-Observability (Containment/Accuracy) | Agentic | M | 🔲 |
 | X-1 | PII-Masking vor LLM-Call | Compliance | M | ✅ (opt-in `DXCRM_PII_MASKING=on`) |
