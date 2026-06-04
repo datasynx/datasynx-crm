@@ -187,6 +187,30 @@ async function checkAgentWakeTriggers(): Promise<void> {
   }
 }
 
+/**
+ * Self-healing: each cycle, clean orphaned atomic-write temp files (a crash
+ * signature) and log any *failed* health checks (e.g. invalid customer data).
+ * Warn-level checks (log errors, stale backups) are intentionally not re-logged
+ * here to avoid a feedback loop — `dxcrm doctor` surfaces those on demand.
+ */
+async function runSelfHeal(): Promise<void> {
+  try {
+    const { runDiagnostics, cleanupTempFiles } = await import("../core/doctor.js");
+    const removed = cleanupTempFiles(DATA_DIR);
+    if (removed.length > 0) {
+      logger.warn("daemon", "self-heal: removed orphaned temp files", { count: removed.length });
+    }
+    const report = await runDiagnostics(DATA_DIR);
+    for (const check of report.checks) {
+      if (check.status === "fail") {
+        logger.error("daemon", `self-check failed: ${check.name}`, { detail: check.detail });
+      }
+    }
+  } catch (err) {
+    logger.error("daemon", "self-heal failed", { error: (err as Error).message });
+  }
+}
+
 // Gmail sync — interval configurable via DXCRM_DAEMON_INTERVAL (minutes, default 30)
 const daemonIntervalMin = Math.max(
   1,
@@ -199,6 +223,7 @@ new CronJob(
     await checkAgentWakeTriggers().catch((err: unknown) => {
       logger.error("daemon", "wake trigger check failed", { error: (err as Error).message });
     });
+    await runSelfHeal();
   },
   null,
   true,
