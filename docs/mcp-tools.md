@@ -21,7 +21,7 @@ Tool prefix in Claude Code: `mcp__datasynx-opencrm__`
 | `list_customers` | List all customers with stage, last interaction date, and deal value | any (rep: own only) |
 | `log_interaction` | Write a new interaction entry (call, email, meeting, note) — immediately searchable | rep+ |
 | `update_deal` | Create or update a deal in pipeline.md — upserts by deal name | rep+ |
-| `export_customer` | Export all customer data as JSON or Markdown | admin |
+| `export_customer` | Export all customer data (incl. attachment contents) as JSON or Markdown | admin |
 | `update_customer_facts` | Update fields in customer profile (domain, contact, stage, tags) | admin |
 | `get_deal_health` | Score deal health 0–100 (A–F grade) based on activity, velocity, close date, probability | any |
 | `get_pipeline_forecast` | Aggregate weighted pipeline revenue across all customers grouped by stage | any |
@@ -222,18 +222,22 @@ Update fields in a customer's `main_facts.md` profile. Merges patch into existin
 
 ## export_customer
 
-Export customer data.
+Export customer data. Set `includeAttachmentContent: true` to inline every
+attachment's converted Markdown — a single self-contained bundle of all
+conversations and documents for the customer.
 
 ```json
 // Input
-{ "slug": "acme-corp", "format": "json" }  // json|markdown
+{ "slug": "acme-corp", "format": "json", "includeAttachmentContent": false }  // format: json|markdown
 
 // Output (json)
 {
   "slug": "acme-corp",
-  "facts": { ... },
+  "mainFacts": { ... },
   "interactionsCount": 42,
   "pipeline": [ ... ],
+  "attachments": ["msg1__order.csv", "msg1__order.csv.md"],
+  "attachmentContents": { "msg1__order.csv.md": "# order.csv\n\n| item | qty |\n..." },  // only when includeAttachmentContent=true
   "exportedAt": "2026-05-25T..."
 }
 ```

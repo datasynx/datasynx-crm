@@ -14,6 +14,10 @@ interface SyncOptions {
   query: string;
   since?: Date;
   maxPages?: number;
+  /** Download, convert and index email attachments (default true). */
+  includeAttachments?: boolean;
+  /** Per-attachment size cap in bytes. */
+  maxAttachmentBytes?: number;
 }
 
 /**
@@ -37,6 +41,7 @@ export async function retryWithBackoff<T>(fn: () => Promise<T>, maxRetries = 3):
 export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; skipped: number }> {
   const gmail = gmailApi({ version: "v1", auth: opts.auth });
   const maxPages = opts.maxPages ?? 5;
+  const includeAttachments = opts.includeAttachments ?? true;
 
   let q = opts.query;
   if (opts.since) {
@@ -89,8 +94,11 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
         gmail.users.messages.get({
           userId: "me",
           id: msg.id!,
-          format: "metadata",
-          metadataHeaders: ["Subject", "From", "Date"],
+          // "full" exposes payload.parts so attachments can be downloaded;
+          // fall back to lighter "metadata" when attachment sync is disabled.
+          ...(includeAttachments
+            ? { format: "full" }
+            : { format: "metadata", metadataHeaders: ["Subject", "From", "Date"] }),
         })
       );
       msgData = detail.data;
@@ -112,9 +120,41 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
       : new Date().toISOString().slice(0, 10);
     const snippet = msgData.snippet ?? "";
 
-    // LLM summary — non-blocking fallback to raw snippet if no API key or error
+    // Extract the full inline body (plain preferred, else HTML->Markdown) so
+    // summaries and search cover the whole message, not just the snippet.
+    const { extractEmailBodyMarkdown } = await import("./email-body.js");
+    const body = (await extractEmailBodyMarkdown(msgData.payload ?? undefined)) || snippet;
+
+    // LLM summary — non-blocking fallback to raw body/snippet if no API key or error
     const { summarizeEmail } = await import("../core/llm.js");
-    const emailSummary = await summarizeEmail(subject, snippet, from);
+    const emailSummary = await summarizeEmail(subject, body, from);
+
+    // Download, convert and index attachments before logging the interaction so
+    // the entry can link to the generated Markdown. Failures here are swallowed.
+    let attachmentLinks: string[] = [];
+    if (includeAttachments) {
+      try {
+        const { processMessageAttachments } = await import("./attachments.js");
+        const saved = await processMessageAttachments({
+          gmail,
+          dataDir: opts.dataDir,
+          slug: opts.slug,
+          messageId: msg.id,
+          source,
+          payload: msgData.payload ?? undefined,
+          date,
+          ...(opts.maxAttachmentBytes !== undefined
+            ? { maxBytes: opts.maxAttachmentBytes }
+            : {}),
+        });
+        attachmentLinks = saved.map((a) => a.markdownName);
+      } catch (err) {
+        logger.warn("gmail-sync", "attachment processing failed", {
+          messageId: msg.id,
+          error: (err as Error).message,
+        });
+      }
+    }
 
     await appendInteraction(opts.dataDir, opts.slug, {
       date,
@@ -124,6 +164,7 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
       subject,
       summary: emailSummary.summary,
       nextSteps: emailSummary.nextSteps,
+      ...(attachmentLinks.length > 0 ? { attachments: attachmentLinks } : {}),
       sourceRef: source,
       synced: new Date().toISOString(),
     });
@@ -131,14 +172,20 @@ export async function syncGmail(opts: SyncOptions): Promise<{ synced: number; sk
     // Append to in-memory string so within-batch duplicates are detected
     existingContent += source;
 
-    // Index into LanceDB for semantic search (non-blocking)
+    // Index the full email (subject + body) into LanceDB for semantic search,
+    // chunked so long threads stay searchable (non-blocking).
     const { indexInLanceDB } = await import("../core/lancedb.js");
-    await indexInLanceDB(opts.dataDir, opts.slug, `${subject}\n${snippet}`, source, {
-      date,
-      type: "Email",
-    }).catch((err: unknown) => {
-      logger.error("gmail-sync", "LanceDB index failed", { error: (err as Error).message });
-    });
+    const { chunkText } = await import("../core/chunk.js");
+    const bodyChunks = chunkText(`${subject}\n${body}`);
+    for (let i = 0; i < bodyChunks.length; i++) {
+      const ref = i === 0 ? source : `${source}#${i}`;
+      await indexInLanceDB(opts.dataDir, opts.slug, bodyChunks[i]!, ref, {
+        date,
+        type: "Email",
+      }).catch((err: unknown) => {
+        logger.error("gmail-sync", "LanceDB index failed", { error: (err as Error).message });
+      });
+    }
 
     // Agent wake: notify if an agent config exists for this customer (fire-and-forget)
     if (agentConfigExists(opts.dataDir, opts.slug)) {

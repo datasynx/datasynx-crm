@@ -124,13 +124,14 @@ dxcrm list [--filter <query>]
 
 ## dxcrm sync
 
-Sync emails, transcripts, and cloud files for a customer. Writes to `interactions.md` and indexes into LanceDB for semantic search.
+Sync emails, transcripts, and cloud files for a customer. Writes to `interactions.md` and indexes into LanceDB for semantic search. The full email body (plain text, or HTML converted to Markdown) is summarized and indexed — not just the snippet. Email attachments are downloaded, converted to Markdown (PDF, DOCX, XLSX, PPTX, CSV, HTML, images via OCR), saved under `attachments/`, linked from `interactions.md`, and indexed for search.
 
 ```bash
 dxcrm sync <slug>                          # Full sync (last 30 days)
 dxcrm sync <slug> --since 2026-05-01       # Only emails/files after date
 dxcrm sync <slug> --gmail                  # Gmail only
 dxcrm sync <slug> --transcripts            # Transcripts only
+dxcrm sync <slug> --no-attachments         # Skip attachment download/convert/index
 dxcrm sync --provider microsoft            # Outlook via Microsoft Graph API
 dxcrm sync --provider google-drive        # Google Drive/Docs files
 dxcrm sync --provider teams-transcripts   # Microsoft Teams transcripts
@@ -141,7 +142,10 @@ dxcrm sync --provider google-meet         # Google Meet transcripts
 - `--since <YYYY-MM-DD>` — Only sync emails/transcripts after this date
 - `--gmail` — Gmail only (skip transcript processing)
 - `--transcripts` — Transcripts only (skip Gmail sync)
+- `--no-attachments` — Skip downloading, converting and indexing email attachments
 - `--provider <provider>` — Sync provider: `gmail` | `microsoft` | `google-drive` | `teams-transcripts` | `google-meet`
+- OCR language for image attachments defaults to English; override with the `DXCRM_OCR_LANG` env var (e.g. `deu`).
+- Scanned PDFs (no text layer) are flagged but not OCR'd by default. To OCR them, set `DXCRM_PDF_OCR=1` and install the optional `@napi-rs/canvas` peer dependency (`npm install @napi-rs/canvas`). Page count is capped via `DXCRM_PDF_OCR_MAX_PAGES` (default 20).
 
 **Prerequisites for Gmail:**
 - `.agentic/gmail-credentials.json` — OAuth2 credentials
