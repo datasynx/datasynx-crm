@@ -5,6 +5,7 @@ import { CronJob } from "cron";
 import fs from "fs";
 import path from "path";
 import { logger } from "../core/logger.js";
+import { writeJsonFile } from "../fs/json-store.js";
 
 const DATA_DIR = process.env["DXCRM_DATA_DIR"] ?? process.cwd();
 
@@ -179,7 +180,7 @@ async function checkAgentWakeTriggers(): Promise<void> {
 
       // Update lastWake
       config.lastWake = new Date().toISOString();
-      fs.writeFileSync(path.join(agentsDir, file), JSON.stringify(config, null, 2), "utf-8");
+      writeJsonFile(path.join(agentsDir, file), config);
     } catch (err) {
       logger.error("daemon", "agent check error", { file, error: (err as Error).message });
     }
