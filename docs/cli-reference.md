@@ -180,7 +180,32 @@ dxcrm mailbox sync acme-corp
 
 # Only messages after a date; skip attachments
 dxcrm mailbox sync --since 2026-05-01 --no-attachments
+
+# Use a stored OAuth mailbox (after `dxcrm mailbox login`)
+dxcrm mailbox sync --account gmail:you@gmail.com
+dxcrm mailbox sync --account microsoft:you@org.com acme-corp
 ```
+
+### dxcrm mailbox login — OAuth for Gmail / Outlook (no passwords)
+
+Gmail and Microsoft 365 require **OAuth2** for IMAP (basic-auth passwords are removed in 2026). `dxcrm mailbox login` runs the OAuth flow once and stores the token (auto-refreshed on every sync) in `.agentic/mailbox-tokens.json`.
+
+```bash
+dxcrm mailbox login gmail --user you@gmail.com
+dxcrm mailbox login microsoft --user you@org.com
+```
+
+- **Gmail** uses the installed-app flow: it prints a consent URL, you approve in a browser and paste back the redirect URL (or the `code`). It requests the full `https://mail.google.com/` scope (required for IMAP) with offline access, so a refresh token is stored.
+- **Microsoft** uses the device-code flow: it prints a short code and `microsoft.com/devicelogin` URL; enter the code on any device. Scope `https://outlook.office365.com/IMAP.AccessAsUser.All offline_access`.
+
+**One-time OAuth app setup (your own credentials, via env):**
+
+| Provider | Create the app | Env vars |
+|---|---|---|
+| Gmail | [Google Cloud Console](https://console.cloud.google.com) → enable **Gmail API** → OAuth client ID, type **Desktop app** | `DXCRM_GOOGLE_CLIENT_ID`, `DXCRM_GOOGLE_CLIENT_SECRET` |
+| Microsoft | [Azure Portal](https://portal.azure.com) → App registration → **public client / Allow device code flow** → delegated permission `IMAP.AccessAsUser.All` | `DXCRM_MS_CLIENT_ID`, optional `DXCRM_MS_TENANT` (default `common`) |
+
+Tokens are stored per `provider:user` and refreshed automatically; the same client-ID env vars are needed at sync time so expired access tokens can be refreshed.
 
 **Configuration (environment variables):**
 | Variable | Required | Default | Notes |

@@ -243,9 +243,16 @@ right customer by sender/recipient domain** (or to one customer with a slug). On
 mailbox connection, all customers populated, same attachment + search pipeline.
 
 ```bash
-DXCRM_IMAP_HOST=outlook.office365.com DXCRM_IMAP_USER=me@org.com DXCRM_IMAP_TOKEN=ey... \
-  dxcrm mailbox sync          # auto-route the whole mailbox to customers by domain
+# One-time OAuth (Gmail & Microsoft 365 require it for IMAP in 2026):
+dxcrm mailbox login gmail --user you@gmail.com
+dxcrm mailbox login microsoft --user you@org.com
+
+# Then auto-route the whole mailbox to customers by domain:
+dxcrm mailbox sync --account gmail:you@gmail.com
 ```
+
+Tokens are stored locally and auto-refreshed. A password-based IMAP server works too
+(`DXCRM_IMAP_HOST` / `DXCRM_IMAP_USER` / `DXCRM_IMAP_PASS`).
 
 <br/>
 

@@ -1,11 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import { vol } from "memfs";
 
 const syncImapMailbox = vi.fn();
 vi.mock("../../src/sync/connectors/imap.js", () => ({ syncImapMailbox }));
 
-import { imapConfigFromEnv, runMailboxSync } from "../../src/commands/mailbox.js";
+import {
+  imapConfigFromEnv,
+  runMailboxSync,
+  parseAccount,
+  resolveAccountConfig,
+} from "../../src/commands/mailbox.js";
+import { saveMailboxToken } from "../../src/sync/oauth/token-store.js";
 
 beforeEach(() => {
+  vol.reset();
   vi.clearAllMocks();
   syncImapMailbox.mockResolvedValue({ synced: 2, skipped: 1, unrouted: 3 });
 });
@@ -67,5 +75,69 @@ describe("runMailboxSync", () => {
     expect(res).toEqual({ synced: 2, skipped: 1, unrouted: 3 });
     const call = syncImapMailbox.mock.calls[0]![0] as Record<string, unknown>;
     expect(call["slug"]).toBeUndefined();
+  });
+});
+
+describe("parseAccount", () => {
+  it("parses provider:user", () => {
+    expect(parseAccount("gmail:me@gmail.com")).toEqual({ provider: "gmail", user: "me@gmail.com" });
+    expect(parseAccount("microsoft:me@org.com")).toEqual({
+      provider: "microsoft",
+      user: "me@org.com",
+    });
+  });
+  it("rejects unknown providers or missing user", () => {
+    expect(parseAccount("yahoo:me@y.com")).toBeNull();
+    expect(parseAccount("gmail:")).toBeNull();
+    expect(parseAccount("nonsense")).toBeNull();
+  });
+});
+
+describe("resolveAccountConfig", () => {
+  it("builds a Gmail IMAP config from a stored token", async () => {
+    saveMailboxToken("/data", {
+      provider: "gmail",
+      user: "me@gmail.com",
+      accessToken: "AT",
+      refreshToken: "RT",
+      expiresAt: Date.now() + 3600_000,
+    });
+    const cfg = await resolveAccountConfig("/data", "gmail:me@gmail.com");
+    expect(cfg.host).toBe("imap.gmail.com");
+    expect(cfg.auth).toEqual({ user: "me@gmail.com", accessToken: "AT" });
+  });
+
+  it("rejects a malformed account", async () => {
+    await expect(resolveAccountConfig("/data", "bogus")).rejects.toThrow(/Invalid --account/);
+  });
+});
+
+describe("runMailboxSync with --account", () => {
+  it("resolves a stored OAuth mailbox and syncs it", async () => {
+    saveMailboxToken("/data", {
+      provider: "microsoft",
+      user: "me@org.com",
+      accessToken: "AT",
+      refreshToken: "RT",
+      expiresAt: Date.now() + 3600_000,
+    });
+    await runMailboxSync({
+      dataDir: "/data",
+      account: "microsoft:me@org.com",
+      env: {} as NodeJS.ProcessEnv,
+    });
+    const call = syncImapMailbox.mock.calls[0]![0] as { config: { host: string; auth: unknown } };
+    expect(call.config.host).toBe("outlook.office365.com");
+    expect(call.config.auth).toEqual({ user: "me@org.com", accessToken: "AT" });
+  });
+
+  it("errors when the account has no stored token", async () => {
+    const res = await runMailboxSync({
+      dataDir: "/data",
+      account: "gmail:nobody@gmail.com",
+      env: {} as NodeJS.ProcessEnv,
+    });
+    expect("error" in res).toBe(true);
+    expect(syncImapMailbox).not.toHaveBeenCalled();
   });
 });
