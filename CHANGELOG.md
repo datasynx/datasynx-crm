@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.4.0...v1.5.0) (2026-06-04)
+
+
+### Features
+
+* **sync:** oauth login for gmail and outlook imap mailboxes ([73a266d](https://github.com/datasynx-ai/datasynx-crm/commit/73a266db7e34d66793d8ec7837a4f62732a7ef65))
+
 # [1.4.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.3.0...v1.4.0) (2026-06-04)
 
 
