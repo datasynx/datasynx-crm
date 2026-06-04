@@ -43,7 +43,7 @@ Jeder Stein: **Was er freischaltet/verbessert · hängt ab von · Quelle · Aufw
 - **Hängt ab von:** `callLlm` (vorhanden); ergänzt `computeAuditMetrics`.
 - **Schaltet frei:** Kostentransparenz + Pricing für D9–D16.
 
-### D4 · HITL-/Approval-Gate + Autonomie-Policy — *jede spätere Automatisierung wird sicher & verkaufbar* · F3 · M
+### D4 ✅ · HITL-/Approval-Gate + Autonomie-Policy — *jede spätere Automatisierung wird sicher & verkaufbar* · F3 · M
 - **Warum jetzt:** Ein dünner Enforcement-Wrapper vor schreibenden Tools. Sobald er existiert, docken alle
   späteren agentischen Features (D9 Autofill, D5 Hygiene, D11 NBA) **kostenlos** an Freigaben an —
   zugleich EU-AI-Act-/Vertrauens-Argument.

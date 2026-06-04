@@ -34,6 +34,7 @@ import { segmentCommand } from "./commands/segment.js";
 import { identityCommand } from "./commands/identity.js";
 import { metricsCommand } from "./commands/metrics.js";
 import { usageCommand } from "./commands/usage.js";
+import { approvalsCommand, policyCommand } from "./commands/approvals.js";
 
 const program = new Command();
 program
@@ -79,5 +80,7 @@ program.addCommand(segmentCommand);
 program.addCommand(identityCommand);
 program.addCommand(metricsCommand);
 program.addCommand(usageCommand);
+program.addCommand(approvalsCommand);
+program.addCommand(policyCommand);
 
 await program.parseAsync(process.argv);
