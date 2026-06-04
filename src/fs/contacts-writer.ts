@@ -1,6 +1,6 @@
-import fs from "fs";
 import path from "path";
 import { z } from "zod";
+import { readJsonFile, writeJsonFile } from "./json-store.js";
 
 export const CustomerContactSchema = z.object({
   email: z.string().email(),
@@ -22,18 +22,12 @@ function contactsPath(dataDir: string, slug: string): string {
 }
 
 export function listContacts(dataDir: string, slug: string): CustomerContact[] {
-  const p = contactsPath(dataDir, slug);
-  if (!fs.existsSync(p)) return [];
-  try {
-    const raw = JSON.parse(fs.readFileSync(p, "utf-8") as string) as unknown;
-    if (!Array.isArray(raw)) return [];
-    return raw.flatMap((item) => {
-      const r = CustomerContactSchema.safeParse(item);
-      return r.success ? [r.data] : [];
-    });
-  } catch {
-    return [];
-  }
+  const raw = readJsonFile<unknown>(contactsPath(dataDir, slug), []);
+  if (!Array.isArray(raw)) return [];
+  return raw.flatMap((item) => {
+    const r = CustomerContactSchema.safeParse(item);
+    return r.success ? [r.data] : [];
+  });
 }
 
 export function upsertContact(dataDir: string, slug: string, contact: CustomerContact): void {
@@ -52,9 +46,7 @@ export function upsertContact(dataDir: string, slug: string, contact: CustomerCo
       }
     }
   }
-  const dir = path.dirname(contactsPath(dataDir, slug));
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(contactsPath(dataDir, slug), JSON.stringify(contacts, null, 2), "utf-8");
+  writeJsonFile(contactsPath(dataDir, slug), contacts);
 }
 
 export function getPrimaryContact(dataDir: string, slug: string): CustomerContact | null {

@@ -1,6 +1,5 @@
 import fs from "fs";
-import path from "path";
-import { randomBytes } from "crypto";
+import { writeFileAtomic } from "./atomic-write.js";
 
 /**
  * Small shared JSON persistence helpers. Many modules independently reimplemented
@@ -8,11 +7,10 @@ import { randomBytes } from "crypto";
  * "write a `{ key: items }` array store" logic — this centralizes both so the
  * behavior (and the silent-fallback semantics) is defined in exactly one place.
  *
- * Writes are atomic: the payload is written to a sibling temp file and then
- * renamed over the target. rename(2) is atomic within a filesystem, so a crash
- * mid-write can never leave a half-written (corrupt) JSON file — readers always
- * see either the old or the new complete document. This matters for the config,
- * audit, and state files the whole product depends on.
+ * Writes go through writeFileAtomic, so a crash mid-write can never leave a
+ * half-written (corrupt) JSON file — readers always see either the old or the
+ * new complete document. This matters for the config, audit, and state files
+ * the whole product depends on.
  */
 
 /** Read and parse a JSON file, returning `fallback` if it is missing or invalid. */
@@ -27,20 +25,7 @@ export function readJsonFile<T>(filePath: string, fallback: T): T {
 
 /** Atomically write `value` as pretty-printed JSON, creating parent dirs as needed. */
 export function writeJsonFile(filePath: string, value: unknown): void {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  const tmp = `${filePath}.${process.pid}.${randomBytes(4).toString("hex")}.tmp`;
-  try {
-    fs.writeFileSync(tmp, JSON.stringify(value, null, 2), "utf-8");
-    fs.renameSync(tmp, filePath);
-  } catch (err) {
-    // Best-effort cleanup of the temp file if the write/rename failed.
-    try {
-      if (fs.existsSync(tmp)) fs.unlinkSync(tmp);
-    } catch {
-      /* ignore cleanup failure */
-    }
-    throw err;
-  }
+  writeFileAtomic(filePath, JSON.stringify(value, null, 2));
 }
 
 /**

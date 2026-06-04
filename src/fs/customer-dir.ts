@@ -3,6 +3,7 @@ import path from "path";
 import matter from "gray-matter";
 import { fromZodError } from "zod-validation-error";
 import { MainFactsSchema, type MainFacts } from "../schemas/main-facts.js";
+import { writeFileAtomic } from "./atomic-write.js";
 
 export function getCustomerDir(dataDir: string, slug: string): string {
   return path.join(dataDir, "customers", slug);
@@ -43,7 +44,7 @@ export async function writeMainFacts(
     Object.entries(facts as Record<string, unknown>).filter(([, v]) => v !== undefined)
   );
   const content = matter.stringify("", clean);
-  fs.writeFileSync(filePath, content, "utf-8");
+  writeFileAtomic(filePath, content);
 }
 
 export async function readMainFacts(dataDir: string, slug: string): Promise<MainFacts> {

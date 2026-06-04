@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import type { InteractionEntry } from "../schemas/interaction.js";
 import { withFileQueue } from "./write-queue.js";
+import { writeFileAtomic } from "./atomic-write.js";
 
 const INTERACTION_SEPARATOR = "---";
 
@@ -81,6 +82,6 @@ export async function appendInteraction(
       }
     }
 
-    fs.writeFileSync(filePath, newContent, "utf-8");
+    writeFileAtomic(filePath, newContent);
   });
 }
