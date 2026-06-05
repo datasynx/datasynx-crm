@@ -1,3 +1,11 @@
+# [1.16.0](https://github.com/datasynx/datasynx-crm/compare/v1.15.0...v1.16.0) (2026-06-05)
+
+
+### Features
+
+* **security:** restrict vault GUI to localhost by default ([2badef2](https://github.com/datasynx/datasynx-crm/commit/2badef2ec5d27bfe55cede88c5f41d6d84075b31))
+* **vault:** browser GUI + get_vault_link MCP tool for credential management ([9f4e23f](https://github.com/datasynx/datasynx-crm/commit/9f4e23f36ea490ac6a1d51221718f2538d88d0b3)), closes [#62](https://github.com/datasynx/datasynx-crm/issues/62)
+
 # [1.15.0](https://github.com/datasynx/datasynx-crm/compare/v1.14.1...v1.15.0) (2026-06-05)
 
 
