@@ -26,11 +26,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/datasynx-ai/datasynx-crm.git"
+    "url": "git+https://github.com/datasynx/datasynx-crm.git"
   },
-  "homepage": "https://github.com/datasynx-ai/datasynx-crm#readme",
+  "homepage": "https://github.com/datasynx/datasynx-crm#readme",
   "bugs": {
-    "url": "https://github.com/datasynx-ai/datasynx-crm/issues"
+    "url": "https://github.com/datasynx/datasynx-crm/issues"
   },
   "engines": {
     "node": ">=20"

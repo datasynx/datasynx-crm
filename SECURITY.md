@@ -26,7 +26,7 @@ npm install -g @datasynx/agentic-crm@latest
 Report privately through either channel:
 
 1. **GitHub Private Vulnerability Reporting** (preferred) —
-   <https://github.com/datasynx-ai/datasynx-crm/security/advisories/new>
+   <https://github.com/datasynx/datasynx-crm/security/advisories/new>
 2. **Email** — `eng@datasynx.io` with subject `SECURITY: <summary>`
 
 Please include:
