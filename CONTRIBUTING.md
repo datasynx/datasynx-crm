@@ -9,7 +9,7 @@ covers everything you need to land a high-quality change.
 - Git
 
 ```bash
-git clone https://github.com/datasynx-ai/datasynx-crm.git
+git clone https://github.com/datasynx/datasynx-crm.git
 cd datasynx-crm
 npm ci
 ```

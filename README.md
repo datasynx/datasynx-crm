@@ -9,18 +9,18 @@ Your pipeline lives as plain Markdown on your machine — and your AI agents rea
 
 <p>
 <a href="#-quickstart"><strong>Quickstart</strong></a> &middot;
-<a href="https://datasynx-ai.github.io/datasynx-crm/"><strong>Docs</strong></a> &middot;
+<a href="https://datasynx.github.io/datasynx-crm/"><strong>Docs</strong></a> &middot;
 <a href="https://www.npmjs.com/package/@datasynx/agentic-crm"><strong>npm</strong></a> &middot;
-<a href="https://github.com/datasynx-ai/datasynx-crm"><strong>GitHub</strong></a> &middot;
+<a href="https://github.com/datasynx/datasynx-crm"><strong>GitHub</strong></a> &middot;
 <a href="https://de.linkedin.com/company/datasynx-ai"><strong>LinkedIn</strong></a>
 </p>
 
 [![npm version](https://img.shields.io/npm/v/@datasynx/agentic-crm.svg?color=cb3837&logo=npm)](https://www.npmjs.com/package/@datasynx/agentic-crm)
 [![downloads/week](https://img.shields.io/npm/dw/@datasynx/agentic-crm.svg?color=cb3837&label=downloads%2Fweek)](https://www.npmjs.com/package/@datasynx/agentic-crm)
-[![CI](https://github.com/datasynx-ai/datasynx-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/datasynx-ai/datasynx-crm/actions/workflows/ci.yml)
-[![Docs](https://github.com/datasynx-ai/datasynx-crm/actions/workflows/pages.yml/badge.svg)](https://datasynx-ai.github.io/datasynx-crm/)
-[![stars](https://img.shields.io/github/stars/datasynx-ai/datasynx-crm?style=flat&color=ffd33d)](https://github.com/datasynx-ai/datasynx-crm/stargazers)
-[![license](https://img.shields.io/github/license/datasynx-ai/datasynx-crm.svg?color=3fb950)](./LICENSE)
+[![CI](https://github.com/datasynx/datasynx-crm/actions/workflows/ci.yml/badge.svg)](https://github.com/datasynx/datasynx-crm/actions/workflows/ci.yml)
+[![Docs](https://github.com/datasynx/datasynx-crm/actions/workflows/pages.yml/badge.svg)](https://datasynx.github.io/datasynx-crm/)
+[![stars](https://img.shields.io/github/stars/datasynx/datasynx-crm?style=flat&color=ffd33d)](https://github.com/datasynx/datasynx-crm/stargazers)
+[![license](https://img.shields.io/github/license/datasynx/datasynx-crm.svg?color=3fb950)](./LICENSE)
 [![node](https://img.shields.io/node/v/@datasynx/agentic-crm.svg)](https://nodejs.org)
 
 </div>
@@ -206,7 +206,7 @@ An agent per customer pings you (Telegram) the moment a relevant email lands.
   Import:   HubSpot · Salesforce · Pipedrive · CSV
 ```
 
-→ Full reference: **[56 CLI commands](https://datasynx-ai.github.io/datasynx-crm/#full-cli-reference)** · **[61 MCP tools](https://datasynx-ai.github.io/datasynx-crm/#full-mcp-reference)**
+→ Full reference: **[56 CLI commands](https://datasynx.github.io/datasynx-crm/#full-cli-reference)** · **[61 MCP tools](https://datasynx.github.io/datasynx-crm/#full-mcp-reference)**
 
 <br/>
 
@@ -329,7 +329,7 @@ No telemetry, ever. The only outbound calls are the integrations you explicitly 
 
 ## Documentation
 
-📖 **Full docs site:** **[datasynx-ai.github.io/datasynx-crm](https://datasynx-ai.github.io/datasynx-crm/)**
+📖 **Full docs site:** **[datasynx.github.io/datasynx-crm](https://datasynx.github.io/datasynx-crm/)**
 
 - [Quickstart — real Gmail in 5 minutes](./docs/quickstart-real.md)
 - [CLI Reference](./docs/cli-reference.md) · [MCP Tools](./docs/mcp-tools.md) · [Schemas](./docs/schemas.md)
@@ -341,7 +341,7 @@ No telemetry, ever. The only outbound calls are the integrations you explicitly 
 ## Development
 
 ```bash
-git clone https://github.com/datasynx-ai/datasynx-crm
+git clone https://github.com/datasynx/datasynx-crm
 cd datasynx-crm
 npm ci
 
@@ -382,8 +382,8 @@ New contributors: start with **[CONTRIBUTING.md](./CONTRIBUTING.md)** (TDD workf
 ## Community & Links
 
 - 📦 **npm** — [@datasynx/agentic-crm](https://www.npmjs.com/package/@datasynx/agentic-crm)
-- 💻 **GitHub** — [datasynx-ai/datasynx-crm](https://github.com/datasynx-ai/datasynx-crm)
-- 🐛 **Issues** — [report a bug or request a feature](https://github.com/datasynx-ai/datasynx-crm/issues)
+- 💻 **GitHub** — [datasynx/datasynx-crm](https://github.com/datasynx/datasynx-crm)
+- 🐛 **Issues** — [report a bug or request a feature](https://github.com/datasynx/datasynx-crm/issues)
 - 🔒 **Security** — [report a vulnerability privately](./SECURITY.md)
 - 🤝 **Contributing** — [CONTRIBUTING.md](./CONTRIBUTING.md) · [Code of Conduct](./CODE_OF_CONDUCT.md)
 - 💼 **LinkedIn** — [Datasynx AI](https://de.linkedin.com/company/datasynx-ai)
@@ -392,13 +392,13 @@ New contributors: start with **[CONTRIBUTING.md](./CONTRIBUTING.md)** (TDD workf
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=datasynx-ai/datasynx-crm&type=Date)](https://www.star-history.com/#datasynx-ai/datasynx-crm&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=datasynx/datasynx-crm&type=Date)](https://www.star-history.com/#datasynx/datasynx-crm&Date)
 
 <br/>
 
 ## License
 
-MIT &copy; 2026 [Datasynx](https://github.com/datasynx-ai)
+MIT &copy; 2026 [Datasynx](https://github.com/datasynx)
 
 <br/>
 
