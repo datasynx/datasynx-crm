@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.10.0...v1.11.0) (2026-06-05)
+
+
+### Features
+
+* **core:** ask_crm uses indexed hybrid retrieval for interactions ([908d91a](https://github.com/datasynx-ai/datasynx-crm/commit/908d91a12ba8fd8bf80107e74b12dca25016c41a))
+
 # [1.10.0](https://github.com/datasynx-ai/datasynx-crm/compare/v1.9.0...v1.10.0) (2026-06-05)
 
 
