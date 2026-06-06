@@ -1,3 +1,11 @@
+## [1.16.1](https://github.com/datasynx/datasynx-crm/compare/v1.16.0...v1.16.1) (2026-06-06)
+
+
+### Bug Fixes
+
+* **deps:** resolve uuid advisory via exceljs override ([#31](https://github.com/datasynx/datasynx-crm/issues/31)) ([ec64f4b](https://github.com/datasynx/datasynx-crm/commit/ec64f4b6c20b1475eddb410c55735c52082a235d))
+* resolve init MCP path, pipeline format mismatch, version drift & more ([9ccdd1d](https://github.com/datasynx/datasynx-crm/commit/9ccdd1df36cd6f4a1f5fdff968b11edccc4c4fc9)), closes [#31](https://github.com/datasynx/datasynx-crm/issues/31) [#25](https://github.com/datasynx/datasynx-crm/issues/25) [#26](https://github.com/datasynx/datasynx-crm/issues/26) [#27](https://github.com/datasynx/datasynx-crm/issues/27) [#28](https://github.com/datasynx/datasynx-crm/issues/28) [#29](https://github.com/datasynx/datasynx-crm/issues/29) [#30](https://github.com/datasynx/datasynx-crm/issues/30)
+
 # [1.16.0](https://github.com/datasynx/datasynx-crm/compare/v1.15.0...v1.16.0) (2026-06-05)
 
 
