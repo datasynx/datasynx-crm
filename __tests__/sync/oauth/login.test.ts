@@ -17,6 +17,14 @@ describe("extractAuthCode", () => {
   it("extracts the code from a redirect URL", () => {
     expect(extractAuthCode("http://127.0.0.1:8080/?code=4%2Fxyz&scope=mail")).toBe("4/xyz");
   });
+  it("returns the input unchanged when 'code=' appears without a ?/& delimiter", () => {
+    // "code=" is present so the includes() guard passes, but the anchored
+    // regex does not match — it must fall through to the trimmed input.
+    expect(extractAuthCode("notacode=value")).toBe("notacode=value");
+  });
+  it("trims surrounding whitespace from a raw code", () => {
+    expect(extractAuthCode("  4/abc  ")).toBe("4/abc");
+  });
 });
 
 describe("runGmailLogin", () => {
@@ -47,6 +55,30 @@ describe("runGmailLogin", () => {
     expect(token.accessToken).toBe("AT");
     expect(loadMailboxToken("/data", "gmail", "me@gmail.com")?.refreshToken).toBe("RT");
     expect(printed.join("\n")).toContain("https://consent.url");
+  });
+
+  it("warns and persists without a refresh token when Google omits one", async () => {
+    const fakeClient: GoogleOAuthClient = {
+      generateAuthUrl: () => "https://consent.url",
+      getToken: () => Promise.resolve({ tokens: {} }),
+      setCredentials: () => undefined,
+      refreshAccessToken: () => Promise.resolve({ credentials: {} }),
+    };
+    const printed: string[] = [];
+    const token = await runGmailLogin({
+      dataDir: "/data",
+      clientId: "id",
+      clientSecret: "secret",
+      user: "me@gmail.com",
+      prompt: () => Promise.resolve("THECODE"),
+      print: (l) => printed.push(l),
+      createClient: () => fakeClient,
+      exchange: vi.fn().mockResolvedValue({ accessToken: "AT", expiresAt: 1 }) as never,
+    });
+
+    expect(token.refreshToken).toBeUndefined();
+    expect(loadMailboxToken("/data", "gmail", "me@gmail.com")?.refreshToken).toBeUndefined();
+    expect(printed.join("\n")).toContain("did not return a refresh token");
   });
 
   it("throws when no code is provided", async () => {
@@ -94,5 +126,28 @@ describe("runMicrosoftLogin", () => {
     expect(loadMailboxToken("/data", "microsoft", "me@org.com")?.refreshToken).toBe("RT");
     expect(printed.join("\n")).toContain("WXYZ-1234");
     expect(printed.join("\n")).toContain("https://microsoft.com/devicelogin");
+  });
+
+  it("persists without a refresh token when Microsoft omits one", async () => {
+    const token = await runMicrosoftLogin({
+      dataDir: "/data",
+      clientId: "msid",
+      user: "me@org.com",
+      tenant: "my-tenant",
+      print: () => undefined,
+      requestDeviceCodeFn: () =>
+        Promise.resolve({
+          device_code: "dc",
+          user_code: "WXYZ-1234",
+          verification_uri: "https://microsoft.com/devicelogin",
+          expires_in: 900,
+          interval: 5,
+          message: "msg",
+        }),
+      pollFn: () => Promise.resolve({ accessToken: "AT", expiresAt: 999 }),
+    });
+
+    expect(token.refreshToken).toBeUndefined();
+    expect(loadMailboxToken("/data", "microsoft", "me@org.com")?.refreshToken).toBeUndefined();
   });
 });
