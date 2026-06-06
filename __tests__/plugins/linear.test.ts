@@ -96,8 +96,10 @@ describe("handleGetLinearIssues", () => {
   });
 
   it("reads name from main_facts via dynamic import when customerName not provided", async () => {
-    // Mock the fs module so readMainFacts can work with memfs
-    vi.mock("../../src/fs/customer-dir.js", () => ({
+    // Mock the fs module so readMainFacts can work with memfs.
+    // vi.doMock is not hoisted — it applies to the dynamic import below
+    // (with resetModules per test giving clean isolation).
+    vi.doMock("../../src/fs/customer-dir.js", () => ({
       readMainFacts: vi.fn().mockResolvedValue({ name: "Acme Corporation", slug: "acme-corp" }),
     }));
 
@@ -111,7 +113,7 @@ describe("handleGetLinearIssues", () => {
   });
 
   it("falls back to slug when readMainFacts throws", async () => {
-    vi.mock("../../src/fs/customer-dir.js", () => ({
+    vi.doMock("../../src/fs/customer-dir.js", () => ({
       readMainFacts: vi.fn().mockRejectedValue(new Error("not found")),
     }));
 

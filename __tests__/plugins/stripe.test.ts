@@ -111,7 +111,7 @@ describe("handleGetStripeContext", () => {
   });
 
   it("returns error when no email found", async () => {
-    vi.mock("../../src/fs/customer-dir.js", () => ({
+    vi.doMock("../../src/fs/customer-dir.js", () => ({
       readMainFacts: vi.fn().mockRejectedValue(new Error("not found")),
     }));
 

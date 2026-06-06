@@ -21,18 +21,9 @@ const BASE_OPTS = {
 beforeEach(() => {
   vol.reset();
   vi.resetModules();
+  // Restore the hoisted top-level mock implementations (clearAllMocks keeps
+  // implementations, so the module-level vi.mock factories above remain active).
   vi.clearAllMocks();
-
-  // Re-set mock implementations after resetModules
-  vi.mock("../../src/core/lancedb.js", () => ({
-    indexInLanceDB: vi.fn().mockResolvedValue(undefined),
-    searchKnowledge: vi.fn().mockResolvedValue([]),
-  }));
-
-  vi.mock("../../src/fs/interactions-writer.js", () => ({
-    appendInteraction: vi.fn().mockResolvedValue(undefined),
-    readInteractions: vi.fn().mockResolvedValue(""),
-  }));
 });
 
 describe("syncGoogleDriveFiles", () => {
