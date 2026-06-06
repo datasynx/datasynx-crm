@@ -1,3 +1,15 @@
+## [1.16.3](https://github.com/datasynx/datasynx-crm/compare/v1.16.2...v1.16.3) (2026-06-06)
+
+
+### Bug Fixes
+
+* **deps:** upgrade @huggingface/transformers to 4 (refs [#33](https://github.com/datasynx/datasynx-crm/issues/33)) ([ae62d36](https://github.com/datasynx/datasynx-crm/commit/ae62d36c32988230463d16ad518eb33d1bb49b76))
+* **deps:** upgrade @lancedb/lancedb 0.30 and apache-arrow 18.1 (refs [#33](https://github.com/datasynx/datasynx-crm/issues/33)) ([5382e7b](https://github.com/datasynx/datasynx-crm/commit/5382e7bc31da5443ca70af77b8ee65cae314cee0))
+* **deps:** upgrade commander 15, chokidar 5, ansis 4 (refs [#33](https://github.com/datasynx/datasynx-crm/issues/33)) ([25f5172](https://github.com/datasynx/datasynx-crm/commit/25f51725577323688fad7bf7c4cef141da6f5863))
+* **deps:** upgrade slug to 11 (refs [#33](https://github.com/datasynx/datasynx-crm/issues/33)) ([f7e01bd](https://github.com/datasynx/datasynx-crm/commit/f7e01bd1a4c59ecaa693ad3017444cfcd150d471))
+* **deps:** upgrade vitest + coverage-v8 to 4 (closes [#31](https://github.com/datasynx/datasynx-crm/issues/31); refs [#33](https://github.com/datasynx/datasynx-crm/issues/33)) ([86ebffc](https://github.com/datasynx/datasynx-crm/commit/86ebffcfcda6527b233d9f432cd3cc5b95786006))
+* **deps:** upgrade zod to 4 and zod-validation-error to 5 (refs [#33](https://github.com/datasynx/datasynx-crm/issues/33)) ([5cf0c75](https://github.com/datasynx/datasynx-crm/commit/5cf0c759582f7f7a77ba7dd375f991a3fc796530))
+
 ## [1.16.2](https://github.com/datasynx/datasynx-crm/compare/v1.16.1...v1.16.2) (2026-06-06)
 
 
