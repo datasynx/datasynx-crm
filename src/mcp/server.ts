@@ -83,6 +83,7 @@ import {
   registerListWorkflows,
   registerToggleWorkflow,
 } from "./tools/workflow-tools.js";
+import { registerGetDashboardLink } from "./tools/get-dashboard-link.js";
 import { registerSendNpsSurvey } from "./tools/send-nps-survey.js";
 import { registerGetSurveyResults } from "./tools/get-survey-results.js";
 import { registerSearchKnowledgeBase } from "./tools/search-knowledge-base.js";
@@ -193,6 +194,7 @@ export function createMcpServer(): McpServer {
   registerCreateWorkflow(server);
   registerListWorkflows(server);
   registerToggleWorkflow(server);
+  registerGetDashboardLink(server);
   registerSendNpsSurvey(server);
   registerGetSurveyResults(server);
   registerSearchKnowledgeBase(server);
@@ -555,6 +557,22 @@ button{margin-top:12px;padding:12px 28px;background:#1a1a2e;color:#fff;border:no
       url: payload.u,
     });
     res.redirect(302, payload.u);
+  });
+
+  // Read-only dashboard (#52): token-secured, RBAC-aware, server-rendered.
+  app.get("/dashboard", async (req, res) => {
+    const { verifyDashboardToken, buildDashboardData, renderDashboardHtml } =
+      await import("../core/dashboard.js");
+    const token = (req.query as Record<string, string | undefined>)["token"] ?? "";
+    const payload = verifyDashboardToken(token);
+    if (!payload) {
+      res.status(401).send("<h2>Invalid or expired dashboard link.</h2>");
+      return;
+    }
+    const data = await buildDashboardData(dataDir, payload.a);
+    res.setHeader("content-type", "text/html");
+    res.setHeader("cache-control", "no-store");
+    res.send(renderDashboardHtml(data));
   });
 
   // ─── Quote-to-cash (#49): public, token-secured quote page ──────────────────

@@ -40,6 +40,7 @@ import { kbCommand } from "./kb.js";
 import { fieldsCommand, objectCommand } from "./fields.js";
 import { webhookCommand } from "./webhook.js";
 import { workflowCommand } from "./workflow.js";
+import { dashboardCommand } from "./dashboard.js";
 import { segmentCommand } from "./segment.js";
 import { identityCommand } from "./identity.js";
 import { metricsCommand } from "./metrics.js";
@@ -109,6 +110,7 @@ export const ALL_COMMANDS: readonly Command[] = [
   objectCommand,
   webhookCommand,
   workflowCommand,
+  dashboardCommand,
   segmentCommand,
   identityCommand,
   metricsCommand,
