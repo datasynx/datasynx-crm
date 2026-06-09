@@ -71,6 +71,7 @@ import { registerCreateTask } from "./tools/create-task.js";
 import { registerListTasks } from "./tools/list-tasks.js";
 import { registerCompleteTask } from "./tools/complete-task.js";
 import { registerSnoozeTask } from "./tools/snooze-task.js";
+import { registerGetEmailEngagement } from "./tools/get-email-engagement.js";
 import { registerSendNpsSurvey } from "./tools/send-nps-survey.js";
 import { registerGetSurveyResults } from "./tools/get-survey-results.js";
 import { registerSearchKnowledgeBase } from "./tools/search-knowledge-base.js";
@@ -173,6 +174,7 @@ export function createMcpServer(): McpServer {
   registerListTasks(server);
   registerCompleteTask(server);
   registerSnoozeTask(server);
+  registerGetEmailEngagement(server);
   registerSendNpsSurvey(server);
   registerGetSurveyResults(server);
   registerSearchKnowledgeBase(server);
@@ -482,6 +484,51 @@ button{margin-top:12px;padding:12px 28px;background:#1a1a2e;color:#fff;border:no
     );
     res.setHeader("content-type", "text/html");
     res.send(surveyThankYouPage(numScore, commentText));
+  });
+
+  // Email open-tracking pixel (#45). Always returns a 1x1 GIF; logs an `open`
+  // event only when the HMAC token is valid (no tampering, no enumeration).
+  app.get("/t/o/:token.gif", async (req, res) => {
+    const { verifyToken } = await import("../core/email-tracking.js");
+    const { appendEmailEvent } = await import("../fs/sent-store.js");
+    const raw = (req.params as Record<string, string>)["token"] ?? "";
+    const payload = verifyToken(raw);
+    if (payload && payload.k === "open") {
+      appendEmailEvent(dataDir, {
+        type: "open",
+        slug: payload.s,
+        contactEmail: payload.c,
+        messageId: payload.m,
+        at: new Date().toISOString(),
+      });
+    }
+    const { transparentGif } = await import("../core/email-tracking.js");
+    res.setHeader("content-type", "image/gif");
+    res.setHeader("cache-control", "no-store, no-cache, must-revalidate, private");
+    res.status(200).end(transparentGif());
+  });
+
+  // Email click-tracking (#45). The destination is signed INTO the token, so
+  // an attacker cannot turn this into an open redirect: an invalid/tampered
+  // token gets a 400, never a redirect.
+  app.get("/t/c/:token", async (req, res) => {
+    const { verifyToken } = await import("../core/email-tracking.js");
+    const { appendEmailEvent } = await import("../fs/sent-store.js");
+    const raw = (req.params as Record<string, string>)["token"] ?? "";
+    const payload = verifyToken(raw);
+    if (!payload || payload.k !== "click" || !payload.u) {
+      res.status(400).send("Invalid or expired link.");
+      return;
+    }
+    appendEmailEvent(dataDir, {
+      type: "click",
+      slug: payload.s,
+      contactEmail: payload.c,
+      messageId: payload.m,
+      at: new Date().toISOString(),
+      url: payload.u,
+    });
+    res.redirect(302, payload.u);
   });
 
   // Resolve only once the HTTP server closes — same rationale as startStdio:

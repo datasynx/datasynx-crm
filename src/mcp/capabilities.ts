@@ -93,6 +93,7 @@ Config: \`.agentic/rbac.json\` | Actor: \`DXCRM_ACTOR\` env var
 | list_tasks | List tasks — "what is due today?" (due: today/overdue, slug, assignee, status), RBAC-aware | any |
 | complete_task | Mark a task as done | rep+ |
 | snooze_task | Defer a task; it resurfaces on the given date | rep+ |
+| get_email_engagement | Outbound email opens/clicks/replies + reply latency per contact (tracking default off) | any |
 | send_nps_survey | Generate NPS/CSAT survey token + HTML email draft (does not send automatically) | rep+ |
 | get_survey_results | NPS score, promoter/passive/detractor breakdown, all responses for a survey | any |
 | search_knowledge_base | Full-text search across KB articles (title, body, tags) with category and public filters | any |
@@ -471,6 +472,13 @@ Mark a task as done (sets completedAt).
 Defer a task: it disappears from "due today" and resurfaces (incl. daemon reminders) on the given date.
 - Input: { taskId, until: "YYYY-MM-DD" }
 - Returns: { success, task }
+
+### get_email_engagement({ slug })
+Outbound email engagement per contact (#45): sent/opens/clicks/replies, last open, average reply
+latency. Reply tracking works without a pixel (thread correlation); opens/clicks need
+DXCRM_EMAIL_TRACKING=opens|clicks|all. Default off, data stays local.
+- Input: { slug: string }
+- Returns: { slug, trackingMode, totals, contacts: [{ contactEmail, sent, opens, clicks, replies, lastOpenAt?, avgReplyLatencyHours? }] }
 
 ### send_nps_survey({ slug, contactEmail, surveyId, serverUrl? })
 Generate an NPS/CSAT survey email draft. Returns subject, HTML body, and a token-based response URL.

@@ -81,13 +81,68 @@ export async function processSequenceStep(
       const { getGmailAuth } = await import("../sync/gmail-auth.js");
       const { sendEmail } = await import("../sync/gmail-sender.js");
       const auth = await getGmailAuth(credPath, tokenPath);
-      await sendEmail({
+
+      // Engagement tracking (#45): default OFF. Reply tracking always works via
+      // thread correlation; opens/clicks rewrite the body when enabled and the
+      // recipient is not an internal domain.
+      const { trackingMode, openTrackingEnabled, clickTrackingEnabled, isInternalDomain } =
+        await import("./email-tracking.js");
+      const mode = trackingMode();
+      const messageId = `seq-${enrollment.id}-${enrollment.currentStep}-${Date.now()}`;
+      const trackable = mode !== "off" && !isInternalDomain(enrollment.contactEmail);
+      const wantPixelOrClicks =
+        trackable && (openTrackingEnabled(mode) || clickTrackingEnabled(mode));
+
+      let outBody = body;
+      let isHtml = false;
+      if (wantPixelOrClicks) {
+        const { trackingBaseUrl, signToken, injectOpenPixel, rewriteLinks } =
+          await import("./email-tracking.js");
+        const base = trackingBaseUrl();
+        isHtml = true;
+        outBody = body.replace(/\n/g, "<br>\n");
+        if (clickTrackingEnabled(mode)) {
+          outBody = rewriteLinks(outBody, base, (u) =>
+            signToken({
+              s: enrollment.slug,
+              m: messageId,
+              c: enrollment.contactEmail,
+              k: "click",
+              u,
+            })
+          );
+        }
+        if (openTrackingEnabled(mode)) {
+          outBody = injectOpenPixel(
+            outBody,
+            base,
+            signToken({ s: enrollment.slug, m: messageId, c: enrollment.contactEmail, k: "open" })
+          );
+        }
+      }
+
+      const sent = await sendEmail({
         auth,
         to: enrollment.contactEmail,
         subject,
-        body,
-        isHtml: false,
+        body: outBody,
+        isHtml,
       });
+
+      // Always record the send so reply tracking works without any pixel.
+      if (mode !== "off" && !isInternalDomain(enrollment.contactEmail)) {
+        const { recordSentMail } = await import("../fs/sent-store.js");
+        recordSentMail(dataDir, {
+          messageId: sent.messageId || messageId,
+          ...(sent.threadId ? { threadId: sent.threadId } : {}),
+          slug: enrollment.slug,
+          contactEmail: enrollment.contactEmail,
+          subject,
+          sequenceStep: enrollment.currentStep,
+          sentAt: new Date().toISOString(),
+        });
+      }
+
       logger.info("sequences", "sent step", {
         step: enrollment.currentStep,
         to: enrollment.contactEmail,

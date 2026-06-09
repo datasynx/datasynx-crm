@@ -127,6 +127,18 @@ export async function handleGmailPushEvent(
         sourceRef,
         synced: new Date().toISOString(),
       });
+      // Email engagement (#45): mark a prior outbound on this thread as replied
+      // and record reply latency — no pixel required.
+      try {
+        const { correlateReply } = await import("./../fs/sent-store.js");
+        correlateReply(dataDir, {
+          threadId: full.threadId,
+          from: full.from,
+          at: full.date || new Date().toISOString(),
+        });
+      } catch {
+        // tracking is best-effort; never block inbound sync
+      }
       processed++;
     } catch {
       // Skip individual message errors

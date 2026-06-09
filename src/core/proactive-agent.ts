@@ -5,6 +5,7 @@ import { computeCustomerHealth, readHealth } from "./relationship-health.js";
 import { readPipeline } from "../fs/pipeline-writer.js";
 import { listCustomerSlugs } from "../fs/customer-dir.js";
 import { buildSimulationInput, runSimulation } from "./revenue-simulation.js";
+import { aggregateEngagement } from "../fs/sent-store.js";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -124,6 +125,21 @@ export async function buildDailyBriefing(dataDir: string, today: string): Promis
       if (contact.riskFlags.includes("NO_CONTACT_30D")) {
         urgent.push(
           `${slug}: ${contact.name} has been silent for ${contact.daysSinceContact} days — health ${contact.score}/100`
+        );
+      }
+    }
+
+    // Email engagement signals (#45): a warm opener/replier is the strongest
+    // "follow up now" timing signal. Reply tracking works without a pixel.
+    for (const eng of aggregateEngagement(dataDir, slug)) {
+      if (eng.opens >= 3) {
+        opportunities.push(
+          `${slug}: ${eng.contactEmail} opened your email ${eng.opens}× — warm, follow up now.`
+        );
+      }
+      if (eng.replies > 0 && eng.avgReplyLatencyHours !== undefined) {
+        opportunities.push(
+          `${slug}: ${eng.contactEmail} replied (avg latency ${eng.avgReplyLatencyHours}h) — keep the momentum.`
         );
       }
     }
