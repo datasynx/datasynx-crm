@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/datasynx/datasynx-crm/compare/v1.18.0...v1.19.0) (2026-06-09)
+
+
+### Features
+
+* **core:** per-owner pipeline forecast + RBAC scoping ([56ed75a](https://github.com/datasynx/datasynx-crm/commit/56ed75a67332cc3524c7f878bdff9815befb9e69)), closes [#51](https://github.com/datasynx/datasynx-crm/issues/51) [#51](https://github.com/datasynx/datasynx-crm/issues/51)
+
 # [1.18.0](https://github.com/datasynx/datasynx-crm/compare/v1.17.0...v1.18.0) (2026-06-09)
 
 
