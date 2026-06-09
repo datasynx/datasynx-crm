@@ -1,3 +1,10 @@
+# [1.20.0](https://github.com/datasynx/datasynx-crm/compare/v1.19.0...v1.20.0) (2026-06-09)
+
+
+### Features
+
+* **core:** first-class tasks & reminders with due dates + daily queue ([b2862c4](https://github.com/datasynx/datasynx-crm/commit/b2862c45ea13592474031042cb258ed610603e8a)), closes [#46](https://github.com/datasynx/datasynx-crm/issues/46) [#46](https://github.com/datasynx/datasynx-crm/issues/46)
+
 # [1.19.0](https://github.com/datasynx/datasynx-crm/compare/v1.18.0...v1.19.0) (2026-06-09)
 
 
