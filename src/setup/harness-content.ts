@@ -76,6 +76,8 @@ const ALL_TOOLS = [
   "create_workflow",
   "list_workflows",
   "toggle_workflow",
+  // Dashboard (#52)
+  "get_dashboard_link",
   // NPS/CSAT Survey (H7)
   "send_nps_survey",
   "get_survey_results",
@@ -103,7 +105,7 @@ const ALL_TOOLS = [
 ] as const;
 
 export { ALL_TOOLS };
-export const TOOL_COUNT = ALL_TOOLS.length; // 74
+export const TOOL_COUNT = ALL_TOOLS.length; // 75
 
 /** Claude Code: CLAUDE.md in CRM dataDir */
 export function buildClaudeMd(dataDir: string): string {
@@ -234,6 +236,9 @@ It combines graph, health, revenue simulation, playbook, and org intelligence in
 - \`create_workflow({ name, trigger, conditions?, actions, dryRun? })\` — if-then rule on internal events (deal.updated, ticket.created, quote.*, email.replied)
 - \`list_workflows()\` — all rules with runCount/lastRunAt
 - \`toggle_workflow({ id, enabled })\` — enable/disable a rule
+
+### Dashboard (#52)
+- \`get_dashboard_link({ validDays? })\` — token-secured read-only web dashboard (forecast, funnel, velocity, goals)
 
 ### NPS/CSAT Surveys (H7)
 - \`send_nps_survey({ slug, contactEmail, surveyId, serverUrl? })\` — generate survey token and email body for NPS/CSAT survey
@@ -369,6 +374,8 @@ summarize_meeting · get_pipeline_stages · get_market_intelligence
 **Email Engagement (#45):** get_email_engagement
 
 **Workflow Automation (#48):** create_workflow · list_workflows · toggle_workflow
+
+**Dashboard (#52):** get_dashboard_link
 
 **NPS/CSAT (H7):** send_nps_survey · get_survey_results
 
@@ -530,7 +537,7 @@ list_email_templates · get_email_template · draft_email ·
 enroll_in_sequence · list_sequence_enrollments · unenroll_from_sequence · list_sequences ·
 generate_quote · get_quote_status · send_quote · create_product · list_products · update_product · get_booking_link ·
 create_ticket · update_ticket · list_tickets · close_ticket ·
-create_task · list_tasks · complete_task · snooze_task · get_email_engagement · create_workflow · list_workflows · toggle_workflow ·
+create_task · list_tasks · complete_task · snooze_task · get_email_engagement · create_workflow · list_workflows · toggle_workflow · get_dashboard_link ·
 send_nps_survey · get_survey_results ·
 search_knowledge_base · create_kb_article ·
 backup_now · list_backups ·
@@ -608,7 +615,7 @@ list_email_templates · get_email_template · draft_email ·
 enroll_in_sequence · list_sequence_enrollments · unenroll_from_sequence · list_sequences ·
 generate_quote · get_quote_status · send_quote · create_product · list_products · update_product · get_booking_link ·
 create_ticket · update_ticket · list_tickets · close_ticket ·
-create_task · list_tasks · complete_task · snooze_task · get_email_engagement · create_workflow · list_workflows · toggle_workflow ·
+create_task · list_tasks · complete_task · snooze_task · get_email_engagement · create_workflow · list_workflows · toggle_workflow · get_dashboard_link ·
 send_nps_survey · get_survey_results ·
 search_knowledge_base · create_kb_article
 

@@ -101,6 +101,7 @@ Config: \`.agentic/rbac.json\` | Actor: \`DXCRM_ACTOR\` env var
 | create_workflow | Declarative if-then automation rule on internal events (policy-gated, audited) | manager+ |
 | list_workflows | List automation rules with run counters | any |
 | toggle_workflow | Enable/disable an automation rule | manager+ |
+| get_dashboard_link | Token-secured read-only web dashboard (forecast, funnel, velocity, goals) | any |
 | send_nps_survey | Generate NPS/CSAT survey token + HTML email draft (does not send automatically) | rep+ |
 | get_survey_results | NPS score, promoter/passive/detractor breakdown, all responses for a survey | any |
 | search_knowledge_base | Full-text search across KB articles (title, body, tags) with category and public filters | any |
@@ -512,6 +513,12 @@ All automation rules with enabled state, runCount, lastRunAt.
 
 ### toggle_workflow({ id, enabled })
 Enable or disable a rule.
+
+### get_dashboard_link({ validDays? })
+Mint a token-secured link to the read-only web dashboard (#52): forecast P50/P90 (rolling 90d),
+funnel, velocity, goals, top risks — server-rendered from local snapshots, RBAC-aware
+(rep: own forecast only; global tiles manager/admin). HMAC-signed, expiring.
+- Returns: { link, actor, expiresInDays }
 
 ### get_email_engagement({ slug })
 Outbound email engagement per contact (#45): sent/opens/clicks/replies, last open, average reply
