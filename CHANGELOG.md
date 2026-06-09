@@ -1,3 +1,10 @@
+# [1.21.0](https://github.com/datasynx/datasynx-crm/compare/v1.20.0...v1.21.0) (2026-06-09)
+
+
+### Features
+
+* **core:** outbound email engagement tracking — replies, opens, clicks ([5778e61](https://github.com/datasynx/datasynx-crm/commit/5778e618ff5c03010a0095342b44dce66cce6db0)), closes [#45](https://github.com/datasynx/datasynx-crm/issues/45) [#45](https://github.com/datasynx/datasynx-crm/issues/45)
+
 # [1.20.0](https://github.com/datasynx/datasynx-crm/compare/v1.19.0...v1.20.0) (2026-06-09)
 
 
