@@ -1,3 +1,10 @@
+# [1.25.0](https://github.com/datasynx/datasynx-crm/compare/v1.24.0...v1.25.0) (2026-06-09)
+
+
+### Features
+
+* **core:** declarative if-then workflow automation engine ([26de989](https://github.com/datasynx/datasynx-crm/commit/26de989b945b439cadf9f0f4ec3464511cd331e6)), closes [#48](https://github.com/datasynx/datasynx-crm/issues/48) [#48](https://github.com/datasynx/datasynx-crm/issues/48)
+
 # [1.24.0](https://github.com/datasynx/datasynx-crm/compare/v1.23.0...v1.24.0) (2026-06-09)
 
 
