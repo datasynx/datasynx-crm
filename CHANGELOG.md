@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/datasynx/datasynx-crm/compare/v1.27.0...v1.28.0) (2026-06-09)
+
+
+### Features
+
+* **core:** skills-based ticket routing + automatic SLA escalation ([d77b0bc](https://github.com/datasynx/datasynx-crm/commit/d77b0bca54542293955945173edbd5cad51f862d)), closes [#59](https://github.com/datasynx/datasynx-crm/issues/59) [pre-#59](https://github.com/pre-/issues/59) [#59](https://github.com/datasynx/datasynx-crm/issues/59)
+
 # [1.27.0](https://github.com/datasynx/datasynx-crm/compare/v1.26.0...v1.27.0) (2026-06-09)
 
 
