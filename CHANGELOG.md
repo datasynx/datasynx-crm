@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/datasynx/datasynx-crm/compare/v1.32.0...v1.33.0) (2026-06-10)
+
+
+### Features
+
+* **core:** auto-detect stakeholder roles from interaction text ([#41](https://github.com/datasynx/datasynx-crm/issues/41) A5) ([7eb3315](https://github.com/datasynx/datasynx-crm/commit/7eb33155ab2b80c6d0bf62b9f17915e4d73c490e))
+
 # [1.32.0](https://github.com/datasynx/datasynx-crm/compare/v1.31.0...v1.32.0) (2026-06-10)
 
 
