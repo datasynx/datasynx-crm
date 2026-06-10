@@ -1,3 +1,10 @@
+## [1.36.1](https://github.com/datasynx/datasynx-crm/compare/v1.36.0...v1.36.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* **mcp:** route tests for forms/booking/webhooks; fix slack sig & double-booking ([a63feb0](https://github.com/datasynx/datasynx-crm/commit/a63feb09a515d611695de762da9f8d5d14aef3d9)), closes [#65](https://github.com/datasynx/datasynx-crm/issues/65) [#61](https://github.com/datasynx/datasynx-crm/issues/61)
+
 # [1.36.0](https://github.com/datasynx/datasynx-crm/compare/v1.35.0...v1.36.0) (2026-06-10)
 
 
