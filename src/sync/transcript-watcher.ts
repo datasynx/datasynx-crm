@@ -188,5 +188,9 @@ async function recordUnmatched(
 ): Promise<void> {
   const { appendUnmatched } = await import("../fs/unmatched-transcripts.js");
   appendUnmatched(dataDir, { filePath, addedAt: new Date().toISOString(), reason });
+  const { emitEvent } = await import("../core/webhooks.js");
+  await emitEvent(dataDir, "transcript.unmatched", { source: "file", ref: filePath, reason }).catch(
+    () => undefined
+  );
   logger.info("transcript-watcher", "unmatched transcript", { filePath, reason });
 }

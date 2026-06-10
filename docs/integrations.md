@@ -239,14 +239,19 @@ After every online call, the meeting summary can land on the right customer
   are queued, never silently dropped:
 
   ```bash
-  dxcrm transcripts unmatched   # list transcripts that could not be routed
-  dxcrm transcripts clear       # clear the queue after fixing main_facts
+  dxcrm transcripts unmatched        # list transcripts that could not be routed
+  dxcrm transcripts resolve <ref>    # remove one entry after fixing main_facts
+  dxcrm transcripts clear            # clear the whole queue
   ```
 
   Add the meeting domain/email to a customer's `main_facts` (`domain` / `email`
   / `primary_contact`) so the next event routes correctly.
-- **Event:** every routed transcript emits `meeting.transcribed`
-  `{ slug, source: "teams" | "meet", sourceRef }` for workflow automation (#48).
+- **Events (workflow automation #48):** every routed transcript emits
+  `meeting.transcribed` `{ slug, source: "teams" | "meet", sourceRef }`; every
+  *queued* one emits `transcript.unmatched` `{ source, ref, reason }`; and the
+  daemon emits a daily `queue.unmatched_digest` `{ count, oldest, refs }`
+  (06:00) while the queue is non-empty — wire a webhook to it so unmatched
+  calls never pile up silently.
 
 ### Creating the subscriptions (#63)
 

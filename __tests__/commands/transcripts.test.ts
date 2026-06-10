@@ -104,3 +104,37 @@ describe("runTranscriptsSubscriptions (#63)", () => {
     logSpy.mockRestore();
   });
 });
+
+describe("runTranscriptsResolve (#66)", () => {
+  it("removes a single entry and keeps the rest", async () => {
+    const { appendUnmatched, readUnmatched } =
+      await import("../../src/fs/unmatched-transcripts.js");
+    appendUnmatched("/data", {
+      filePath: "teams://a",
+      addedAt: "2026-06-01T00:00:00Z",
+      reason: "no_customer_match",
+    });
+    appendUnmatched("/data", {
+      filePath: "meet://b",
+      addedAt: "2026-06-02T00:00:00Z",
+      reason: "no_customer_match",
+    });
+
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+    const { runTranscriptsResolve } = await import("../../src/commands/transcripts.js");
+    await runTranscriptsResolve("teams://a");
+
+    expect(readUnmatched("/data").map((t) => t.filePath)).toEqual(["meet://b"]);
+    expect(logSpy.mock.calls.flat().join(" ")).toContain("Resolved");
+    logSpy.mockRestore();
+  });
+
+  it("fails with exit code 1 for an unknown ref", async () => {
+    const errSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const { runTranscriptsResolve } = await import("../../src/commands/transcripts.js");
+    await runTranscriptsResolve("nope://x");
+    expect(process.exitCode).toBe(1);
+    process.exitCode = 0;
+    errSpy.mockRestore();
+  });
+});

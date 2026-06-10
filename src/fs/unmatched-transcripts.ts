@@ -22,3 +22,12 @@ export function appendUnmatched(dataDir: string, entry: UnmatchedTranscript): vo
 export function clearUnmatched(dataDir: string): void {
   writeJsonFile(getUnmatchedPath(dataDir), []);
 }
+
+/** Remove a single entry by its ref; returns false when no entry matched. */
+export function removeUnmatched(dataDir: string, filePath: string): boolean {
+  const queue = readUnmatched(dataDir);
+  const next = queue.filter((t) => t.filePath !== filePath);
+  if (next.length === queue.length) return false;
+  writeJsonFile(getUnmatchedPath(dataDir), next);
+  return true;
+}

@@ -382,6 +382,14 @@ new CronJob(
     } catch (err) {
       logger.error("push", "renewal failed", { error: (err as Error).message });
     }
+
+    // Unmatched-queue digest (#66): nudge the operator once a day.
+    try {
+      const { emitUnmatchedDigest } = await import("../core/unmatched-digest.js");
+      await emitUnmatchedDigest(DATA_DIR);
+    } catch (err) {
+      logger.error("transcripts", "unmatched digest failed", { error: (err as Error).message });
+    }
   },
   null,
   true,

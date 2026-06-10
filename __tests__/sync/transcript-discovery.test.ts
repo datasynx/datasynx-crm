@@ -98,7 +98,17 @@ describe("discoverTeamsTranscript (#56)", () => {
     const q = readUnmatched(DATA_DIR);
     expect(q).toHaveLength(1);
     expect(q[0]!.filePath).toContain("m-x");
-    expect(mockEmitEvent).not.toHaveBeenCalled();
+    // No meeting.transcribed — but the queueing itself is announced (#66).
+    expect(mockEmitEvent).not.toHaveBeenCalledWith(
+      DATA_DIR,
+      "meeting.transcribed",
+      expect.anything()
+    );
+    expect(mockEmitEvent).toHaveBeenCalledWith(
+      DATA_DIR,
+      "transcript.unmatched",
+      expect.objectContaining({ ref: "teams://onlineMeetings/m-x" })
+    );
   });
 
   it("skips non-transcript resources and attendee-less meetings", async () => {
@@ -252,6 +262,40 @@ describe("buildMicrosoftRenewFn (#56)", () => {
     expect(fetchFn).toHaveBeenCalledWith(
       "https://graph.microsoft.com/v1.0/subscriptions/graph-sub-1",
       expect.objectContaining({ method: "PATCH" })
+    );
+  });
+});
+
+describe("transcript.unmatched event (#66)", () => {
+  it("emits when a Teams transcript cannot be routed", async () => {
+    const { discoverTeamsTranscript } = await import("../../src/sync/transcript-discovery.js");
+    await discoverTeamsTranscript(
+      DATA_DIR,
+      { subscriptionId: "s", resource: "users('u')/onlineMeetings('m-x')/transcripts('t')" },
+      { accessToken: "tok", fetchAttendees: async () => ["stranger@nowhere.io"] }
+    );
+    expect(mockEmitEvent).toHaveBeenCalledWith(
+      DATA_DIR,
+      "transcript.unmatched",
+      expect.objectContaining({ source: "teams", reason: "no_customer_match" })
+    );
+  });
+
+  it("emits when a Meet record cannot be routed", async () => {
+    const { discoverMeetTranscript } = await import("../../src/sync/transcript-discovery.js");
+    await discoverMeetTranscript(
+      DATA_DIR,
+      { conferenceRecordId: "conferenceRecords/cr-1" },
+      {
+        accessToken: "tok",
+        fetchAttendees: async () => ["stranger@nowhere.io"],
+        syncMeet: async () => ({ synced: true }),
+      }
+    );
+    expect(mockEmitEvent).toHaveBeenCalledWith(
+      DATA_DIR,
+      "transcript.unmatched",
+      expect.objectContaining({ source: "meet", reason: "no_customer_match" })
     );
   });
 });

@@ -102,11 +102,17 @@ export async function discoverTeamsTranscript(
 
   const slug = routeByAttendees(dataDir, emails);
   if (!slug) {
+    const unmatchedRef = `teams://onlineMeetings/${ref.meetingId}`;
     appendUnmatched(dataDir, {
-      filePath: `teams://onlineMeetings/${ref.meetingId}`,
+      filePath: unmatchedRef,
       addedAt: new Date().toISOString(),
       reason: "no_customer_match",
     });
+    await emitEvent(dataDir, "transcript.unmatched", {
+      source: "teams",
+      ref: unmatchedRef,
+      reason: "no_customer_match",
+    }).catch(() => undefined);
     logger.info("transcript-discovery", "teams transcript unmatched", { meetingId: ref.meetingId });
     return { status: "unmatched", meetingId: ref.meetingId };
   }
@@ -172,11 +178,17 @@ export async function discoverMeetTranscript(
 
   const slug = routeByAttendees(dataDir, emails);
   if (!slug) {
+    const unmatchedRef = `meet://${event.conferenceRecordId}`;
     appendUnmatched(dataDir, {
-      filePath: `meet://${event.conferenceRecordId}`,
+      filePath: unmatchedRef,
       addedAt: new Date().toISOString(),
       reason: "no_customer_match",
     });
+    await emitEvent(dataDir, "transcript.unmatched", {
+      source: "meet",
+      ref: unmatchedRef,
+      reason: "no_customer_match",
+    }).catch(() => undefined);
     logger.info("transcript-discovery", "meet transcript unmatched", {
       conferenceRecordId: event.conferenceRecordId,
     });

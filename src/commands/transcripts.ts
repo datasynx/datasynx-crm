@@ -108,6 +108,17 @@ export async function runTranscriptsSubscriptions(): Promise<void> {
   }
 }
 
+/** `dxcrm transcripts resolve <ref>` — remove one unmatched entry (#66). */
+export async function runTranscriptsResolve(ref: string): Promise<void> {
+  const { removeUnmatched } = await import("../fs/unmatched-transcripts.js");
+  if (!removeUnmatched(dataDir(), ref)) {
+    console.error(error(`No unmatched entry '${ref}' — see: dxcrm transcripts unmatched`));
+    process.exitCode = 1;
+    return;
+  }
+  console.log(info(`Resolved ${ref} — removed from the unmatched queue.`));
+}
+
 export const transcriptsCommand = new Command("transcripts").description(
   "Auto-discovered meeting transcripts (Teams/Meet): subscriptions & unmatched queue"
 );
@@ -145,6 +156,11 @@ transcriptsCommand
       info("Add the meeting's domain/email to a customer's main_facts, then re-poll, or clear.")
     );
   });
+
+transcriptsCommand
+  .command("resolve <ref>")
+  .description("Remove a single entry from the unmatched queue (after fixing main_facts)")
+  .action(runTranscriptsResolve);
 
 transcriptsCommand
   .command("clear")
