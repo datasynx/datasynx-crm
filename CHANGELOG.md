@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/datasynx/datasynx-crm/compare/v1.33.0...v1.34.0) (2026-06-10)
+
+
+### Features
+
+* **core:** two-way web chat + hardened public conversation endpoints ([f2bd95f](https://github.com/datasynx/datasynx-crm/commit/f2bd95f4b159dbdaa6488709cf440ebb83ce43c1)), closes [#61](https://github.com/datasynx/datasynx-crm/issues/61) [#62](https://github.com/datasynx/datasynx-crm/issues/62) [#57](https://github.com/datasynx/datasynx-crm/issues/57)
+
 # [1.33.0](https://github.com/datasynx/datasynx-crm/compare/v1.32.0...v1.33.0) (2026-06-10)
 
 
