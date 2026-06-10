@@ -1,3 +1,10 @@
+# [1.38.0](https://github.com/datasynx/datasynx-crm/compare/v1.37.2...v1.38.0) (2026-06-10)
+
+
+### Features
+
+* **core:** integration secrets resolve env -> vault ([#72](https://github.com/datasynx/datasynx-crm/issues/72)) ([11e1e79](https://github.com/datasynx/datasynx-crm/commit/11e1e799c8e9fedef894301e6a3e0564c168fdf5))
+
 ## [1.37.2](https://github.com/datasynx/datasynx-crm/compare/v1.37.1...v1.37.2) (2026-06-10)
 
 
