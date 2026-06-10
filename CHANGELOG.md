@@ -1,3 +1,10 @@
+# [1.37.0](https://github.com/datasynx/datasynx-crm/compare/v1.36.1...v1.37.0) (2026-06-10)
+
+
+### Features
+
+* **sync:** unmatched-queue workflow — events, daily digest, resolve ([#66](https://github.com/datasynx/datasynx-crm/issues/66)) ([2ec8073](https://github.com/datasynx/datasynx-crm/commit/2ec8073b53bf757d1960e5313bf6b272e5234725))
+
 ## [1.36.1](https://github.com/datasynx/datasynx-crm/compare/v1.36.0...v1.36.1) (2026-06-10)
 
 
