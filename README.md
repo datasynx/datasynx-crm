@@ -145,6 +145,20 @@ Local-first storage, one-command GDPR erasure, and <strong>zero telemetry</stron
 An agent per customer pings you (Telegram) the moment a relevant email lands.
 </td>
 </tr>
+<tr>
+<td align="center">
+<h3>💬 Omnichannel inbox</h3>
+Two-way embeddable web chat and WhatsApp Cloud API in one thread-based inbox — rate-limited, honeypot-protected, escalates to tickets.
+</td>
+<td align="center">
+<h3>📅 Scheduler & portal</h3>
+A native booking page with real free/busy slots and a customer self-service portal — no Calendly, no extra tools.
+</td>
+<td align="center">
+<h3>🩺 Live-readiness checks</h3>
+<code>dxcrm doctor --integrations --live</code> verifies every provider (Graph, Google, WhatsApp, Stripe, …) with a concrete fix hint per gap.
+</td>
+</tr>
 </table>
 
 <br/>
@@ -381,7 +395,7 @@ git clone https://github.com/datasynx/datasynx-crm
 cd datasynx-crm
 npm ci
 
-npm test               # Vitest (TDD) — 3000+ tests
+npm test               # Vitest (TDD) — 3,600+ tests
 npm run build          # tsdown → dist/
 npm run typecheck      # strict TypeScript
 npm run lint           # ESLint (zero warnings)

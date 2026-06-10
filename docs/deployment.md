@@ -133,18 +133,66 @@ dxcrm audit --limit 100          # More entries
 
 ## Environment Variables
 
+> Check what's actually wired up with `dxcrm doctor --integrations [--live]` —
+> it reports per-provider readiness with a concrete cause for every gap.
+
+### Core
+
 | Variable | Default | Description |
 |---|---|---|
 | `DXCRM_DATA_DIR` | `process.cwd()` | CRM root directory |
+| `DXCRM_PUBLIC_URL` | — | Public base URL of this server — required for webhooks, the chat widget, booking/portal links and `dxcrm transcripts subscribe` |
 | `DXCRM_MCP_MODE` | `stdio` | MCP transport: `stdio` or `http` |
 | `DXCRM_MCP_PORT` | `3847` | HTTP server port |
-| `DXCRM_ACTOR` | `system` | Identity for audit trail (set to your name) |
-| `TELEGRAM_BOT_TOKEN` | — | Bot token for agent notifications |
-| `TELEGRAM_CHAT_ID` | — | Default Telegram chat ID |
-| `ANTHROPIC_API_KEY` | — | API key for LLM email summarization |
 | `DXCRM_MCP_AUTH` | auto | HTTP `/mcp` auth: `required`, `off`, or auto (on once a token exists) |
+| `DXCRM_ACTOR` | `system` | Identity for audit trail (set to your name) |
+| `DXCRM_VAULT_KEY` | — | Master key for the encrypted credential vault (`.agentic/vault.enc`) |
+| `DXCRM_DAEMON_INTERVAL` | `30` | Background sync interval (minutes) |
+
+### LLM & search
+
+| Variable | Default | Description |
+|---|---|---|
+| `ANTHROPIC_API_KEY` | — | API key for LLM email summarization |
+| `DXCRM_LLM_PROVIDER` / `DXCRM_LLM_MODEL` / `DXCRM_LLM_BASE_URL` | anthropic | Alternative LLM endpoint for summarization |
+| `DXCRM_EMBED_MODEL` | `Xenova/all-MiniLM-L6-v2` | Embedding model (see `docs/embeddings.md`; reindex after switching) |
+
+### Live integrations (see `docs/integrations.md` for setup)
+
+| Variable | Used by |
+|---|---|
+| `WHATSAPP_TOKEN` · `WHATSAPP_PHONE_ID` · `WHATSAPP_APP_SECRET` · `WHATSAPP_VERIFY_TOKEN` | WhatsApp Cloud API inbox (#57): inbound verification, signature check, outbound replies |
+| `MS_GRAPH_CLIENT_STATE` | Microsoft Graph webhook verification + `dxcrm transcripts subscribe teams` |
+| `GMAIL_PUBSUB_TOKEN` | Gmail Pub/Sub push webhook auth |
+| `SLACK_BOT_TOKEN` · `SLACK_SIGNING_SECRET` · `SLACK_WEBHOOK_URL` | Slack events + notifications |
+| `TELEGRAM_BOT_TOKEN` · `TELEGRAM_CHAT_ID` | Per-customer agent notifications |
+| `STRIPE_API_KEY` · `STRIPE_WEBHOOK_SECRET` | Quote payment links + paid events (#49) |
+| `WORKOS_API_KEY` | SSO for the shared team server |
+| `DXCRM_GOOGLE_CLIENT_ID/SECRET` · `DXCRM_MS_CLIENT_ID` · `DXCRM_MS_TENANT` | Mailbox OAuth flows (`dxcrm mailbox connect`) |
+| `CLEARBIT_API_KEY` · `CRUNCHBASE_API_KEY` · `CALENDLY_API_KEY` | Enrichment / scheduling lookups |
+| `PIPEDRIVE_TOKEN/URL` · `SFDC_TOKEN/URL` | CRM imports |
+
+### Token-signing secrets (set in production — defaults are dev-only)
+
+| Variable | Signs |
+|---|---|
+| `DXCRM_FORMS_SECRET` | Double-opt-in confirm links |
+| `DXCRM_BOOKING_SECRET` | Booking page embed links |
+| `DXCRM_SURVEY_SECRET` | NPS/CSAT survey links |
+| `DXCRM_DASHBOARD_SECRET` | Read-only dashboard links |
+| `DXCRM_TRACKING_SECRET` | Email open/click tracking tokens (`DXCRM_EMAIL_TRACKING=opens|clicks|all`) |
+
+### Privacy, logging & misc
+
+| Variable | Default | Description |
+|---|---|---|
 | `DXCRM_PII_MASKING` | `off` | When `on`, mask emails/phones in text sent to the LLM (restored in responses) |
 | `DXCRM_GUARDRAILS` | `off` | When `on`, neutralize prompt-injection phrases in untrusted content before LLM calls |
+| `DXCRM_AI_DISCLOSURE` / `DXCRM_AI_DISCLOSURE_LANG` | `off` / `en` | Append an AI-assistance disclosure to outbound drafts |
+| `DXCRM_LOG_LEVEL` / `DXCRM_LOG_MAX_BYTES` / `DXCRM_LOG_MAX_FILES` / `DXCRM_LOG_STDERR` | info | Structured logging (`.agentic/logs.ndjson`) |
+| `DXCRM_PDF_OCR` / `DXCRM_OCR_LANG` / `DXCRM_PDF_OCR_MAX_PAGES` | off | OCR for scanned attachments |
+| `DXCRM_VAULT_GUI_ALLOW_REMOTE` | `0` | Allow the vault GUI behind a trusted reverse proxy (loopback-only by default) |
+| `DXCRM_SNAPSHOT_KEEP` / `DXCRM_STALLED_DAYS` | 90 / 14 | Pipeline snapshot retention (days) / stalled-deal threshold |
 
 ---
 

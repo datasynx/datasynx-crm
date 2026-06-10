@@ -110,10 +110,12 @@ dxcrm backup schedule --every day --keep 7
 ## Verify Everything Works
 
 ```bash
-dxcrm status           # daemon running, customers synced, queue empty
-dxcrm list             # list all customers
-dxcrm show stripe      # show Stripe's profile
-dxcrm audit            # recent write operations
+dxcrm doctor                        # data integrity, temp files, logs, backups
+dxcrm doctor --integrations --live  # per-provider readiness (tokens verified)
+dxcrm status                        # daemon running, customers synced, queue empty
+dxcrm list                          # list all customers
+dxcrm show stripe                   # show Stripe's profile
+dxcrm audit                         # recent write operations
 ```
 
 ---
@@ -142,6 +144,9 @@ dxcrm audit            # recent write operations
 | `TELEGRAM_BOT_TOKEN` | — | For agent wake notifications |
 | `TELEGRAM_CHAT_ID` | — | Default Telegram chat for notifications |
 | `ANTHROPIC_API_KEY` | — | Enables LLM email summaries (optional) |
+
+Full list (live integrations, signing secrets, logging, privacy):
+[Deployment → Environment Variables](deployment.md#environment-variables).
 
 ---
 
