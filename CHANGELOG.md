@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/datasynx/datasynx-crm/compare/v1.29.0...v1.30.0) (2026-06-10)
+
+
+### Features
+
+* **scheduler:** native meeting scheduler with availability & round-robin ([#53](https://github.com/datasynx/datasynx-crm/issues/53)) ([6b38b44](https://github.com/datasynx/datasynx-crm/commit/6b38b449f93f5dec7723ee6e599b60268a3035f0))
+
 # [1.29.0](https://github.com/datasynx/datasynx-crm/compare/v1.28.0...v1.29.0) (2026-06-10)
 
 
