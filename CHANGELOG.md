@@ -1,3 +1,10 @@
+# [1.39.0](https://github.com/datasynx/datasynx-crm/compare/v1.38.1...v1.39.0) (2026-06-11)
+
+
+### Features
+
+* enforce English-only policy + German-stopword CI guard ([#80](https://github.com/datasynx/datasynx-crm/issues/80)) ([#84](https://github.com/datasynx/datasynx-crm/issues/84)) ([70d8796](https://github.com/datasynx/datasynx-crm/commit/70d8796262eed7c266bd931ee67429e0c839d67b)), closes [#83](https://github.com/datasynx/datasynx-crm/issues/83)
+
 ## [1.38.1](https://github.com/datasynx/datasynx-crm/compare/v1.38.0...v1.38.1) (2026-06-11)
 
 
