@@ -1,3 +1,10 @@
+# [1.40.0](https://github.com/datasynx/datasynx-crm/compare/v1.39.0...v1.40.0) (2026-06-11)
+
+
+### Features
+
+* **security:** add native install-script allowlist guard ([#88](https://github.com/datasynx/datasynx-crm/issues/88)) ([210f644](https://github.com/datasynx/datasynx-crm/commit/210f644862956a4aa5c0ba640794161fd461e6f6))
+
 # [1.39.0](https://github.com/datasynx/datasynx-crm/compare/v1.38.1...v1.39.0) (2026-06-11)
 
 
