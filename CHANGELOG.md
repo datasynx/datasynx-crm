@@ -1,3 +1,10 @@
+## [1.38.1](https://github.com/datasynx/datasynx-crm/compare/v1.38.0...v1.38.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* **core:** compute quarter/year forecast horizon in UTC ([03e40c4](https://github.com/datasynx/datasynx-crm/commit/03e40c44de00dafb689d4fb3a25ffd28c1d84c25)), closes [#55](https://github.com/datasynx/datasynx-crm/issues/55)
+
 # [1.38.0](https://github.com/datasynx/datasynx-crm/compare/v1.37.2...v1.38.0) (2026-06-10)
 
 
