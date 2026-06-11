@@ -6,52 +6,78 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // (from exitOverride) and crashed with a stack trace + exit 1.
 beforeEach(() => vi.resetModules());
 
+// Each test calls vi.resetModules() and re-imports the whole CLI command tree
+// (cli-main.js) cold; under full-suite parallel CPU contention that cold ESM
+// import can exceed the default 5s budget (#82). Give these import-heavy cases
+// headroom — the work is fine, only the timeout was too tight.
+const IMPORT_HEAVY_TIMEOUT = 20_000;
+
 describe("runCli", () => {
-  it("exits 0 for --version without throwing", async () => {
-    const { runCli } = await import("../src/cli-main.js");
-    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    const code = await runCli(["node", "dxcrm", "--version"]);
-    out.mockRestore();
-    expect(code).toBe(0);
-  });
+  it(
+    "exits 0 for --version without throwing",
+    async () => {
+      const { runCli } = await import("../src/cli-main.js");
+      const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+      const code = await runCli(["node", "dxcrm", "--version"]);
+      out.mockRestore();
+      expect(code).toBe(0);
+    },
+    IMPORT_HEAVY_TIMEOUT
+  );
 
-  it("exits 0 for --help without throwing", async () => {
-    const { runCli } = await import("../src/cli-main.js");
-    const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
-    const code = await runCli(["node", "dxcrm", "--help"]);
-    out.mockRestore();
-    expect(code).toBe(0);
-  });
+  it(
+    "exits 0 for --help without throwing",
+    async () => {
+      const { runCli } = await import("../src/cli-main.js");
+      const out = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+      const code = await runCli(["node", "dxcrm", "--help"]);
+      out.mockRestore();
+      expect(code).toBe(0);
+    },
+    IMPORT_HEAVY_TIMEOUT
+  );
 
-  it("exits non-zero for an unknown command", async () => {
-    const { runCli } = await import("../src/cli-main.js");
-    const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
-    const code = await runCli(["node", "dxcrm", "no-such-command-xyz"]);
-    err.mockRestore();
-    expect(code).toBeGreaterThan(0);
-  });
+  it(
+    "exits non-zero for an unknown command",
+    async () => {
+      const { runCli } = await import("../src/cli-main.js");
+      const err = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+      const code = await runCli(["node", "dxcrm", "no-such-command-xyz"]);
+      err.mockRestore();
+      expect(code).toBeGreaterThan(0);
+    },
+    IMPORT_HEAVY_TIMEOUT
+  );
 
-  it("registers the full command set (incl. the new ones)", async () => {
-    const { buildProgram } = await import("../src/cli-main.js");
-    const names = buildProgram()
-      .commands.map((c) => c.name())
-      .filter(Boolean);
-    for (const n of ["create", "list", "archive", "reindex", "eval-embeddings"]) {
-      expect(names).toContain(n);
-    }
-  });
+  it(
+    "registers the full command set (incl. the new ones)",
+    async () => {
+      const { buildProgram } = await import("../src/cli-main.js");
+      const names = buildProgram()
+        .commands.map((c) => c.name())
+        .filter(Boolean);
+      for (const n of ["create", "list", "archive", "reindex", "eval-embeddings"]) {
+        expect(names).toContain(n);
+      }
+    },
+    IMPORT_HEAVY_TIMEOUT
+  );
 });
 
 describe("runCli honors process.exitCode (#63)", () => {
-  it("returns the exit code a command action set via process.exitCode", async () => {
-    const { runCli } = await import("../src/cli-main.js");
-    const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
-    const before = process.exitCode;
-    process.exitCode = 0;
-    // transcripts subscribe without --url sets process.exitCode = 1
-    const code = await runCli(["node", "dxcrm", "transcripts", "subscribe", "teams"]);
-    process.exitCode = before ?? 0;
-    err.mockRestore();
-    expect(code).toBe(1);
-  });
+  it(
+    "returns the exit code a command action set via process.exitCode",
+    async () => {
+      const { runCli } = await import("../src/cli-main.js");
+      const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+      const before = process.exitCode;
+      process.exitCode = 0;
+      // transcripts subscribe without --url sets process.exitCode = 1
+      const code = await runCli(["node", "dxcrm", "transcripts", "subscribe", "teams"]);
+      process.exitCode = before ?? 0;
+      err.mockRestore();
+      expect(code).toBe(1);
+    },
+    IMPORT_HEAVY_TIMEOUT
+  );
 });
