@@ -13,6 +13,15 @@ import type { Interval } from "../core/booking.js";
  */
 
 /**
+ * Optional injected lookup for a rep's calendar free/busy. Production callers
+ * omit it and the real (offline-default) `busyForRep` is used; tests inject a
+ * stub to exercise the provider/error branches without live credentials.
+ */
+export interface BusyDeps {
+  busyForRep?: (dataDir: string, rep: string, range: Interval) => Promise<Interval[]>;
+}
+
+/**
  * Look up busy intervals per rep over `range`. Returns an empty array for a rep
  * whenever no calendar is connected or the lookup fails — callers treat that as
  * "fully free". Rep → list of busy intervals.
@@ -20,11 +29,13 @@ import type { Interval } from "../core/booking.js";
 export async function getBusyIntervals(
   dataDir: string,
   reps: string[],
-  range: Interval
+  range: Interval,
+  deps: BusyDeps = {}
 ): Promise<Record<string, Interval[]>> {
+  const lookup = deps.busyForRep ?? busyForRep;
   const out: Record<string, Interval[]> = {};
   for (const rep of reps) {
-    const calendarBusy = await busyForRep(dataDir, rep, range).catch((err) => {
+    const calendarBusy = await lookup(dataDir, rep, range).catch((err) => {
       logger.warn("booking", "free/busy lookup failed — treating rep as free", {
         rep,
         error: err instanceof Error ? err.message : String(err),
@@ -72,6 +83,19 @@ async function busyForRep(_dataDir: string, _rep: string, _range: Interval): Pro
 }
 
 /**
+ * Optional injected calendar-event writer. Production callers omit it (booking
+ * stays local-only); the real Graph/Google `insertEvent` wiring lands here once
+ * per-rep OAuth tokens are provisioned. Tests inject a stub to exercise the
+ * success and error branches without live credentials.
+ */
+export interface CreateEventDeps {
+  insertEvent?: (
+    rep: string,
+    ev: { start: number; end: number; title: string; name: string; email: string }
+  ) => Promise<string | null>;
+}
+
+/**
  * Write a confirmed booking into the rep's calendar. Returns the external event
  * id, or null when no calendar is connected (offline / no token). Best-effort:
  * a failure never blocks the booking — the Meeting interaction is the record of
@@ -80,12 +104,14 @@ async function busyForRep(_dataDir: string, _rep: string, _range: Interval): Pro
 export async function createCalendarEvent(
   _dataDir: string,
   rep: string,
-  ev: { start: number; end: number; title: string; name: string; email: string }
+  ev: { start: number; end: number; title: string; name: string; email: string },
+  deps: CreateEventDeps = {}
 ): Promise<string | null> {
   try {
     // Real Graph (`POST /me/events`) / Google (`events.insert`) wiring lands
     // here once per-rep OAuth tokens are provisioned. Until then the booking is
     // recorded locally and reconciled by the existing calendar sync.
+    if (deps.insertEvent) return await deps.insertEvent(rep, ev);
     logger.info("booking", "calendar event (local-only, no provider connected)", {
       rep,
       start: new Date(ev.start).toISOString(),

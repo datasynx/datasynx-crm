@@ -201,6 +201,20 @@ describe("mapCsvFields — LLM path", () => {
     expect(callArgs?.system?.[0]?.cache_control?.type).toBe("ephemeral");
   });
 
+  it("falls back to heuristic when the response has no text block", async () => {
+    process.env["ANTHROPIC_API_KEY"] = "test-key";
+    mockMessagesCreate.mockResolvedValueOnce({
+      content: [{ type: "tool_use", id: "t1", name: "x", input: {} }],
+    });
+
+    const mapCsvFields = await getMapCsvFields();
+    const result = await mapCsvFields(["name", "Email"], ["name", "email"]);
+
+    // No text block → heuristic mapping is used.
+    expect(result.name).toBe("name");
+    expect(result.email).toBe("Email");
+  });
+
   it("falls back to heuristic on API error", async () => {
     process.env["ANTHROPIC_API_KEY"] = "test-key";
     mockMessagesCreate.mockRejectedValueOnce(new Error("Network error"));
