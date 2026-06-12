@@ -77,6 +77,7 @@
     "check:language": "tsx scripts/check-language.ts",
     "check:deps": "tsx scripts/check-deprecated-deps.ts",
     "check:install-scripts": "tsx scripts/check-install-scripts.ts",
+    "check:onnx-web": "tsx scripts/check-onnx-web-unused.ts",
     "check:no-sourcemaps": "tsx scripts/check-no-sourcemaps.ts",
     "dev": "tsx watch src/cli.ts",
     "typecheck": "tsc --noEmit && tsc --project tsconfig.types.json",
