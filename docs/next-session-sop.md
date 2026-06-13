@@ -2,7 +2,7 @@
 
 > Handoff document for starting a new Claude Code session. Read this
 > **first**, then `CLAUDE.md`. Status: **2026-06-11** · M1 ✅ + M3 (sandbox portion) ✅.
-> Medium-term milestone view: [`roadmap.md`](./roadmap.md).
+> Medium-term milestone view: [`ROADMAP.md`](../ROADMAP.md).
 >
 > **Single source of truth for open work = GitHub issues** (see section 0).
 > Completed work lives in the git history, not here.
@@ -35,7 +35,7 @@
 ## 1. Session Start Checklist
 
 ```
-□ Read CLAUDE.md + this SOP + docs/roadmap.md
+□ Read CLAUDE.md + this SOP + ROADMAP.md
 □ git fetch origin main && git status   (main is ahead via semantic-release!)
 □ npm ci  (container is ephemeral — otherwise vitest/tsx are missing)
 □ npm test → baseline green?   npm run typecheck && npm run lint && npm run build
@@ -127,5 +127,5 @@ For every issue **always** these 5 steps (each documented as a comment in the is
 □ README + docs/ + capabilities + harness in sync (TOOL_COUNT maintained)
 □ Merged to main (rebase over release commits!), pushed
 □ Issue closed as completed with a mapping comment
-□ roadmap.md + this SOP updated when the milestone status changes
+□ ROADMAP.md + this SOP updated when the milestone status changes
 ```

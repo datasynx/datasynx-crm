@@ -409,7 +409,7 @@ New contributors: start with **[CONTRIBUTING.md](./CONTRIBUTING.md)** (TDD workf
 
 ## Roadmap
 
-→ Full roadmap with milestones and exit criteria: [docs/roadmap.md](./docs/roadmap.md)
+→ Full roadmap with milestones and exit criteria: [ROADMAP.md](./ROADMAP.md)
 
 **Shipped**
 
