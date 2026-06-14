@@ -96,6 +96,25 @@ Before every commit I automatically verify:
 - Kill conditions and the response to them
 - External contracts or pricing models
 
+## Working Artifacts — Local Only, Never Committed
+
+In-progress working documents — research write-ups, implementation plans, testing plans,
+scratch notes — are **not** part of the public repository. They live under `thoughts/`, which
+is git-ignored (see `.gitignore`). Never commit them, and never put them under `docs/`.
+
+Canonical locations (these are the defaults the `/datasynx:research` and `/datasynx:plan`
+commands write to):
+
+- `thoughts/shared/research/` — research/codebase write-ups
+- `thoughts/shared/plans/` — implementation plans
+- `thoughts/shared/testing/` — test plans and test notes
+- `thoughts/` — any other scratch/working notes
+
+`docs/` is reserved for **finished, user-facing documentation** (README sync, cli-reference,
+mcp-tools, schemas, integrations, deployment). Only write there for a deliberate, public doc —
+never for work-in-progress. Established project docs the user maintains (`ROADMAP.md`,
+`README.md`, the generated references) are updated as normal.
+
 ## Project Context
 
 Product: DatasynxOpenCRM (`dxcrm`, npm: `datasynx-opencrm`)

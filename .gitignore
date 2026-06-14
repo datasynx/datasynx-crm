@@ -9,4 +9,5 @@ coverage/
 *.js.map
 .claude/
 .agentic/
+# Local working artifacts (research, plans, testing notes) — never committed; see CLAUDE.md
 thoughts/
