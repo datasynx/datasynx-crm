@@ -1,3 +1,10 @@
+# [1.43.0](https://github.com/datasynx/datasynx-crm/compare/v1.42.0...v1.43.0) (2026-06-14)
+
+
+### Features
+
+* **cli:** unmatched-conversations queue — event, digest & resolve command ([#75](https://github.com/datasynx/datasynx-crm/issues/75)) ([#108](https://github.com/datasynx/datasynx-crm/issues/108)) ([034ca5a](https://github.com/datasynx/datasynx-crm/commit/034ca5ad63d23b4036aa5afc0613ca1ee5d19bfb)), closes [#66](https://github.com/datasynx/datasynx-crm/issues/66)
+
 # [1.42.0](https://github.com/datasynx/datasynx-crm/compare/v1.41.0...v1.42.0) (2026-06-14)
 
 
