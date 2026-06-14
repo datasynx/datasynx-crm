@@ -1,3 +1,10 @@
+# [1.42.0](https://github.com/datasynx/datasynx-crm/compare/v1.41.0...v1.42.0) (2026-06-14)
+
+
+### Features
+
+* **templates:** auto-resolve firstName/senderName/ownerName in draft_email ([#106](https://github.com/datasynx/datasynx-crm/issues/106)) ([#107](https://github.com/datasynx/datasynx-crm/issues/107)) ([99be610](https://github.com/datasynx/datasynx-crm/commit/99be610ccc84625075cea1a32c0b2424a54bc2a8)), closes [#75](https://github.com/datasynx/datasynx-crm/issues/75) [#103](https://github.com/datasynx/datasynx-crm/issues/103)
+
 # [1.41.0](https://github.com/datasynx/datasynx-crm/compare/v1.40.1...v1.41.0) (2026-06-13)
 
 
