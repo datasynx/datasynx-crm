@@ -357,7 +357,29 @@ Or via MCP: `list_conversations`, `reply_conversation`, `assign_conversation`.
 
 **Events** (workflow automation #48): `conversation.created`,
 `conversation.message`, `conversation.replied`, `conversation.assigned`,
-`conversation.escalated`.
+`conversation.escalated`, `conversation.unmatched`.
+
+### Unmatched conversations (#75)
+
+Inbound threads route to a customer by email (web-chat) or — for WhatsApp, which
+carries no email — stay unrouted until linked. An unrouted thread is queued once
+(in `.agentic/unmatched-conversations.json`), and:
+
+- A `conversation.unmatched` `{ conversationId, channel, contact, reason }` event
+  fires when the thread is first queued (`reason`: `no_customer_match` when an
+  email was present but matched no customer, `no_contact_identifier` when there
+  was nothing to route on).
+- The daemon emits a daily `queue.unmatched_conversations_digest`
+  `{ count, oldest, refs }` (06:00) while the queue is non-empty — wire a webhook
+  to it so unmatched threads are surfaced instead of piling up silently.
+- A later message that resolves the customer auto-drains the queue entry.
+
+```bash
+dxcrm conversations unmatched              # list threads that could not be routed
+dxcrm conversations resolve <id> <slug>    # link a thread to a customer + drain it
+dxcrm conversations clear                  # empty the queue
+dxcrm status --unmatched                   # transcripts + conversations at a glance
+```
 
 ---
 

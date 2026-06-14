@@ -390,6 +390,17 @@ new CronJob(
     } catch (err) {
       logger.error("transcripts", "unmatched digest failed", { error: (err as Error).message });
     }
+
+    // Unmatched-conversations digest (#75): same daily operator nudge for inbound chat.
+    try {
+      const { emitUnmatchedConversationsDigest } =
+        await import("../core/unmatched-conversations-digest.js");
+      await emitUnmatchedConversationsDigest(DATA_DIR);
+    } catch (err) {
+      logger.error("conversations", "unmatched conversations digest failed", {
+        error: (err as Error).message,
+      });
+    }
   },
   null,
   true,

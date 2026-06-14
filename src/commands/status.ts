@@ -5,6 +5,7 @@ import { success, error, info, bold } from "../ui/colors.js";
 import { listCustomerSlugs } from "../fs/customer-dir.js";
 import { readSyncState } from "../fs/sync-state.js";
 import { readUnmatched } from "../fs/unmatched-transcripts.js";
+import { readUnmatchedConversations } from "../fs/unmatched-conversations.js";
 import { getSession } from "../core/session-store.js";
 import { readAllSessions } from "../commands/session.js";
 
@@ -75,6 +76,18 @@ export async function runStatus(
       }
     }
     console.log(sep);
+    console.log(bold(" Unmatched Conversations"));
+    console.log(sep);
+    const unmatchedConvs = readUnmatchedConversations(dir);
+    if (unmatchedConvs.length === 0) {
+      console.log(info(" No unmatched conversations."));
+    } else {
+      for (const c of unmatchedConvs) {
+        const who = c.contact.email || c.contact.phone || c.contact.name || "anon";
+        console.log(` ${c.id}  ${c.channel}  ${who}  ${c.reason}  ${c.addedAt}`);
+      }
+    }
+    console.log(sep);
     return;
   }
 
@@ -132,6 +145,16 @@ export async function runStatus(
     );
   } else {
     console.log(` Unmatched:   0 Transcripts`);
+  }
+
+  // Unmatched conversations line (#75)
+  const unmatchedConvCount = readUnmatchedConversations(dir).length;
+  if (unmatchedConvCount > 0) {
+    console.log(
+      ` Unmatched:   ${unmatchedConvCount} Conversation${unmatchedConvCount !== 1 ? "s" : ""} (dxcrm conversations unmatched)`
+    );
+  } else {
+    console.log(` Unmatched:   0 Conversations`);
   }
 
   // Team overview via HTTP server

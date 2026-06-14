@@ -294,8 +294,8 @@ export function clearUnmatchedConversations(dataDir: string): void {
 
 ### Success Criteria
 #### Automated Verification:
-- [ ] `npm test` green (new store test)
-- [ ] `npm run typecheck` / `lint` / `build` clean
+- [x] `npm test` green (new store test)
+- [x] `npm run typecheck` / `lint` / `build` clean
 
 ---
 
@@ -354,11 +354,11 @@ producers and the existing conversation events.)
 
 ### Success Criteria
 #### Automated Verification:
-- [ ] `npm test` green (extended conversations test)
-- [ ] `npm run typecheck` / `lint` / `build` clean
+- [x] `npm test` green (extended conversations test)
+- [x] `npm run typecheck` / `lint` / `build` clean
 
 #### Manual Verification:
-- [ ] `POST /chat` with an unknown email creates a queue entry and fires the event (observable
+- [x] `POST /chat` with an unknown email creates a queue entry and fires the event (observable
       via a registered webhook or the log line).
 
 ---
@@ -431,11 +431,11 @@ try {
 
 ### Success Criteria
 #### Automated Verification:
-- [ ] `npm test` green (new digest test)
-- [ ] `npm run typecheck` / `lint` / `build` clean
+- [x] `npm test` green (new digest test)
+- [x] `npm run typecheck` / `lint` / `build` clean
 
 #### Manual Verification:
-- [ ] With a non-empty queue, a daemon cycle (or a direct call) emits the digest event and logs
+- [x] With a non-empty queue, a daemon cycle (or a direct call) emits the digest event and logs
       the warn line.
 
 ---
@@ -591,17 +591,17 @@ section; the summary count line renders.
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `npm test` green (command + status tests)
-- [ ] `npm run typecheck` / `lint` / `build` clean
-- [ ] `npm run docs:generate` produces no uncommitted drift after commit (CLI index shows 70)
-- [ ] `npm run docs:check` green (new integrations.md links/anchors intact)
-- [ ] `dxcrm conversations --help` lists `unmatched`, `resolve`, `clear`
+- [x] `npm test` green (command + status tests)
+- [x] `npm run typecheck` / `lint` / `build` clean
+- [x] `npm run docs:generate` produces no uncommitted drift after commit (CLI index shows 70)
+- [x] `npm run docs:check` green (new integrations.md links/anchors intact)
+- [x] `dxcrm conversations --help` lists `unmatched`, `resolve`, `clear`
 
 #### Manual Verification:
-- [ ] End-to-end on the built binary: `POST /chat` with an unknown email → appears in
+- [x] End-to-end on the built binary: `POST /chat` with an unknown email → appears in
       `dxcrm conversations unmatched` and `dxcrm status`; `dxcrm conversations resolve <id> <slug>`
       links it (visible in `dxcrm inbox show <id>`) and removes it from the queue.
-- [ ] A WhatsApp inbound (no email) queues with `no_contact_identifier`.
+- [x] A WhatsApp inbound (no email) queues with `no_contact_identifier`.
 
 ---
 

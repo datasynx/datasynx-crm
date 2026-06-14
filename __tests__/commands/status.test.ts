@@ -147,6 +147,49 @@ describe("runStatus — unmatched", () => {
     expect(output).toMatch(/no unmatched|empty|0/i);
     logSpy.mockRestore();
   });
+
+  it("shows unmatched conversation count in the summary (#75)", async () => {
+    vol.fromJSON({
+      "/data/.agentic/unmatched-conversations.json": JSON.stringify([
+        {
+          id: "conv_a",
+          channel: "web",
+          threadKey: "s",
+          contact: { email: "x@y.com" },
+          addedAt: "2026-01-01T00:00:00.000Z",
+          reason: "no_customer_match",
+        },
+      ]),
+    });
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { runStatus } = await import("../../src/commands/status.js");
+    await runStatus({}, "/data");
+    const output = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(output).toMatch(/1 Conversation/);
+    logSpy.mockRestore();
+  });
+
+  it("--unmatched lists unmatched conversations (#75)", async () => {
+    vol.fromJSON({
+      "/data/.agentic/unmatched-conversations.json": JSON.stringify([
+        {
+          id: "conv_listme",
+          channel: "whatsapp",
+          threadKey: "+1555",
+          contact: { phone: "+1555" },
+          addedAt: "2026-01-01T00:00:00.000Z",
+          reason: "no_contact_identifier",
+        },
+      ]),
+    });
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+    const { runStatus } = await import("../../src/commands/status.js");
+    await runStatus({ unmatched: true }, "/data");
+    const output = logSpy.mock.calls.map((c) => c.join(" ")).join("\n");
+    expect(output).toMatch(/conv_listme/);
+    expect(output).toMatch(/Unmatched Conversations/);
+    logSpy.mockRestore();
+  });
 });
 
 // ─── team overview via --team ─────────────────────────────────────────────────
