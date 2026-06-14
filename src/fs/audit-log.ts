@@ -19,6 +19,16 @@ export function getActor(): string {
   return actor && actor.trim().length > 0 ? actor.trim() : "system";
 }
 
+/**
+ * Operator display name for templates (#106): the actor, or "" when unset/"system"
+ * so a rendered signature stays blank rather than showing the literal
+ * {{senderName}} placeholder or the internal "system" sentinel.
+ */
+export function getActorName(): string {
+  const actor = getActor();
+  return actor === "system" ? "" : actor;
+}
+
 export function writeAuditEntry(dataDir: string, entry: AuditEntry): void {
   const logPath = path.join(dataDir, AUDIT_LOG_PATH);
   const logDir = path.dirname(logPath);
