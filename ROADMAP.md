@@ -19,14 +19,15 @@ external user closer to "7 days without HubSpot"?*
 
 ## Where We Stand
 
-- **Phases 1–5 + M1 + the M3 sandbox portion completed.** 82 MCP tools · 69 CLI commands ·
-  local Markdown/NDJSON stores · ~3821 tests green · coverage gate (80% branches) green.
-  Delivery detail: git history and closed issues (#61–#69, #71, #72, #74, #80, #70, #103).
-- **Onboarding (#103) delivered:** `dxcrm init` now seeds a starter set (5 example email
-  templates + 1 example sequence, flagged `starter: true`, non-resurrecting on re-init), so
-  `draft_email` / `enroll_in_sequence` / template outreach work on a fresh vault with no
-  hand-authoring. Follow-up #106 (auto-resolve `senderName`/`firstName` variables) tracks the
-  remaining polish.
+- **Phases 1–5 + M1 + the M3 sandbox portion completed.** 82 MCP tools · 70 CLI commands ·
+  local Markdown/NDJSON stores · ~3851 tests green · coverage gate (80% branches) green.
+  Delivery detail: git history and closed issues (#61–#69, #71, #72, #74, #80, #70, #103,
+  #106, #75).
+- **Onboarding fully delivered (Phase 1, P0):** `dxcrm init` seeds a starter set (#103);
+  `draft_email` auto-resolves `{{firstName}}`/`{{senderName}}`/`{{ownerName}}` so starters
+  render with zero overrides (#106); and unrouted inbound web-chat/WhatsApp threads no longer
+  fall through silently — they queue, emit `conversation.unmatched`, surface in a daily digest,
+  and are linkable via `dxcrm conversations resolve` (#75).
 - **Bottleneck:** many live paths are credential-gated no-ops. Core logic and routing are
   tested, but Teams/Meet subscriptions, WhatsApp sending, calendar free/busy, and Stripe
   do not run offline. The path to the kill condition runs through **activating & hardening**,
@@ -52,12 +53,20 @@ tasks (#73) are excluded.
 
 Make a fresh install usable on day one and keep daily operation complete.
 
-| Issue | Title | Why now |
-|---|---|---|
-| [#75](../../issues/75) | Unmatched conversations: event + daily digest + resolve command | Carries the proven #66 transcript pattern to web-chat/WhatsApp. Without it, inbound messages that don't route to a known customer silently fall through during daily use. Well-specified, sandbox-capable. |
-| [#106](../../issues/106) | Auto-resolve sender/owner & contact first-name template variables | Continues the #103 time-to-value thread: starter and user templates use `{{senderName}}`/`{{firstName}}`, which `draft_email` does not yet populate (also fixes a doc/code mismatch on `{{ownerName}}`). Sandbox-capable. |
+_All Phase 1 (P0) items are delivered — see below._
 
 > ✅ **Delivered:** [#103](../../issues/103) — starter email templates & sequences seeded on `init`.
+>
+> ✅ **Delivered:** [#106](../../issues/106) — `draft_email` now auto-resolves
+> `{{firstName}}` (primary contact) and `{{senderName}}`/`{{ownerName}}` (from `DXCRM_ACTOR`);
+> `docs/schemas.md` reconciled with the engine. Starter outreach renders with zero overrides.
+>
+> ✅ **Delivered:** [#75](../../issues/75) — unmatched-conversations queue mirrors the #66
+> transcript pattern: a `conversation.unmatched` event, a daily
+> `queue.unmatched_conversations_digest`, and `dxcrm conversations unmatched|resolve|clear`
+> (plus a `dxcrm status` surface).
+>
+> **Phase 1 (P0) is complete** — day-one friction into the M2 hardening test is removed.
 
 ### Phase 2 — Supply-chain & install footprint *(P1 — trust & deployability)*
 
@@ -109,7 +118,7 @@ Reduce drift and make data-driven decisions on the ML default.
 |---|---|---|
 | **M1 — Live-ready** *(P0)* | ✅ completed 2026-06-10 | Every core integration activatable for real; public endpoints hardened (#61–#64). Entry point: `dxcrm doctor --integrations --live`. |
 | **M2 — 7-day hardening test** *(P1, bottleneck)* | ⏳ **#73** (manual gate) | The kill condition itself. → Phase 1 reduces friction going into it. |
-| **M3 — Quality & robustness** *(P2/P3)* | partly done (#65–#69, #74, #103) | Open: Phase 1 #75 + #106, Phase 3 #20. |
+| **M3 — Quality & robustness** *(P2/P3)* | partly done (#65–#69, #74, #103, #106, #75) | Open: Phase 3 #20. |
 | **M4 — After the kill condition** *(P3, gated)* | not started | Phase 5: #76, #77, #78, #79. |
 | **Footprint & supply-chain** *(P1, newer)* | open | Phase 2: epic #99 + #92/#95/#96/#97/#98. |
 | **Internationalization** *(P2, newer)* | open | Phase 4: #83. |
@@ -119,7 +128,7 @@ Reduce drift and make data-driven decisions on the ML default.
 ```
 M1 (Live-ready) ──→ M2 / #73 (7-day hardening test) ──→ M4 / Phase 5 (growth)
         │
-        ├─ Phase 1 (#75, #106) feeds M2 — reduce day-one friction first (#103 delivered)
+        ├─ Phase 1 (#103, #106, #75) ✅ delivered — day-one friction into M2 removed
         ├─ Phase 2 (#92 → #95 → #96/#98/#97) runs in parallel; #95 unblocks #96/#97
         └─ Phase 3 (#102, #20) & Phase 4 (#83) individually pickable, block nothing
 ```

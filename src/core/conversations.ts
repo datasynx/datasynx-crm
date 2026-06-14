@@ -125,6 +125,7 @@ export interface IngestInput {
 export async function ingestInbound(dataDir: string, input: IngestInput): Promise<Conversation> {
   const now = new Date().toISOString();
   const existing = findOpenThread(dataDir, input.channel, input.threadKey);
+  const prevSlug = existing ? existing.slug : null;
 
   let conv: Conversation;
   let isNew = false;
@@ -176,11 +177,83 @@ export async function ingestInbound(dataDir: string, input: IngestInput): Promis
     text: input.text,
   }).catch(() => undefined);
 
+  // Unmatched-conversations queue (#75): when a thread can't be routed to a
+  // customer, queue it once (idempotent by id) and emit `conversation.unmatched`
+  // only on first insert. When a previously-unmatched thread later resolves to a
+  // slug, drain its queue entry.
+  if (!conv.slug) {
+    const { appendUnmatchedConversation } = await import("../fs/unmatched-conversations.js");
+    const reason = conv.contact.email ? "no_customer_match" : "no_contact_identifier";
+    const added = appendUnmatchedConversation(dataDir, {
+      id: conv.id,
+      channel: conv.channel,
+      threadKey: conv.threadKey,
+      contact: conv.contact,
+      addedAt: now,
+      reason,
+    });
+    if (added) {
+      await emitEvent(dataDir, "conversation.unmatched", {
+        conversationId: conv.id,
+        channel: conv.channel,
+        contact: contactLabel(conv.contact),
+        reason,
+      }).catch(() => undefined);
+    }
+  } else if (prevSlug === null) {
+    const { removeUnmatchedConversation } = await import("../fs/unmatched-conversations.js");
+    removeUnmatchedConversation(dataDir, conv.id);
+  }
+
   logger.info("conversations", isNew ? "thread opened" : "inbound message", {
     id: conv.id,
     channel: conv.channel,
     slug: conv.slug,
   });
+  return conv;
+}
+
+// ─── Link (resolve unmatched) ─────────────────────────────────────────────────
+
+/**
+ * Link an existing conversation to a customer slug (#75) — used by
+ * `dxcrm conversations resolve`. Sets the slug, logs a single linkage interaction
+ * on the customer timeline (subsequent inbound messages mirror normally), and
+ * emits `conversation.assigned`. Returns null when the conversation id is unknown.
+ */
+export async function linkConversationToCustomer(
+  dataDir: string,
+  id: string,
+  slug: string
+): Promise<Conversation | null> {
+  const conv = getConversation(dataDir, id);
+  if (!conv) return null;
+  conv.slug = slug;
+  writeConversation(dataDir, conv);
+
+  const now = new Date().toISOString();
+  const first = conv.messages.find((m) => m.from === "customer");
+  const { appendInteraction } = await import("../fs/interactions-writer.js");
+  await appendInteraction(dataDir, slug, {
+    date: now.slice(0, 10),
+    type: "Note",
+    direction: "inbound",
+    with: contactLabel(conv.contact),
+    subject: `${channelLabel(conv.channel)} conversation linked`,
+    summary: (first?.text ?? "").slice(0, 1000),
+    nextSteps: [],
+    sourceRef: `conversation:${conv.id}:linked`,
+    synced: now,
+  }).catch(() => undefined);
+
+  await emitEvent(dataDir, "conversation.assigned", {
+    conversationId: conv.id,
+    slug,
+    assignee: conv.assignee ?? "",
+    status: conv.status,
+  }).catch(() => undefined);
+
+  logger.info("conversations", "conversation linked", { id: conv.id, slug });
   return conv;
 }
 

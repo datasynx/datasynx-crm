@@ -67,6 +67,88 @@ describe("ingestInbound (#57)", () => {
   });
 });
 
+describe("unmatched-conversations queue (#75)", () => {
+  it("queues a new unmatched web thread and emits conversation.unmatched once", async () => {
+    const { ingestInbound } = await import("../../src/core/conversations.js");
+    const { readUnmatchedConversations } = await import("../../src/fs/unmatched-conversations.js");
+    const conv = await ingestInbound(DATA_DIR, {
+      channel: "web",
+      threadKey: "sess-x",
+      contact: { email: "stranger@nowhere.com" },
+      text: "hello?",
+    });
+    expect(conv.slug).toBeNull();
+    const queue = readUnmatchedConversations(DATA_DIR);
+    expect(queue).toHaveLength(1);
+    expect(queue[0]).toMatchObject({ id: conv.id, channel: "web", reason: "no_customer_match" });
+    expect(mockEmitEvent).toHaveBeenCalledWith(
+      DATA_DIR,
+      "conversation.unmatched",
+      expect.objectContaining({ conversationId: conv.id, reason: "no_customer_match" })
+    );
+  });
+
+  it("uses reason no_contact_identifier for a WhatsApp thread with no email", async () => {
+    const { ingestInbound } = await import("../../src/core/conversations.js");
+    const { readUnmatchedConversations } = await import("../../src/fs/unmatched-conversations.js");
+    await ingestInbound(DATA_DIR, {
+      channel: "whatsapp",
+      threadKey: "+15550009999",
+      contact: { phone: "+15550009999" },
+      text: "hi",
+    });
+    expect(readUnmatchedConversations(DATA_DIR)[0]).toMatchObject({
+      reason: "no_contact_identifier",
+      channel: "whatsapp",
+    });
+  });
+
+  it("does not duplicate the queue entry or re-emit on a second unmatched message", async () => {
+    const { ingestInbound } = await import("../../src/core/conversations.js");
+    const { readUnmatchedConversations } = await import("../../src/fs/unmatched-conversations.js");
+    await ingestInbound(DATA_DIR, {
+      channel: "web",
+      threadKey: "sess-y",
+      contact: { email: "stranger@nowhere.com" },
+      text: "one",
+    });
+    await ingestInbound(DATA_DIR, {
+      channel: "web",
+      threadKey: "sess-y",
+      contact: { email: "stranger@nowhere.com" },
+      text: "two",
+    });
+    expect(readUnmatchedConversations(DATA_DIR)).toHaveLength(1);
+    const unmatchedEmits = mockEmitEvent.mock.calls.filter(
+      (c) => c[1] === "conversation.unmatched"
+    );
+    expect(unmatchedEmits).toHaveLength(1);
+  });
+
+  it("drains the queue entry when a later message resolves the slug", async () => {
+    const { ingestInbound } = await import("../../src/core/conversations.js");
+    const { readUnmatchedConversations } = await import("../../src/fs/unmatched-conversations.js");
+    // First message: anonymous web visitor (no email) → unmatched + queued.
+    const a = await ingestInbound(DATA_DIR, {
+      channel: "web",
+      threadKey: "sess-z",
+      contact: {},
+      text: "anon",
+    });
+    expect(readUnmatchedConversations(DATA_DIR)).toHaveLength(1);
+    // Second message on the same thread now carries a routable email.
+    const b = await ingestInbound(DATA_DIR, {
+      channel: "web",
+      threadKey: "sess-z",
+      contact: { email: "jane@acme.com" },
+      text: "it's me, jane",
+    });
+    expect(b.id).toBe(a.id);
+    expect(b.slug).toBe("acme");
+    expect(readUnmatchedConversations(DATA_DIR)).toHaveLength(0);
+  });
+});
+
 describe("replyConversation (#57)", () => {
   it("adds an agent message, sends outbound, emits, and can close", async () => {
     const { ingestInbound, replyConversation } = await import("../../src/core/conversations.js");

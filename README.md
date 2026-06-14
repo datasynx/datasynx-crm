@@ -220,7 +220,7 @@ A native booking page with real free/busy slots and a customer self-service port
   Import:   HubSpot · Salesforce · Pipedrive · CSV
 ```
 
-→ Full reference: **[69 CLI commands](https://datasynx.github.io/datasynx-crm/#full-cli-reference)** · **[82 MCP tools](https://datasynx.github.io/datasynx-crm/#full-mcp-reference)**
+→ Full reference: **[70 CLI commands](https://datasynx.github.io/datasynx-crm/#full-cli-reference)** · **[82 MCP tools](https://datasynx.github.io/datasynx-crm/#full-mcp-reference)**
 
 <br/>
 
@@ -413,7 +413,7 @@ New contributors: start with **[CONTRIBUTING.md](./CONTRIBUTING.md)** (TDD workf
 
 **Shipped**
 
-- ✅ 82 MCP tools · 69 CLI commands · local-first Markdown store
+- ✅ 82 MCP tools · 70 CLI commands · local-first Markdown store
 - ✅ Hybrid (vector + full-text) search over emails & transcripts
 - ✅ Sync: Gmail, Outlook, Google Drive, Teams, Google Meet
 - ✅ Import: HubSpot, Salesforce, Pipedrive, CSV
