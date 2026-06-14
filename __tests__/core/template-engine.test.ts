@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { vol } from "memfs";
 
 vi.mock("fs", async () => {
@@ -101,5 +101,87 @@ describe("buildVariablesFromCustomer", () => {
     expect(typeof vars["year"]).toBe("number");
     expect(typeof vars["date"]).toBe("string");
     expect(typeof vars["month"]).toBe("string");
+  });
+});
+
+describe("buildVariablesFromCustomer — sender/owner & first-name (#106)", () => {
+  const prevActor = process.env["DXCRM_ACTOR"];
+
+  beforeEach(() => {
+    vol.reset();
+    vi.resetModules();
+    delete process.env["DXCRM_ACTOR"];
+  });
+
+  afterEach(() => {
+    if (prevActor === undefined) delete process.env["DXCRM_ACTOR"];
+    else process.env["DXCRM_ACTOR"] = prevActor;
+  });
+
+  it("resolves senderName/ownerName from DXCRM_ACTOR and firstName from the primary contact", async () => {
+    process.env["DXCRM_ACTOR"] = "Alice Operator";
+    vol.fromJSON({
+      [`${DATA_DIR}/customers/acme/main_facts.md`]: [
+        "---",
+        "name: Acme Corp",
+        "relationship_stage: prospect",
+        "tags: []",
+        "currency: EUR",
+        "created: '2026-05-29'",
+        "updated: '2026-05-29'",
+        "---",
+        "",
+      ].join("\n"),
+      [`${DATA_DIR}/customers/acme/contacts.json`]: JSON.stringify([
+        { email: "jane@acme.com", name: "Jane Roe", isPrimary: true },
+        { email: "bob@acme.com", name: "Bob Other", isPrimary: false },
+      ]),
+    });
+    const { buildVariablesFromCustomer } = await import("../../src/core/template-engine.js");
+    const vars = await buildVariablesFromCustomer(DATA_DIR, "acme");
+    expect(vars["senderName"]).toBe("Alice Operator");
+    expect(vars["ownerName"]).toBe("Alice Operator");
+    expect(vars["firstName"]).toBe("Jane");
+  });
+
+  it("leaves senderName/firstName blank (not literal) when actor and contact are absent", async () => {
+    vol.fromJSON({
+      [`${DATA_DIR}/customers/acme/main_facts.md`]: [
+        "---",
+        "name: Acme Corp",
+        "relationship_stage: prospect",
+        "tags: []",
+        "currency: EUR",
+        "created: '2026-05-29'",
+        "updated: '2026-05-29'",
+        "---",
+        "",
+      ].join("\n"),
+    });
+    const { buildVariablesFromCustomer } = await import("../../src/core/template-engine.js");
+    const vars = await buildVariablesFromCustomer(DATA_DIR, "acme");
+    expect(vars["senderName"]).toBe("");
+    expect(vars["ownerName"]).toBe("");
+    expect(vars["firstName"]).toBe("");
+  });
+
+  it("falls back to main_facts.primary_contact for firstName when no contacts.json", async () => {
+    vol.fromJSON({
+      [`${DATA_DIR}/customers/acme/main_facts.md`]: [
+        "---",
+        "name: Acme Corp",
+        "relationship_stage: prospect",
+        "primary_contact: Bob Smith",
+        "tags: []",
+        "currency: EUR",
+        "created: '2026-05-29'",
+        "updated: '2026-05-29'",
+        "---",
+        "",
+      ].join("\n"),
+    });
+    const { buildVariablesFromCustomer } = await import("../../src/core/template-engine.js");
+    const vars = await buildVariablesFromCustomer(DATA_DIR, "acme");
+    expect(vars["firstName"]).toBe("Bob");
   });
 });

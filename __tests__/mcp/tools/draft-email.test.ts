@@ -79,14 +79,66 @@ describe("handleDraftEmail", () => {
   });
 
   it("unresolved variables stay as {{var}}", async () => {
+    const tmplWithUnknown = `---
+id: intro
+subject: Hello {{company}}
+category: outreach
+variables:
+  - company
+language: de
+createdAt: '2026-05-29'
+---
+
+We at {{company}} — ref {{unknownVar}}.`;
     vol.fromJSON({
       [`${DATA_DIR}/customers/acme/main_facts.md`]: MAIN_FACTS,
-      [`${DATA_DIR}/.agentic/templates/outreach/intro.md`]: TEMPLATE_CONTENT,
+      [`${DATA_DIR}/.agentic/templates/outreach/intro.md`]: tmplWithUnknown,
     });
     const { handleDraftEmail } = await import("../../../src/mcp/tools/draft-email.js");
     const res = await handleDraftEmail({ slug: "acme", templateId: "intro" }, DATA_DIR);
     const parsed = JSON.parse(res.content[0]!.text) as { body: string };
-    expect(parsed.body).toContain("{{firstName}}");
+    expect(parsed.body).toContain("{{unknownVar}}");
+  });
+
+  it("auto-resolves firstName and senderName for a starter-style body (#106)", async () => {
+    const prevActor = process.env["DXCRM_ACTOR"];
+    process.env["DXCRM_ACTOR"] = "Alice Operator";
+    try {
+      const starterBody = `---
+id: cold
+subject: Quick question about {{company}}
+category: outreach
+variables:
+  - company
+  - firstName
+  - senderName
+language: en
+createdAt: '2026-05-29'
+---
+
+Hi {{firstName}},
+
+I'm {{senderName}}.
+
+Best,
+{{senderName}}`;
+      vol.fromJSON({
+        [`${DATA_DIR}/customers/acme/main_facts.md`]: MAIN_FACTS,
+        [`${DATA_DIR}/customers/acme/contacts.json`]: JSON.stringify([
+          { email: "jane@acme.com", name: "Jane Roe", isPrimary: true },
+        ]),
+        [`${DATA_DIR}/.agentic/templates/outreach/cold.md`]: starterBody,
+      });
+      const { handleDraftEmail } = await import("../../../src/mcp/tools/draft-email.js");
+      const res = await handleDraftEmail({ slug: "acme", templateId: "cold" }, DATA_DIR);
+      const parsed = JSON.parse(res.content[0]!.text) as { body: string };
+      expect(parsed.body).not.toContain("{{");
+      expect(parsed.body).toContain("Hi Jane,");
+      expect(parsed.body).toContain("I'm Alice Operator.");
+    } finally {
+      if (prevActor === undefined) delete process.env["DXCRM_ACTOR"];
+      else process.env["DXCRM_ACTOR"] = prevActor;
+    }
   });
 
   it("returns error for missing template", async () => {
@@ -140,7 +192,7 @@ describe("handleDraftEmail", () => {
     );
     const parsed = JSON.parse(res.content[0]!.text) as { body: string; polished: boolean };
     expect(parsed.polished).toBe(false);
-    expect(parsed.body).toContain("{{firstName}}");
+    expect(parsed.body).toContain("we at Acme Corp");
   });
 
   it("does not call the LLM when no tone is requested", async () => {

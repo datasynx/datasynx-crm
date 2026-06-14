@@ -8,9 +8,9 @@
 
 Deliver the two open **Phase 1 (P0 — directly serves the kill condition)** issues:
 
-- **[#106](../../issues/106)** — auto-resolve `firstName` / `senderName` / `ownerName` in
+- **[#106](https://github.com/datasynx/datasynx-crm/issues/106)** — auto-resolve `firstName` / `senderName` / `ownerName` in
   `draft_email` so the #103 starter templates render cleanly with **zero overrides**.
-- **[#75](../../issues/75)** — carry the proven #66 *unmatched-queue* pattern
+- **[#75](https://github.com/datasynx/datasynx-crm/issues/75)** — carry the proven #66 *unmatched-queue* pattern
   (event + daily digest + per-entry resolve) from transcripts to **conversations**
   (web-chat / WhatsApp threads that don't route to a customer).
 
@@ -212,16 +212,17 @@ export async function buildVariablesFromCustomer(
 ### Success Criteria
 
 #### Automated Verification:
-- [ ] `npm test` green (new + updated engine/draft-email tests)
-- [ ] `npm run typecheck` clean
-- [ ] `npm run lint` clean
-- [ ] `npm run build` clean
-- [ ] `npm run docs:check` green (schemas.md links/anchors intact)
+- [x] `npm test` green (new + updated engine/draft-email tests) — 3825 passed
+- [x] `npm run typecheck` clean
+- [x] `npm run lint` clean
+- [x] `npm run build` clean
+- [x] `npm run docs:check` green (schemas.md links/anchors intact)
 
 #### Manual Verification:
-- [ ] `DXCRM_ACTOR="Jane Doe" dxcrm` → `draft_email(slug, "starter-cold-intro")` returns a body
-      with "Hi <FirstName>," and "Best, Jane Doe" and no `{{…}}` placeholders.
-- [ ] With `DXCRM_ACTOR` unset, the same draft renders without literal `{{senderName}}`.
+- [x] `DXCRM_ACTOR="Jane Doe" … template preview cold --slug acme` → body "Hi Jane," and
+      "Best, Jane Doe", no `{{…}}` placeholders (verified on the built binary).
+- [x] With `DXCRM_ACTOR` unset, the same preview renders the signature blank (no literal
+      `{{senderName}}`).
 
 ---
 
@@ -643,7 +644,7 @@ existing templates that pass `overrides` are unaffected (overrides still win).
 
 ## References
 - Research: [`docs/research/2026-06-14-phase-1-onboarding-first-value.md`](../research/2026-06-14-phase-1-onboarding-first-value.md)
-- Issues: [#106](../../issues/106), [#75](../../issues/75); reference pattern [#66](../../issues/66) (closed)
+- Issues: [#106](https://github.com/datasynx/datasynx-crm/issues/106), [#75](https://github.com/datasynx/datasynx-crm/issues/75); reference pattern [#66](https://github.com/datasynx/datasynx-crm/issues/66) (closed)
 - Mirror sources: `src/fs/unmatched-transcripts.ts`, `src/core/unmatched-digest.ts`,
   `src/commands/transcripts.ts`, `src/daemon/worker.ts:316-402`, `src/commands/status.ts:64-135`
 - #106 targets: `src/core/template-engine.ts:18-34`, `src/mcp/tools/draft-email.ts:30-31`,

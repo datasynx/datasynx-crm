@@ -24,10 +24,10 @@ last_updated_by: majone
 What is the current state of the codebase relevant to the **next phase** in
 [`ROADMAP.md`](../../ROADMAP.md)? Per the roadmap, the next execution phase is
 **Phase 1 — Onboarding & first-value (P0, directly serves the kill condition)**. With
-[#103](../../issues/103) delivered, the two remaining Phase 1 items are:
+[#103](https://github.com/datasynx/datasynx-crm/issues/103) delivered, the two remaining Phase 1 items are:
 
-- **[#75](../../issues/75)** — Unmatched conversations: event + daily digest + `resolve` command (mirror the closed #66 transcript pattern).
-- **[#106](../../issues/106)** — Auto-resolve sender/owner & contact first-name template variables in `draft_email`.
+- **[#75](https://github.com/datasynx/datasynx-crm/issues/75)** — Unmatched conversations: event + daily digest + `resolve` command (mirror the closed #66 transcript pattern).
+- **[#106](https://github.com/datasynx/datasynx-crm/issues/106)** — Auto-resolve sender/owner & contact first-name template variables in `draft_email`.
 
 This document maps the existing code those two issues touch. It describes what exists
 today — not what should change.

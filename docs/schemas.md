@@ -258,15 +258,19 @@ Best,
 > (across `outreach`/`followup`/`support`) flagged `starter: true`. They are freely
 > editable/deletable; a deleted starter is never recreated on a later `init`.
 
-**Standard template variables:**
+**Standard template variables** (auto-resolved by `draft_email` from the customer's
+`main_facts.md`/`contacts.json` and the environment; any can be overridden via `overrides`):
 
-| Variable | Description |
+| Variable | Source |
 |---|---|
-| `{{customerName}}` | Customer company name |
-| `{{contactEmail}}` | Primary contact email |
-| `{{dealValue}}` | Current deal value |
-| `{{stage}}` | Current pipeline stage |
-| `{{ownerName}}` | Account owner (from `DXCRM_ACTOR`) |
+| `{{company}}` | Customer name (`main_facts.name`, falls back to the slug) |
+| `{{domain}}` | Customer domain (`main_facts.domain`) |
+| `{{email}}` | Customer primary email (`main_facts.email`) |
+| `{{stage}}` | Relationship stage (`main_facts.relationship_stage`) |
+| `{{slug}}` | Customer slug |
+| `{{firstName}}` | Primary contact's first name (`contacts.json` primary, else `primary_contact`; blank if none) |
+| `{{senderName}}` / `{{ownerName}}` | Operator name (from `DXCRM_ACTOR`; blank if unset) |
+| `{{date}}` / `{{month}}` / `{{year}}` | Current date parts |
 
 Managed with `dxcrm template list|get|create|delete|render`.
 

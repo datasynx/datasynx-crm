@@ -1,6 +1,13 @@
 import { readMainFacts } from "../fs/customer-dir.js";
+import { getActorName } from "../fs/audit-log.js";
+import { getPrimaryContact } from "../fs/contacts-writer.js";
 
 export type TemplateVariables = Record<string, string | number | undefined>;
+
+/** First whitespace-delimited token of a full name (e.g. "Jane Roe" → "Jane"). */
+function firstNameOf(fullName: string | undefined): string {
+  return (fullName ?? "").trim().split(/\s+/)[0] ?? "";
+}
 
 const VARIABLE_REGEX = /\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g;
 
@@ -21,12 +28,17 @@ export async function buildVariablesFromCustomer(
 ): Promise<TemplateVariables> {
   const facts = await readMainFacts(dataDir, slug).catch(() => null);
   const now = new Date();
+  const senderName = getActorName();
+  const contactName = getPrimaryContact(dataDir, slug)?.name ?? facts?.primary_contact;
   return {
     company: facts?.name ?? slug,
     domain: facts?.domain ?? "",
     email: facts?.email ?? "",
     stage: facts?.relationship_stage ?? "",
     slug,
+    firstName: firstNameOf(contactName),
+    senderName,
+    ownerName: senderName,
     date: now.toLocaleDateString("de-DE"),
     year: now.getFullYear(),
     month: now.toLocaleDateString("de-DE", { month: "long" }),
